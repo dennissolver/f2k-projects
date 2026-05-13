@@ -21,13 +21,35 @@ export async function getAdminUser(): Promise<AdminUser | null> {
   if (!user) return null;
 
   const service = createSupabaseService();
-  const { data: adminUser } = await service
+
+  // Primary lookup — by auth_user_id (set by the link trigger on auth.users INSERT).
+  const { data: byAuth } = await service
     .from("admin_users")
     .select("*")
     .eq("auth_user_id", user.id)
-    .single();
+    .maybeSingle();
 
-  return (adminUser as AdminUser | null) ?? null;
+  if (byAuth) return byAuth as AdminUser;
+
+  // Self-heal fallback — link by email if trigger somehow didn't fire.
+  if (user.email) {
+    const { data: byEmail } = await service
+      .from("admin_users")
+      .select("*")
+      .eq("email", user.email)
+      .is("auth_user_id", null)
+      .maybeSingle();
+
+    if (byEmail) {
+      await service
+        .from("admin_users")
+        .update({ auth_user_id: user.id })
+        .eq("id", (byEmail as AdminUser).id);
+      return { ...(byEmail as AdminUser), auth_user_id: user.id };
+    }
+  }
+
+  return null;
 }
 
 export function hasPermission(role: AdminRole, action: string): boolean {

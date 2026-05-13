@@ -652,3 +652,45 @@ CREATE POLICY "service_role_all_admin_users"
 
 COMMENT ON TABLE admin_users IS
   'Admin users authorised to manage Factory2Key Projects allocations and registrations. Linked to auth.users via auth_user_id. Insert AFTER inviting the user via Supabase Auth.';
+
+-- =====================================================================
+-- RACE-FREE ADMIN LINKING
+-- =====================================================================
+-- Pre-creates admin_users rows for the 4 super_admins with auth_user_id = NULL,
+-- and installs an AFTER INSERT trigger on auth.users that auto-links the FK
+-- when the user accepts their invite and a matching auth.users row appears.
+-- Plus a one-shot reconciliation for any auth users that already exist.
+--
+-- After this runs, Dennis can invite admins via Supabase Dashboard → Auth →
+-- Users → Invite User. As each accepts, the trigger links them automatically.
+-- No timing trap; no second SQL step.
+
+INSERT INTO admin_users (email, role, full_name) VALUES
+  ('dennis@factory2key.com.au', 'super_admin', 'Dennis McMahon'),
+  ('uwe@factory2key.com.au', 'super_admin', 'Uwe Jacobs'),
+  ('tanveer@propertyfriends.com.au', 'super_admin', 'Tanveer'),
+  ('team@propertyfriends.com.au', 'super_admin', 'Lennie')
+ON CONFLICT (email) DO NOTHING;
+
+CREATE OR REPLACE FUNCTION link_admin_user_on_auth_create()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE public.admin_users
+    SET auth_user_id = NEW.id
+    WHERE email = NEW.email AND auth_user_id IS NULL;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS link_admin_user_trigger ON auth.users;
+CREATE TRIGGER link_admin_user_trigger
+  AFTER INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION link_admin_user_on_auth_create();
+
+-- One-shot reconciliation: link any auth users that exist already
+UPDATE public.admin_users a
+  SET auth_user_id = u.id
+  FROM auth.users u
+  WHERE a.email = u.email
+    AND a.auth_user_id IS NULL;
