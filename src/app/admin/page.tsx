@@ -67,6 +67,7 @@ export default async function AdminDashboard() {
   ];
 
   const quickLinks = [
+    { href: "/admin/seafields-stages", label: "Manage Seafields Stages" },
     { href: "/admin/seafields-lots", label: "Manage Seafields Lots" },
     { href: "/admin/seafields-pipeline", label: "Seafields Pipeline" },
     { href: "/admin/branscombe-units", label: "Manage Branscombe Units" },
