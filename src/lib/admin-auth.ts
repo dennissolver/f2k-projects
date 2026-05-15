@@ -61,6 +61,7 @@ export function hasPermission(role: AdminRole, action: string): boolean {
     manage_registrations: ["super_admin", "fund_manager", "compliance"],
     manage_seafields_allocations: ["super_admin", "fund_manager"],
     manage_seafields_stages: ["super_admin", "fund_manager"],
+    manage_seafields_import: ["super_admin", "fund_manager"],
     manage_branscombe_allocations: ["super_admin", "fund_manager"],
     manage_admin_users: ["super_admin"],
   };

@@ -14,6 +14,7 @@ const NAV: NavItem[] = [
   { href: "/admin/seafields-stages", label: "Seafields Stages", group: "Seafields" },
   { href: "/admin/seafields-lots", label: "Seafields Lots", group: "Seafields" },
   { href: "/admin/seafields-pipeline", label: "Seafields Pipeline", group: "Seafields" },
+  { href: "/admin/seafields-import", label: "Seafields Workbook Import", group: "Seafields" },
   { href: "/admin/branscombe-units", label: "Branscombe Units", group: "Branscombe" },
   { href: "/admin/branscombe-pipeline", label: "Branscombe Pipeline", group: "Branscombe" },
   { href: "/admin/audit-log", label: "Audit Log", group: "Compliance" },
