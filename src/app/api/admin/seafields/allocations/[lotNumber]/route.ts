@@ -7,26 +7,85 @@ import {
 } from "@/lib/supabase-service";
 import { forwardAllocationToGHL } from "@/lib/ghl";
 
+const ALLOCATION_BUCKETS = [
+  "public",
+  "groh",
+  "baurimus",
+  "takken",
+  "wachs",
+  "f2k_withheld",
+  "display_home",
+  "heritage_retained",
+] as const;
+
+const STATUSES = [
+  "available",
+  "reserved",
+  "withheld",
+  "sold",
+  "backup_list_only",
+] as const;
+
+const CATEGORIES = ["compact", "standard", "large", "premium", "heritage"] as const;
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const updateSchema = z.object({
+  // Legacy free-text fields (still writable for back-compat; will be retired
+  // once consumers fully read from the FK / enum columns instead)
   allocated_to: z.string().trim().max(200).nullable().optional(),
-  dwelling_type: z
-    .string()
-    .trim()
-    .max(50)
-    .nullable()
-    .optional(),
+  dwelling_type: z.string().trim().max(50).nullable().optional(),
   stage: z.string().trim().max(50).nullable().optional(),
   notes: z.string().trim().max(1000).nullable().optional(),
+
+  // New typed columns from migration 0003
+  status: z.enum(STATUSES).nullable().optional(),
+  allocation_bucket: z.enum(ALLOCATION_BUCKETS).nullable().optional(),
+  stage_id: z.string().regex(UUID_RE).nullable().optional(),
+  dwelling_type_id: z.string().regex(UUID_RE).nullable().optional(),
+  category: z.enum(CATEGORIES).nullable().optional(),
+  zone: z.string().trim().max(200).nullable().optional(),
+  land_only: z.boolean().optional(),
+  land_rate_override_per_sqm: z
+    .number()
+    .min(0)
+    .max(99_999.99)
+    .nullable()
+    .optional(),
+  house_cost: z.number().min(0).max(99_999_999.99).nullable().optional(),
+  display_price_to_public: z.boolean().optional(),
+  public_label: z.string().trim().max(200).nullable().optional(),
+  internal_notes: z.string().trim().max(2000).nullable().optional(),
+
+  // Pricing
   wholesale_price: z.number().min(0).max(99_999_999.99).nullable().optional(),
   retail_price: z.number().min(0).max(99_999_999.99).nullable().optional(),
-  /**
-   * Soft-allocation: pin a specific seafields_registrations entry as the
-   * priority lead for this lot. Pass null to clear the lock.
-   */
+
+  // Intent-lock workflow
   intent_locked_to_registration_id: z.string().uuid().nullable().optional(),
   x_pct: z.number().min(0).max(100).nullable().optional(),
   y_pct: z.number().min(0).max(100).nullable().optional(),
+
+  // Required by server when ANY MATERIAL_FIELDS field changes.
+  reason: z.string().trim().min(10).max(500).optional(),
 });
+
+// Per [[seafields-reason-scope]]: reason required only for status, allocation,
+// pricing, and stage gating changes. Cosmetic / FK-only / coordinate edits
+// save silently.
+const MATERIAL_FIELDS = [
+  "status",
+  "allocated_to",
+  "allocation_bucket",
+  "stage",
+  "stage_id",
+  "land_rate_override_per_sqm",
+  "house_cost",
+  "wholesale_price",
+  "retail_price",
+  "display_price_to_public",
+  "public_label",
+] as const;
 
 function emptyToNull<T>(v: T | undefined): T | null | undefined {
   if (v === undefined) return undefined;
@@ -36,7 +95,7 @@ function emptyToNull<T>(v: T | undefined): T | null | undefined {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { lotNumber: string } }
+  { params }: { params: { lotNumber: string } },
 ) {
   const admin = await getAdminUser();
   if (!admin || !hasPermission(admin.role, "manage_seafields_allocations")) {
@@ -53,31 +112,58 @@ export async function PATCH(
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0].message },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  const updates: Record<string, unknown> = {};
-  if (parsed.data.allocated_to !== undefined)
-    updates.allocated_to = emptyToNull(parsed.data.allocated_to);
-  if (parsed.data.dwelling_type !== undefined)
-    updates.dwelling_type = emptyToNull(parsed.data.dwelling_type);
-  if (parsed.data.stage !== undefined)
-    updates.stage = emptyToNull(parsed.data.stage);
-  if (parsed.data.notes !== undefined)
-    updates.notes = emptyToNull(parsed.data.notes);
-  if (parsed.data.wholesale_price !== undefined)
-    updates.wholesale_price = parsed.data.wholesale_price;
-  if (parsed.data.retail_price !== undefined)
-    updates.retail_price = parsed.data.retail_price;
-  if (parsed.data.x_pct !== undefined) updates.x_pct = parsed.data.x_pct;
-  if (parsed.data.y_pct !== undefined) updates.y_pct = parsed.data.y_pct;
+  const { reason, ...rawUpdates } = parsed.data;
 
-  // Intent-lock: stamp audit metadata when set, clear when unset
-  if (parsed.data.intent_locked_to_registration_id !== undefined) {
+  const updates: Record<string, unknown> = {};
+  // Legacy
+  if (rawUpdates.allocated_to !== undefined)
+    updates.allocated_to = emptyToNull(rawUpdates.allocated_to);
+  if (rawUpdates.dwelling_type !== undefined)
+    updates.dwelling_type = emptyToNull(rawUpdates.dwelling_type);
+  if (rawUpdates.stage !== undefined)
+    updates.stage = emptyToNull(rawUpdates.stage);
+  if (rawUpdates.notes !== undefined)
+    updates.notes = emptyToNull(rawUpdates.notes);
+  // New typed
+  if (rawUpdates.status !== undefined) updates.status = rawUpdates.status;
+  if (rawUpdates.allocation_bucket !== undefined)
+    updates.allocation_bucket = rawUpdates.allocation_bucket;
+  if (rawUpdates.stage_id !== undefined) updates.stage_id = rawUpdates.stage_id;
+  if (rawUpdates.dwelling_type_id !== undefined)
+    updates.dwelling_type_id = rawUpdates.dwelling_type_id;
+  if (rawUpdates.category !== undefined) updates.category = rawUpdates.category;
+  if (rawUpdates.zone !== undefined)
+    updates.zone = emptyToNull(rawUpdates.zone);
+  if (rawUpdates.land_only !== undefined)
+    updates.land_only = rawUpdates.land_only;
+  if (rawUpdates.land_rate_override_per_sqm !== undefined)
+    updates.land_rate_override_per_sqm = rawUpdates.land_rate_override_per_sqm;
+  if (rawUpdates.house_cost !== undefined)
+    updates.house_cost = rawUpdates.house_cost;
+  if (rawUpdates.display_price_to_public !== undefined)
+    updates.display_price_to_public = rawUpdates.display_price_to_public;
+  if (rawUpdates.public_label !== undefined)
+    updates.public_label = emptyToNull(rawUpdates.public_label);
+  if (rawUpdates.internal_notes !== undefined)
+    updates.internal_notes = emptyToNull(rawUpdates.internal_notes);
+  // Pricing
+  if (rawUpdates.wholesale_price !== undefined)
+    updates.wholesale_price = rawUpdates.wholesale_price;
+  if (rawUpdates.retail_price !== undefined)
+    updates.retail_price = rawUpdates.retail_price;
+  // Map coords
+  if (rawUpdates.x_pct !== undefined) updates.x_pct = rawUpdates.x_pct;
+  if (rawUpdates.y_pct !== undefined) updates.y_pct = rawUpdates.y_pct;
+
+  // Intent-lock metadata
+  if (rawUpdates.intent_locked_to_registration_id !== undefined) {
     updates.intent_locked_to_registration_id =
-      parsed.data.intent_locked_to_registration_id;
-    if (parsed.data.intent_locked_to_registration_id) {
+      rawUpdates.intent_locked_to_registration_id;
+    if (rawUpdates.intent_locked_to_registration_id) {
       updates.intent_locked_at = new Date().toISOString();
       updates.intent_locked_by = admin.auth_user_id;
     } else {
@@ -88,6 +174,18 @@ export async function PATCH(
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "No fields to update" }, { status: 400 });
+  }
+
+  // Material-field reason gate
+  const touchesMaterial = MATERIAL_FIELDS.some((f) => f in updates);
+  if (touchesMaterial && (!reason || reason.length < 10)) {
+    return NextResponse.json(
+      {
+        error:
+          "A reason (≥10 chars) is required when changing status, allocation, pricing, stage gating, or public display.",
+      },
+      { status: 400 },
+    );
   }
 
   // Stamp assignment metadata when allocated_to is changing
@@ -111,10 +209,9 @@ export async function PATCH(
     .eq("lot_number", lotNumber)
     .maybeSingle();
 
-  // Write through an attributed client so the audit trigger (migration 0008)
-  // records actor_email on every per-field row. Reason field is added by the
-  // Lot Editor extension (F2KSFLDS-4); for now reason stays null.
-  const attributed = createSupabaseServiceWithActor(admin.email, null);
+  // Attributed write — audit trigger (migration 0008) records actor_email
+  // and reason on every per-field row.
+  const attributed = createSupabaseServiceWithActor(admin.email, reason ?? null);
   const { data: updated, error } = await (attributed
     .from("seafields_lot_allocations") as any)
     .update(updates)
@@ -127,8 +224,6 @@ export async function PATCH(
   }
 
   // Forward allocation state to GHL if a registrant is identifiable.
-  // (Bulk WACHS / GROH allocations have no FK and are skipped — they're
-  // institutional, not individual GHL contacts.)
   try {
     let regId: string | null = null;
     let state: "soft" | "firm" | "cleared" | null = null;

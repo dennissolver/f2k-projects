@@ -1,8 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LOTS } from "@/data/seafields";
 import AdminLotWaitlist from "./AdminLotWaitlist";
+
+const ALLOCATION_BUCKETS = [
+  "public",
+  "groh",
+  "baurimus",
+  "takken",
+  "wachs",
+  "f2k_withheld",
+  "display_home",
+  "heritage_retained",
+] as const;
+type AllocationBucket = (typeof ALLOCATION_BUCKETS)[number];
+
+const BUCKET_LABELS: Record<AllocationBucket, string> = {
+  public: "Public (open market)",
+  groh: "GROH",
+  wachs: "WACHS",
+  takken: "Takken",
+  baurimus: "Baurimus",
+  f2k_withheld: "F2K withheld",
+  display_home: "Display home",
+  heritage_retained: "Heritage retained",
+};
+
+const STATUSES = [
+  "available",
+  "reserved",
+  "withheld",
+  "sold",
+  "backup_list_only",
+] as const;
+type Status = (typeof STATUSES)[number];
+
+const STATUS_LABELS: Record<Status, string> = {
+  available: "Available",
+  reserved: "Reserved",
+  withheld: "Withheld",
+  sold: "Sold",
+  backup_list_only: "Backup list only",
+};
 
 export interface FullAllocation {
   lot_number: number;
@@ -17,6 +57,33 @@ export interface FullAllocation {
   intent_locked_at: string | null;
   assigned_at: string | null;
   updated_at: string;
+  // New typed columns
+  status: Status | null;
+  allocation_bucket: AllocationBucket | null;
+  stage_id: string | null;
+  dwelling_type_id: string | null;
+  category: string | null;
+  zone: string | null;
+  land_only: boolean | null;
+  land_rate_override_per_sqm: number | null;
+  house_cost: number | null;
+  display_price_to_public: boolean | null;
+  public_label: string | null;
+  internal_notes: string | null;
+}
+
+interface StageOption {
+  id: string;
+  stage_number: number;
+  stage_label: string;
+  rate_per_sqm: number | null;
+}
+
+interface DwellingOption {
+  id: string;
+  code: string;
+  plan_name: string;
+  is_active: boolean;
 }
 
 interface Props {
@@ -27,8 +94,31 @@ interface Props {
   onSaved: (a: FullAllocation) => void;
 }
 
-const DWELLING_OPTIONS = ["", "2x2BR", "3BR", "4BR"];
-const STAGE_OPTIONS = ["", "1", "2", "3", "4", "5", "6", "7"];
+// Material fields: changing any of these requires a reason ≥10 chars.
+const MATERIAL_KEYS = [
+  "status",
+  "allocated_to",
+  "allocation_bucket",
+  "stage_id",
+  "land_rate_override_per_sqm",
+  "house_cost",
+  "wholesale_price",
+  "retail_price",
+  "display_price_to_public",
+  "public_label",
+] as const;
+
+type MaterialKey = (typeof MATERIAL_KEYS)[number];
+
+function numToStr(n: number | null | undefined): string {
+  return n == null ? "" : String(n);
+}
+
+function strToNum(s: string): number | null {
+  if (s.trim() === "") return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
 
 export default function AdminLotEditModal({
   lotNumber,
@@ -37,23 +127,78 @@ export default function AdminLotEditModal({
   onClose,
   onSaved,
 }: Props) {
-  // Look up the canonical lot record from the shared register for read-only metadata
   const lotMeta = LOTS.find((l) => l.lotNumber === lotNumber);
 
+  // Form state
   const [allocatedTo, setAllocatedTo] = useState(allocation?.allocated_to ?? "");
-  const [dwellingType, setDwellingType] = useState(
-    allocation?.dwelling_type ?? "",
+  const [allocationBucket, setAllocationBucket] = useState<AllocationBucket>(
+    (allocation?.allocation_bucket ?? "public") as AllocationBucket,
   );
-  const [stage, setStage] = useState(allocation?.stage ?? "");
-  const [wholesale, setWholesale] = useState<string>(
-    allocation?.wholesale_price != null ? String(allocation.wholesale_price) : "",
+  const [status, setStatus] = useState<Status>(
+    (allocation?.status ?? "available") as Status,
   );
-  const [retail, setRetail] = useState<string>(
-    allocation?.retail_price != null ? String(allocation.retail_price) : "",
+  const [stageId, setStageId] = useState<string>(allocation?.stage_id ?? "");
+  const [dwellingTypeId, setDwellingTypeId] = useState<string>(
+    allocation?.dwelling_type_id ?? "",
   );
+  const [landOnly, setLandOnly] = useState<boolean>(
+    allocation?.land_only ?? true,
+  );
+  const [landRateOverride, setLandRateOverride] = useState(
+    numToStr(allocation?.land_rate_override_per_sqm ?? null),
+  );
+  const [houseCost, setHouseCost] = useState(
+    numToStr(allocation?.house_cost ?? null),
+  );
+  const [displayPrice, setDisplayPrice] = useState<boolean>(
+    allocation?.display_price_to_public ?? true,
+  );
+  const [publicLabel, setPublicLabel] = useState(allocation?.public_label ?? "");
+  const [internalNotes, setInternalNotes] = useState(
+    allocation?.internal_notes ?? "",
+  );
+  const [wholesale, setWholesale] = useState(
+    numToStr(allocation?.wholesale_price ?? null),
+  );
+  const [retail, setRetail] = useState(numToStr(allocation?.retail_price ?? null));
   const [notes, setNotes] = useState(allocation?.notes ?? "");
+  const [reason, setReason] = useState("");
+
+  // FK options
+  const [stages, setStages] = useState<StageOption[]>([]);
+  const [dwellings, setDwellings] = useState<DwellingOption[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(true);
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setOptionsLoading(true);
+    Promise.all([
+      fetch("/api/admin/seafields/stages").then((r) => r.json()),
+      fetch("/api/admin/seafields/dwelling-types").then((r) => r.json()),
+    ])
+      .then(([s, d]) => {
+        if (cancelled) return;
+        setStages((s.stages ?? []) as StageOption[]);
+        setDwellings(
+          ((d.dwelling_types ?? []) as DwellingOption[]).filter(
+            (x) => x.is_active,
+          ),
+        );
+      })
+      .catch(() => {
+        if (!cancelled)
+          setError("Failed to load stage / dwelling type options");
+      })
+      .finally(() => {
+        if (!cancelled) setOptionsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Close on Escape
   useEffect(() => {
@@ -64,33 +209,113 @@ export default function AdminLotEditModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // Compute which material fields have changed vs initial allocation
+  const materialChanges = useMemo<MaterialKey[]>(() => {
+    if (!allocation) return [];
+    const changed: MaterialKey[] = [];
+    const ws = strToNum(wholesale);
+    const rs = strToNum(retail);
+    const lro = strToNum(landRateOverride);
+    const hc = strToNum(houseCost);
+    if ((allocatedTo.trim() || null) !== allocation.allocated_to)
+      changed.push("allocated_to");
+    if (allocationBucket !== (allocation.allocation_bucket ?? "public"))
+      changed.push("allocation_bucket");
+    if (status !== (allocation.status ?? "available")) changed.push("status");
+    if ((stageId || null) !== (allocation.stage_id ?? null))
+      changed.push("stage_id");
+    if (lro !== (allocation.land_rate_override_per_sqm ?? null))
+      changed.push("land_rate_override_per_sqm");
+    if (hc !== (allocation.house_cost ?? null)) changed.push("house_cost");
+    if (ws !== (allocation.wholesale_price ?? null))
+      changed.push("wholesale_price");
+    if (rs !== (allocation.retail_price ?? null))
+      changed.push("retail_price");
+    if (displayPrice !== (allocation.display_price_to_public ?? true))
+      changed.push("display_price_to_public");
+    if ((publicLabel.trim() || null) !== (allocation.public_label ?? null))
+      changed.push("public_label");
+    return changed;
+  }, [
+    allocation,
+    allocatedTo,
+    allocationBucket,
+    status,
+    stageId,
+    landRateOverride,
+    houseCost,
+    wholesale,
+    retail,
+    displayPrice,
+    publicLabel,
+  ]);
+
+  const touchesMaterial = materialChanges.length > 0;
+
   async function handleSave() {
     setError(null);
+    if (touchesMaterial && reason.trim().length < 10) {
+      setError(
+        "A reason (≥10 chars) is required when changing status, allocation, pricing, stage, or public display.",
+      );
+      return;
+    }
+
     setSaving(true);
     try {
-      const wholesaleNum = wholesale.trim() === "" ? null : Number(wholesale);
-      const retailNum = retail.trim() === "" ? null : Number(retail);
-      if (wholesaleNum !== null && Number.isNaN(wholesaleNum)) {
-        setError("Wholesale price must be a number");
+      // Build minimal patch — only fields that differ from the initial
+      // allocation. Server's MATERIAL_FIELDS reason gate keys off which
+      // material fields are PRESENT in the payload, so we mustn't send
+      // unchanged values.
+      const a = allocation;
+      const stageNumberText = stageId
+        ? String(stages.find((s) => s.id === stageId)?.stage_number ?? "")
+        : null;
+      const trimOrNull = (s: string) => (s.trim() === "" ? null : s.trim());
+
+      const payload: Record<string, unknown> = {};
+      if ((allocatedTo.trim() || null) !== (a?.allocated_to ?? null))
+        payload.allocated_to = trimOrNull(allocatedTo);
+      if (allocationBucket !== (a?.allocation_bucket ?? "public"))
+        payload.allocation_bucket = allocationBucket;
+      if (status !== (a?.status ?? "available")) payload.status = status;
+      if ((stageId || null) !== (a?.stage_id ?? null)) {
+        payload.stage_id = stageId || null;
+        payload.stage = stageNumberText || null;
+      }
+      if ((dwellingTypeId || null) !== (a?.dwelling_type_id ?? null))
+        payload.dwelling_type_id = dwellingTypeId || null;
+      if (landOnly !== (a?.land_only ?? true))
+        payload.land_only = landOnly;
+      if (strToNum(landRateOverride) !== (a?.land_rate_override_per_sqm ?? null))
+        payload.land_rate_override_per_sqm = strToNum(landRateOverride);
+      if (strToNum(houseCost) !== (a?.house_cost ?? null))
+        payload.house_cost = strToNum(houseCost);
+      if (displayPrice !== (a?.display_price_to_public ?? true))
+        payload.display_price_to_public = displayPrice;
+      if ((publicLabel.trim() || null) !== (a?.public_label ?? null))
+        payload.public_label = trimOrNull(publicLabel);
+      if ((internalNotes.trim() || null) !== (a?.internal_notes ?? null))
+        payload.internal_notes = trimOrNull(internalNotes);
+      if (strToNum(wholesale) !== (a?.wholesale_price ?? null))
+        payload.wholesale_price = strToNum(wholesale);
+      if (strToNum(retail) !== (a?.retail_price ?? null))
+        payload.retail_price = strToNum(retail);
+      if ((notes.trim() || null) !== (a?.notes ?? null))
+        payload.notes = trimOrNull(notes);
+
+      if (Object.keys(payload).length === 0) {
+        setError("No changes to save.");
         setSaving(false);
         return;
       }
-      if (retailNum !== null && Number.isNaN(retailNum)) {
-        setError("Retail price must be a number");
-        setSaving(false);
-        return;
-      }
+
+      if (touchesMaterial) payload.reason = reason.trim();
+
       const res = await fetch(`/api/admin/seafields/allocations/${lotNumber}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          allocated_to: allocatedTo.trim() || null,
-          dwelling_type: dwellingType.trim() || null,
-          stage: stage.trim() || null,
-          notes: notes.trim() || null,
-          wholesale_price: wholesaleNum,
-          retail_price: retailNum,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -107,7 +332,16 @@ export default function AdminLotEditModal({
   }
 
   async function handleClear() {
-    if (!confirm(`Clear allocation for lot ${lotNumber}? This removes the offtaker but keeps notes.`)) return;
+    const clearReason = window.prompt(
+      `Clear allocation for lot ${lotNumber}? Enter reason (≥10 chars):`,
+      "Releasing allocation back to public pool",
+    );
+    if (!clearReason || clearReason.trim().length < 10) {
+      if (clearReason !== null) {
+        setError("Reason (≥10 chars) is required to clear an allocation.");
+      }
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -117,6 +351,10 @@ export default function AdminLotEditModal({
         body: JSON.stringify({
           allocated_to: null,
           dwelling_type: null,
+          allocation_bucket: "public",
+          status: "available",
+          dwelling_type_id: null,
+          reason: clearReason.trim(),
         }),
       });
       const data = await res.json();
@@ -134,11 +372,7 @@ export default function AdminLotEditModal({
   }
 
   const isHeritage = lotMeta?.isHeritage;
-  const publicStatus = allocation?.allocated_to
-    ? "Reserved"
-    : allocation?.intent_locked_to_registration_id
-      ? "Reserved (under discussion)"
-      : "Available";
+  const publicStatusLabel = STATUS_LABELS[status];
 
   return (
     <div
@@ -186,7 +420,7 @@ export default function AdminLotEditModal({
                   Public status
                 </div>
                 <div className="font-semibold text-slate-900 text-sm mt-0.5">
-                  {publicStatus}
+                  {publicStatusLabel}
                 </div>
               </div>
               <div>
@@ -200,108 +434,267 @@ export default function AdminLotEditModal({
             </div>
             <div className="text-[11px] text-slate-500 mt-2">
               Public site shows status + sqm only; offtaker name and pricing
-              are hidden.
+              are hidden unless display_price is on.
             </div>
           </div>
 
-          {/* Editable fields */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-              Offtaker / Allocated to
-            </label>
-            <input
-              type="text"
-              value={allocatedTo}
-              onChange={(e) => setAllocatedTo(e.target.value)}
-              placeholder="e.g. WACHS, GROH, Takken, investor name"
-              className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-            />
-            <div className="text-[11px] text-slate-500 mt-1">
-              Setting any value flips the lot to Reserved on the public site.
-              Leave blank to keep Available.
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
+          {/* Allocation */}
+          <fieldset className="space-y-3 border-t border-slate-100 pt-4">
+            <legend className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+              Allocation
+            </legend>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Dwelling type
+              <label className="block text-xs text-slate-600 mb-1">
+                Bucket
               </label>
               <select
-                value={dwellingType}
-                onChange={(e) => setDwellingType(e.target.value)}
+                value={allocationBucket}
+                onChange={(e) =>
+                  setAllocationBucket(e.target.value as AllocationBucket)
+                }
                 className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
               >
-                {DWELLING_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt || "— None —"}
+                {ALLOCATION_BUCKETS.map((b) => (
+                  <option key={b} value={b}>
+                    {BUCKET_LABELS[b]}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs text-slate-600 mb-1">
+                Counterparty / Allocated to
+              </label>
+              <input
+                type="text"
+                value={allocatedTo}
+                onChange={(e) => setAllocatedTo(e.target.value)}
+                placeholder="Optional — e.g. WACHS, Takken, investor name"
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+              />
+              <div className="text-[11px] text-slate-500 mt-1">
+                Free-text counterparty label. Bucket drives the canonical
+                state; this is just the name attached to that bucket.
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">
+                Status
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as Status)}
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+              >
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {STATUS_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </fieldset>
+
+          {/* Stage & dwelling */}
+          <fieldset className="space-y-3 border-t border-slate-100 pt-4">
+            <legend className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+              Stage & dwelling
+            </legend>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">
                 Stage
               </label>
               <select
-                value={stage}
-                onChange={(e) => setStage(e.target.value)}
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                value={stageId}
+                onChange={(e) => setStageId(e.target.value)}
+                disabled={optionsLoading}
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm disabled:opacity-50"
               >
-                {STAGE_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt ? `Stage ${opt}` : "— None —"}
+                <option value="">— None —</option>
+                {stages.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    Stage {s.stage_number} — {s.stage_label}
                   </option>
                 ))}
               </select>
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Wholesale (AUD)
+              <label className="block text-xs text-slate-600 mb-1">
+                Dwelling type
               </label>
-              <input
-                type="number"
-                inputMode="decimal"
-                step="1000"
-                min="0"
-                value={wholesale}
-                onChange={(e) => setWholesale(e.target.value)}
-                placeholder="0"
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-              />
+              <select
+                value={dwellingTypeId}
+                onChange={(e) => setDwellingTypeId(e.target.value)}
+                disabled={optionsLoading}
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm disabled:opacity-50"
+              >
+                <option value="">— None (land only) —</option>
+                {dwellings.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.code} — {d.plan_name}
+                  </option>
+                ))}
+              </select>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Retail (AUD)
-              </label>
-              <input
-                type="number"
-                inputMode="decimal"
-                step="1000"
-                min="0"
-                value={retail}
-                onChange={(e) => setRetail(e.target.value)}
-                placeholder="0"
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-              />
-            </div>
-          </div>
+          </fieldset>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-              Notes (admin-only)
+          {/* Land / build */}
+          <fieldset className="space-y-3 border-t border-slate-100 pt-4">
+            <legend className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+              Land & build
+            </legend>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={landOnly}
+                onChange={(e) => setLandOnly(e.target.checked)}
+                className="h-4 w-4"
+              />
+              <span>Land only (no H&L bundle)</span>
             </label>
-            <textarea
-              rows={4}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. WACHS in discussions; Takken to confirm 3BR; stormwater easement under review"
-              className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-600 mb-1">
+                  Land $/m² override
+                </label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="1"
+                  min="0"
+                  value={landRateOverride}
+                  onChange={(e) => setLandRateOverride(e.target.value)}
+                  placeholder="(stage rate)"
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-600 mb-1">
+                  House cost
+                </label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="1000"
+                  min="0"
+                  value={houseCost}
+                  onChange={(e) => setHouseCost(e.target.value)}
+                  placeholder="(land only)"
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+          </fieldset>
+
+          {/* Pricing & display */}
+          <fieldset className="space-y-3 border-t border-slate-100 pt-4">
+            <legend className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+              Pricing & display
+            </legend>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-600 mb-1">
+                  Wholesale (AUD)
+                </label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="1000"
+                  min="0"
+                  value={wholesale}
+                  onChange={(e) => setWholesale(e.target.value)}
+                  placeholder="0"
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-600 mb-1">
+                  Retail (AUD)
+                </label>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="1000"
+                  min="0"
+                  value={retail}
+                  onChange={(e) => setRetail(e.target.value)}
+                  placeholder="0"
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={displayPrice}
+                onChange={(e) => setDisplayPrice(e.target.checked)}
+                className="h-4 w-4"
+              />
+              <span>Display price to public</span>
+            </label>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">
+                Public label (override)
+              </label>
+              <input
+                type="text"
+                value={publicLabel}
+                onChange={(e) => setPublicLabel(e.target.value)}
+                placeholder="Optional — overrides default lot card title"
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+              />
+            </div>
+          </fieldset>
+
+          {/* Notes */}
+          <fieldset className="space-y-3 border-t border-slate-100 pt-4">
+            <legend className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+              Notes (admin-only)
+            </legend>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">
+                Internal notes
+              </label>
+              <textarea
+                rows={3}
+                value={internalNotes}
+                onChange={(e) => setInternalNotes(e.target.value)}
+                placeholder="Workbook-sourced context; carries through V2/V3 merges"
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">
+                Notes (legacy)
+              </label>
+              <textarea
+                rows={2}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Older free-form notes column — superseded by internal_notes"
+                className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+              />
+            </div>
+          </fieldset>
+
+          {/* Conditional reason gate */}
+          {touchesMaterial && (
+            <div className="bg-amber-50 border border-amber-200 rounded p-3">
+              <label className="block text-xs font-semibold text-amber-900 uppercase tracking-wider mb-1">
+                Reason for change (required, ≥10 chars)
+              </label>
+              <input
+                type="text"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder={`Changing ${materialChanges.join(", ")} — explain why`}
+                className="w-full border border-amber-300 rounded px-3 py-2 text-sm bg-white"
+              />
+              <p className="text-[11px] text-amber-800 mt-1">
+                Audit log records this with your email and timestamp.
+              </p>
+            </div>
+          )}
 
           <AdminLotWaitlist
             lotId={lotId}
@@ -309,8 +702,7 @@ export default function AdminLotEditModal({
             intentLockedToRegistrationId={
               allocation?.intent_locked_to_registration_id ?? null
             }
-            onIntentLockChanged={async (regId) => {
-              // Refetch the allocation to reflect the lock state
+            onIntentLockChanged={async () => {
               const res = await fetch("/api/admin/seafields/allocations");
               if (res.ok) {
                 const data = await res.json();
@@ -319,12 +711,8 @@ export default function AdminLotEditModal({
                 );
                 if (updated) onSaved(updated);
               }
-              if (regId === null) {
-                // No-op message (parent handles state)
-              }
             }}
             onConvertedToAllocation={async () => {
-              // Refetch and close — firm allocation set
               const res = await fetch("/api/admin/seafields/allocations");
               if (res.ok) {
                 const data = await res.json();
@@ -347,7 +735,9 @@ export default function AdminLotEditModal({
         </div>
 
         <div className="sticky bottom-0 bg-white border-t border-slate-200 px-6 py-3 flex items-center justify-between gap-3">
-          {allocation?.allocated_to ? (
+          {allocation?.allocated_to ||
+          (allocation?.allocation_bucket &&
+            allocation.allocation_bucket !== "public") ? (
             <button
               onClick={handleClear}
               disabled={saving}
@@ -369,7 +759,7 @@ export default function AdminLotEditModal({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="bg-deep-blue hover:opacity-90 bg-slate-900 text-white px-5 py-2 rounded text-sm font-semibold disabled:opacity-50"
+              className="bg-slate-900 hover:bg-slate-700 text-white px-5 py-2 rounded text-sm font-semibold disabled:opacity-50"
             >
               {saving ? "Saving…" : "Save"}
             </button>

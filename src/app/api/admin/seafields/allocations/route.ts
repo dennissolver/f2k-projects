@@ -13,7 +13,7 @@ export async function GET() {
   const supabase = createSupabaseService();
   const { data, error } = await (supabase.from("seafields_lot_allocations") as any)
     .select(
-      "lot_number, sqm, allocated_to, dwelling_type, stage, x_pct, y_pct, assigned_at, updated_at, notes, wholesale_price, retail_price, intent_locked_to_registration_id, intent_locked_at, intent_locked_by"
+      "lot_number, sqm, allocated_to, dwelling_type, stage, x_pct, y_pct, assigned_at, updated_at, notes, wholesale_price, retail_price, intent_locked_to_registration_id, intent_locked_at, intent_locked_by, status, allocation_bucket, stage_id, dwelling_type_id, category, zone, land_only, land_rate_override_per_sqm, house_cost, display_price_to_public, public_label, internal_notes"
     )
     .order("lot_number");
 

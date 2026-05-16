@@ -24,6 +24,34 @@ interface Allocation {
   intent_locked_to_registration_id: string | null;
   intent_locked_at: string | null;
   intent_locked_by: string | null;
+  // Typed columns added in migration 0003 (surfaced by the GET endpoint)
+  status:
+    | "available"
+    | "reserved"
+    | "withheld"
+    | "sold"
+    | "backup_list_only"
+    | null;
+  allocation_bucket:
+    | "public"
+    | "groh"
+    | "baurimus"
+    | "takken"
+    | "wachs"
+    | "f2k_withheld"
+    | "display_home"
+    | "heritage_retained"
+    | null;
+  stage_id: string | null;
+  dwelling_type_id: string | null;
+  category: string | null;
+  zone: string | null;
+  land_only: boolean | null;
+  land_rate_override_per_sqm: number | null;
+  house_cost: number | null;
+  display_price_to_public: boolean | null;
+  public_label: string | null;
+  internal_notes: string | null;
 }
 
 const STAGE_COLOR: Record<string, string> = {
