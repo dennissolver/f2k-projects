@@ -4,6 +4,7 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { PreviewModeProvider } from "@/components/admin/PreviewModeProvider";
 import { PreviewModeBanner } from "@/components/admin/PreviewModeBanner";
 import { getAdminUser } from "@/lib/admin-auth";
+import { createSupabaseServer } from "@/lib/supabase-server";
 
 export default async function AdminLayout({
   children,
@@ -19,6 +20,20 @@ export default async function AdminLayout({
 
   const adminUser = await getAdminUser();
   if (!adminUser) {
+    // Distinguish "no session" from "signed in but not on the admin allowlist" —
+    // a silent redirect on the latter looks like a login failure to the user.
+    const supabase = createSupabaseServer();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      redirect(
+        "/admin/login?error=" +
+          encodeURIComponent(
+            "This account isn't on the admin allowlist. Contact Dennis to be added.",
+          ),
+      );
+    }
     redirect("/admin/login");
   }
 

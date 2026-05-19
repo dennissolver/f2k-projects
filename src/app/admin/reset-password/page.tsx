@@ -13,6 +13,7 @@ export default function ResetPasswordPage() {
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
 
   // Verify the user landed here with an active recovery session
   useEffect(() => {
@@ -22,6 +23,7 @@ export default function ResetPasswordPage() {
     );
     supabase.auth.getSession().then(({ data: { session } }) => {
       setHasSession(Boolean(session));
+      setSessionEmail(session?.user?.email ?? null);
     });
   }, []);
 
@@ -52,9 +54,9 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    setInfo("Password updated. Redirecting...");
+    setInfo("Password updated. Signing you in...");
     setTimeout(() => {
-      window.location.href = "/";
+      window.location.href = "/admin";
     }, 1200);
   }
 
@@ -75,6 +77,14 @@ export default function ResetPasswordPage() {
           <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded p-3 mb-4">
             No active reset session. Open this page from the password-reset email link, or
             request a new one from the login page.
+          </p>
+        )}
+
+        {hasSession && sessionEmail && (
+          <p className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded p-3 mb-4">
+            Resetting password for <span className="font-semibold">{sessionEmail}</span>.
+            If that&apos;s not your account, close this tab and request a new link from the
+            correct address.
           </p>
         )}
 
