@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@caistech/corporate-components':
+        specifier: ^0.3.1
+        version: 0.3.1(@caistech/abn-lookup@0.1.1(typescript@5.9.3))(@caistech/mapbox@0.2.0(typescript@5.9.3))(lucide-react@1.16.0(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
       '@caistech/ghl-client':
         specifier: ^0.1.2
         version: 0.1.2
@@ -42,6 +45,9 @@ importers:
         specifier: ^3.24.0
         version: 3.25.76
     devDependencies:
+      '@caistech/portfolio-gate':
+        specifier: ^0.3.0
+        version: 0.3.0(next@14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(playwright@1.60.0)(typescript@5.9.3)
       '@types/mapbox-gl':
         specifier: ^3.5.0
         version: 3.5.0
@@ -85,8 +91,35 @@ packages:
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
 
+  '@caistech/abn-lookup@0.1.1':
+    resolution: {integrity: sha512-KxsRmGlRbM0uShaOuXV8f3yU8BXsTkCnRzxw2HC55G+rEyk9E1ZTffttayHDdxjKlLS+HSGFH/ToJMUC4zLMLQ==, tarball: https://npm.pkg.github.com/download/@caistech/abn-lookup/0.1.1/e741d6215a861fdfde3691e2d63bf3a7644c06f6}
+    peerDependencies:
+      typescript: '>=5.0.0'
+
+  '@caistech/corporate-components@0.3.1':
+    resolution: {integrity: sha512-/qVlXVmtEz5natInmWOZ/pkDwOQfRqq4GEomVUJq6yzHbpZwh+fOG98vxMSMDmTbcBqvTwxLESMrPQaBhwzSMw==, tarball: https://npm.pkg.github.com/download/@caistech/corporate-components/0.3.1/eca93f1da4d69e502dd02a4b9a83260ed9899a91}
+    peerDependencies:
+      '@caistech/abn-lookup': '*'
+      '@caistech/mapbox': '*'
+      lucide-react: '>=0.300.0'
+      react: ^18.0.0 || ^19.0.0
+      typescript: '>=5.0.0'
+
   '@caistech/ghl-client@0.1.2':
     resolution: {integrity: sha512-l1jCzmc4h5MFGrAwFvCMMVEsuGkOKMXjIgbVeeolSBU57GY68TG9mTV1jgNWIiOEeoSfNoIr6mcuhTd/s3S5yA==, tarball: https://npm.pkg.github.com/download/@caistech/ghl-client/0.1.2/f864cea9c90a30fd3004fbb1d5cb6808f7f02270}
+
+  '@caistech/mapbox@0.2.0':
+    resolution: {integrity: sha512-FU4Kmj8taQvSjZ1Atm6lAbdJXMIbkTrbMWmT0NlrQ9h/DRhU1RD0hqaRJLEyYoBc9yB9Ix8I52LtC40bHKad5g==, tarball: https://npm.pkg.github.com/download/@caistech/mapbox/0.2.0/751d487fc21449ce3cb2d3b7e81f8396f5e05772}
+    peerDependencies:
+      typescript: '>=5.0.0'
+
+  '@caistech/portfolio-gate@0.3.0':
+    resolution: {integrity: sha512-Q7dyq970ouLFgAwvhMDu/eDuzqTTUv+zoZKvy7i/T5+9rN0aj+MtY6D/3p5falr1T9GdhUYBcHJUmVg/Haq4oA==, tarball: https://npm.pkg.github.com/download/@caistech/portfolio-gate/0.3.0/8f8823242897e7ebf2e7a998e33769df320f6a44}
+    hasBin: true
+    peerDependencies:
+      next: '>=14.0.0'
+      playwright: '>=1.40.0'
+      typescript: '>=5.0.0'
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -1395,6 +1428,11 @@ packages:
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
 
+  fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -1775,6 +1813,11 @@ packages:
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
 
+  lucide-react@1.16.0:
+    resolution: {integrity: sha512-dYwyPzb4MEKpGUmNYk3WKWPnMrHs3FKM+q94kAnJrcDIqqn1hq2xY8scaS2ovsOCM5D51ey2gaRG3PBb1vgoYQ==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -2037,6 +2080,16 @@ packages:
 
   pkg-types@1.3.1:
     resolution: {integrity: sha512-/Jm5M4RvtBFVkKWRu2BLUTNP8/M2a+UwuAX+ae4770q1qVGtfjG+WTCupoZixokjmHiry8uI+dlY8KXYV5HVVQ==}
+
+  playwright-core@1.60.0:
+    resolution: {integrity: sha512-9bW6zvX/m0lEbgTKJ6YppOKx8H3VOPBMOCFh2irXFOT4BbHgrx5hPjwJYLT40Lu+4qtD36qKc/Hn56StUW57IA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.60.0:
+    resolution: {integrity: sha512-hheHdokM8cdqCb0lcE3s+zT4t4W+vvjpGxsZlDnikarzx8tSzMebh3UiFtgqwFwnTnjYQcsyMF8ei2mCO/tpeA==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   possible-typed-array-names@1.1.0:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
@@ -2696,7 +2749,29 @@ snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
 
+  '@caistech/abn-lookup@0.1.1(typescript@5.9.3)':
+    dependencies:
+      typescript: 5.9.3
+
+  '@caistech/corporate-components@0.3.1(@caistech/abn-lookup@0.1.1(typescript@5.9.3))(@caistech/mapbox@0.2.0(typescript@5.9.3))(lucide-react@1.16.0(react@18.3.1))(react@18.3.1)(typescript@5.9.3)':
+    dependencies:
+      '@caistech/abn-lookup': 0.1.1(typescript@5.9.3)
+      '@caistech/mapbox': 0.2.0(typescript@5.9.3)
+      lucide-react: 1.16.0(react@18.3.1)
+      react: 18.3.1
+      typescript: 5.9.3
+
   '@caistech/ghl-client@0.1.2': {}
+
+  '@caistech/mapbox@0.2.0(typescript@5.9.3)':
+    dependencies:
+      typescript: 5.9.3
+
+  '@caistech/portfolio-gate@0.3.0(next@14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(playwright@1.60.0)(typescript@5.9.3)':
+    dependencies:
+      next: 14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      playwright: 1.60.0
+      typescript: 5.9.3
 
   '@emnapi/core@1.10.0':
     dependencies:
@@ -4062,6 +4137,9 @@ snapshots:
 
   fs.realpath@1.0.0: {}
 
+  fsevents@2.3.2:
+    optional: true
+
   fsevents@2.3.3:
     optional: true
 
@@ -4434,6 +4512,10 @@ snapshots:
 
   lru-cache@10.4.3: {}
 
+  lucide-react@1.16.0(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -4720,6 +4802,14 @@ snapshots:
       confbox: 0.1.8
       mlly: 1.8.2
       pathe: 2.0.3
+
+  playwright-core@1.60.0: {}
+
+  playwright@1.60.0:
+    dependencies:
+      playwright-core: 1.60.0
+    optionalDependencies:
+      fsevents: 2.3.2
 
   possible-typed-array-names@1.1.0: {}
 
