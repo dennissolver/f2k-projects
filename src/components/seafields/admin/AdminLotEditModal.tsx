@@ -141,15 +141,24 @@ export default function AdminLotEditModal({
   const [dwellingTypeId, setDwellingTypeId] = useState<string>(
     allocation?.dwelling_type_id ?? "",
   );
-  const [landOnly, setLandOnly] = useState<boolean>(
-    allocation?.land_only ?? true,
-  );
+  // land_only is derived from dwelling type — empty dropdown means land only.
+  // The standalone checkbox was removed (per Uwe 2026-05-21 feedback) because
+  // it duplicated and could contradict the dwelling type selection.
+  const landOnly = dwellingTypeId === "";
   const [landRateOverride, setLandRateOverride] = useState(
     numToStr(allocation?.land_rate_override_per_sqm ?? null),
   );
   const [houseCost, setHouseCost] = useState(
     numToStr(allocation?.house_cost ?? null),
   );
+
+  function handleDwellingTypeChange(nextId: string) {
+    setDwellingTypeId(nextId);
+    if (nextId === "") {
+      // Switching to land only — house cost no longer applies.
+      setHouseCost("");
+    }
+  }
   const [displayPrice, setDisplayPrice] = useState<boolean>(
     allocation?.display_price_to_public ?? true,
   );
@@ -283,10 +292,12 @@ export default function AdminLotEditModal({
         payload.stage_id = stageId || null;
         payload.stage = stageNumberText || null;
       }
-      if ((dwellingTypeId || null) !== (a?.dwelling_type_id ?? null))
+      if ((dwellingTypeId || null) !== (a?.dwelling_type_id ?? null)) {
         payload.dwelling_type_id = dwellingTypeId || null;
-      if (landOnly !== (a?.land_only ?? true))
+        // Keep land_only in sync with the dwelling-type selection. Empty
+        // dwelling type = land only; any selected type = H&L bundle.
         payload.land_only = landOnly;
+      }
       if (strToNum(landRateOverride) !== (a?.land_rate_override_per_sqm ?? null))
         payload.land_rate_override_per_sqm = strToNum(landRateOverride);
       if (strToNum(houseCost) !== (a?.house_cost ?? null))
@@ -445,7 +456,7 @@ export default function AdminLotEditModal({
             </legend>
             <div>
               <label className="block text-xs text-slate-600 mb-1">
-                Bucket
+                Reservation pool
               </label>
               <select
                 value={allocationBucket}
@@ -460,23 +471,30 @@ export default function AdminLotEditModal({
                   </option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600 mb-1">
-                Counterparty / Allocated to
-              </label>
-              <input
-                type="text"
-                value={allocatedTo}
-                onChange={(e) => setAllocatedTo(e.target.value)}
-                placeholder="Optional — e.g. WACHS, Takken, investor name"
-                className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
-              />
               <div className="text-[11px] text-slate-500 mt-1">
-                Free-text counterparty label. Bucket drives the canonical
-                state; this is just the name attached to that bucket.
+                Pre-set pools (GROH, WACHS, Takken, Baurimus, F2K withheld,
+                Display, Heritage) are self-labelling. Pick &ldquo;Public&rdquo; for any
+                open-market or named individual buyer.
               </div>
             </div>
+            {allocationBucket === "public" && (
+              <div>
+                <label className="block text-xs text-slate-600 mb-1">
+                  Allocated to (person / company)
+                </label>
+                <input
+                  type="text"
+                  value={allocatedTo}
+                  onChange={(e) => setAllocatedTo(e.target.value)}
+                  placeholder="Optional — buyer name when reserved on the public pool"
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                />
+                <div className="text-[11px] text-slate-500 mt-1">
+                  Only filled when a specific buyer holds the lot on the public
+                  pool. Non-public pools are self-labelling by their name.
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-xs text-slate-600 mb-1">
                 Status
@@ -524,17 +542,21 @@ export default function AdminLotEditModal({
               </label>
               <select
                 value={dwellingTypeId}
-                onChange={(e) => setDwellingTypeId(e.target.value)}
+                onChange={(e) => handleDwellingTypeChange(e.target.value)}
                 disabled={optionsLoading}
                 className="w-full border border-slate-300 rounded px-3 py-2 text-sm disabled:opacity-50"
               >
-                <option value="">— None (land only) —</option>
+                <option value="">Land only (no house)</option>
                 {dwellings.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.code} — {d.plan_name}
                   </option>
                 ))}
               </select>
+              <div className="text-[11px] text-slate-500 mt-1">
+                Selecting &ldquo;Land only&rdquo; disables the House cost field below; any
+                other dwelling type is treated as a H&amp;L bundle.
+              </div>
             </div>
           </fieldset>
 
@@ -543,15 +565,6 @@ export default function AdminLotEditModal({
             <legend className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
               Land & build
             </legend>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={landOnly}
-                onChange={(e) => setLandOnly(e.target.checked)}
-                className="h-4 w-4"
-              />
-              <span>Land only (no H&L bundle)</span>
-            </label>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs text-slate-600 mb-1">
@@ -569,7 +582,11 @@ export default function AdminLotEditModal({
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-600 mb-1">
+                <label
+                  className={`block text-xs mb-1 ${
+                    landOnly ? "text-slate-400" : "text-slate-600"
+                  }`}
+                >
                   House cost
                 </label>
                 <input
@@ -579,8 +596,9 @@ export default function AdminLotEditModal({
                   min="0"
                   value={houseCost}
                   onChange={(e) => setHouseCost(e.target.value)}
-                  placeholder="(land only)"
-                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                  placeholder={landOnly ? "Land only — N/A" : "0"}
+                  disabled={landOnly}
+                  className="w-full border border-slate-300 rounded px-3 py-2 text-sm disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -678,7 +696,7 @@ export default function AdminLotEditModal({
           </fieldset>
 
           {/* Conditional reason gate */}
-          {touchesMaterial && (
+          {touchesMaterial ? (
             <div className="bg-amber-50 border border-amber-200 rounded p-3">
               <label className="block text-xs font-semibold text-amber-900 uppercase tracking-wider mb-1">
                 Reason for change (required, ≥10 chars)
@@ -691,9 +709,16 @@ export default function AdminLotEditModal({
                 className="w-full border border-amber-300 rounded px-3 py-2 text-sm bg-white"
               />
               <p className="text-[11px] text-amber-800 mt-1">
-                Audit log records this with your email and timestamp.
+                Required because this change affects pricing, status, stage, or
+                public display. Audit log records it with your email and
+                timestamp.
               </p>
             </div>
+          ) : (
+            <p className="text-[11px] text-slate-500 italic">
+              Cosmetic edit — saves silently. A reason is only required when
+              you change status, allocation, pricing, stage, or public display.
+            </p>
           )}
 
           <AdminLotWaitlist

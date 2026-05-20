@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAdminUser, hasPermission, auditLog } from "@/lib/admin-auth";
 import {
@@ -209,6 +210,9 @@ export async function PATCH(
   } catch (err) {
     console.error("Stage-advance email fan-out threw:", err);
   }
+
+  revalidatePath("/seafields-estate");
+  revalidatePath("/");
 
   return NextResponse.json({ stage: fresh });
 }

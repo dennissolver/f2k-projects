@@ -121,6 +121,8 @@ export default function SeafieldsLotsPage() {
         lot_number: r.lot_number,
         allocated_to: r.allocated_to,
         intent_locked_to_registration_id: r.intent_locked_to_registration_id,
+        status: r.status,
+        allocation_bucket: r.allocation_bucket,
       };
     }
     return map;

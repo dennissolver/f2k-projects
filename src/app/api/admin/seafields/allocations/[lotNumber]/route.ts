@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getAdminUser, hasPermission, auditLog } from "@/lib/admin-auth";
 import {
@@ -387,6 +388,12 @@ export async function PATCH(
   } catch (err) {
     console.error("Seafields lot-status email fan-out threw:", err);
   }
+
+  // Bust the static cache so the public Seafields page picks up the change
+  // on the next request — without this, admin edits don't appear on the site
+  // until the next ISR window (Uwe 2026-05-21 feedback).
+  revalidatePath("/seafields-estate");
+  revalidatePath("/");
 
   return NextResponse.json({ allocation: updated });
 }

@@ -28,6 +28,23 @@ export interface LotAllocationLite {
   lot_number: number;
   allocated_to: string | null;
   intent_locked_to_registration_id: string | null;
+  status:
+    | "available"
+    | "reserved"
+    | "withheld"
+    | "sold"
+    | "backup_list_only"
+    | null;
+  allocation_bucket:
+    | "public"
+    | "groh"
+    | "baurimus"
+    | "takken"
+    | "wachs"
+    | "f2k_withheld"
+    | "display_home"
+    | "heritage_retained"
+    | null;
 }
 
 export interface LotInterestCount {
@@ -56,12 +73,15 @@ function centroid(pts: number[][]): { x: number; y: number } {
 }
 
 /**
- * Resolve display state for an admin map lot:
- *   "available"        — no allocation, no interest, no intent lock
- *   "interest"         — registrants are waitlisting but no allocation/lock
+ * Resolve display state for an admin map lot. Priority is hard → soft:
+ *   "sold"             — closed allocation, locked
+ *   "withheld"         — withheld from sale (F2K / heritage / display)
+ *   "allocated"        — firm allocation (named buyer OR non-public pool)
+ *   "reserved"         — status=reserved (held but not yet sold)
  *   "intent-locked"    — pinned to a specific registrant (soft-allocate)
- *   "allocated"        — firm allocation (allocated_to set)
- *   "selected"         — currently focused in the editor
+ *   "interest"         — registrants waitlisting but no allocation/lock
+ *   "available"        — open
+ *   "selected"         — currently focused in the editor (overrides above)
  */
 function statusFor(
   lotId: string,
@@ -69,10 +89,25 @@ function statusFor(
   allocations: Record<number, LotAllocationLite>,
   interestCounts: Record<string, number>,
   isSelected: boolean,
-): "available" | "interest" | "intent-locked" | "allocated" | "selected" {
+):
+  | "available"
+  | "interest"
+  | "intent-locked"
+  | "reserved"
+  | "allocated"
+  | "withheld"
+  | "sold"
+  | "selected" {
   if (isSelected) return "selected";
   const a = allocations[lotNumber];
-  if (a?.allocated_to) return "allocated";
+  if (a?.status === "sold") return "sold";
+  if (a?.status === "withheld") return "withheld";
+  if (
+    a?.allocated_to ||
+    (a?.allocation_bucket && a.allocation_bucket !== "public")
+  )
+    return "allocated";
+  if (a?.status === "reserved") return "reserved";
   if (a?.intent_locked_to_registration_id) return "intent-locked";
   if ((interestCounts[lotId] || 0) > 0) return "interest";
   return "available";
@@ -85,7 +120,10 @@ const STATUS_FILL: Record<
   available:      { fill: "#F4F4F2", stroke: "#94A3B8" }, // light grey, not noisy
   interest:       { fill: "#BAE6FD", stroke: "#0369A1" }, // sky blue
   "intent-locked":{ fill: "#FCD34D", stroke: "#B45309" }, // amber
+  reserved:       { fill: "#FDE68A", stroke: "#92400E" }, // yellow — held but not closed
   allocated:      { fill: "#C4B5FD", stroke: "#5B21B6" }, // purple
+  withheld:       { fill: "#CBD5E1", stroke: "#475569" }, // slate-grey — off-market
+  sold:           { fill: "#86EFAC", stroke: "#166534" }, // green — done
   selected:       { fill: "#1A2744", stroke: "#FFFFFF" }, // navy with white
 };
 
@@ -282,7 +320,10 @@ export default function AdminLotMap({
             ["available", "Available"],
             ["interest", "Has interest"],
             ["intent-locked", "Soft-allocated"],
+            ["reserved", "Reserved"],
             ["allocated", "Allocated"],
+            ["withheld", "Withheld"],
+            ["sold", "Sold"],
           ] as const).map(([key, label]) => (
             <div key={key} className="flex items-center gap-2">
               <span
