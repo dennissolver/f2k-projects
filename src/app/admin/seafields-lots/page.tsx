@@ -53,6 +53,9 @@ interface Allocation {
   display_price_to_public: boolean | null;
   public_label: string | null;
   internal_notes: string | null;
+  // Migration 0011 — R20 planning reality (CLE 2026-05-21)
+  subdivisible: boolean | null;
+  ancillary_dwelling_eligible: boolean | null;
 }
 
 const STAGE_COLOR: Record<string, string> = {

@@ -70,6 +70,9 @@ export interface FullAllocation {
   display_price_to_public: boolean | null;
   public_label: string | null;
   internal_notes: string | null;
+  // Migration 0011 — R20 planning reality (CLE 2026-05-21). Read-only here.
+  subdivisible: boolean | null;
+  ancillary_dwelling_eligible: boolean | null;
 }
 
 interface StageOption {
@@ -405,6 +408,27 @@ export default function AdminLotEditModal({
             <div className="text-xs text-slate-500 mt-0.5">
               {lotMeta?.area ?? allocation?.sqm}m² · {lotMeta?.zone ?? "—"}
             </div>
+            {(allocation?.subdivisible ||
+              allocation?.ancillary_dwelling_eligible) && (
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                {allocation?.subdivisible && (
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200"
+                    title="Lot is ≥900m² — eligible for subdivision into 2 lots under WAPC rules."
+                  >
+                    Subdivisible (≥900m²)
+                  </span>
+                )}
+                {allocation?.ancillary_dwelling_eligible && (
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-sky-50 text-sky-800 border border-sky-200"
+                    title="R20: ancillary dwelling (capped 70m²) allowed on any lot subject to R-Code build standards. No lot-size threshold."
+                  >
+                    Ancillary OK
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -555,7 +579,10 @@ export default function AdminLotEditModal({
               </select>
               <div className="text-[11px] text-slate-500 mt-1">
                 Selecting &ldquo;Land only&rdquo; disables the House cost field below; any
-                other dwelling type is treated as a H&amp;L bundle.
+                other dwelling type is treated as a H&amp;L bundle. &ldquo;Main Home +
+                Ancillary Dwelling&rdquo; is the R20 dual-occupancy product (one house
+                plus a ≤70m² ancillary) — allowed on any lot subject to R-Codes,
+                not a traditional duplex.
               </div>
             </div>
           </fieldset>
