@@ -78,6 +78,7 @@ export function hasPermission(role: AdminRole, action: string): boolean {
     manage_hemp_homes_prospects: ["super_admin", "fund_manager"],
     manage_hemp_homes_pricing: ["super_admin", "fund_manager"],
     manage_admin_users: ["super_admin"],
+    manage_seafields_notifications: ["super_admin"],
   };
 
   return permissions[action]?.includes(role) ?? false;

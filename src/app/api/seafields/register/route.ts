@@ -3,6 +3,10 @@ import { createSupabaseService } from "@/lib/supabase-service";
 import { escapeHtml } from "@/lib/html-escape";
 import { sendTemplated } from "@/lib/email/send";
 import { forwardRegistrationToGHL } from "@/lib/ghl";
+import {
+  getActiveRecipients,
+  renderBrandedEmail,
+} from "@/lib/seafields/notify";
 import { z } from "zod";
 
 const schema = z.object({
@@ -253,55 +257,102 @@ export async function POST(request: Request) {
       notes: escapeHtml(d.notes),
     };
 
-    // Admin notification
+    // Admin notification — recipients now come from the
+    // seafields_notify_recipients table (editable at
+    // /admin/seafields-registrations). Fallback list in the dispatcher.
+    const recipients = await getActiveRecipients();
+    const fullName = `${d.first_name.trim()} ${d.last_name.trim()}`.trim();
+    const lotsPlain = d.lots_selected
+      .map((l) => l.replace("L", "Lot "))
+      .join(", ");
+    const subjectLotPhrase =
+      d.lots_selected.length === 1
+        ? d.lots_selected[0].replace("L", "Lot ")
+        : `${d.lots_selected.length} lots (${lotsPlain})`;
+
+    const adminRows: Array<{ label: string; value: string }> = [
+      { label: "Registrant", value: `<strong>${e.first_name} ${e.last_name}</strong>` },
+      {
+        label: "Email",
+        value: `<a href="mailto:${e.emailHref}" style="color:#1A2744">${e.email}</a>`,
+      },
+    ];
+    if (d.phone) adminRows.push({ label: "Phone", value: e.phone });
+    if (d.suburb)
+      adminRows.push({
+        label: "Location",
+        value: `${e.suburb}${d.postcode ? ` ${e.postcode}` : ""}`,
+      });
+    if (d.interest_type)
+      adminRows.push({
+        label: "Interested in",
+        value: `<strong>${e.interest_type}</strong>`,
+      });
+    adminRows.push({
+      label: d.lots_selected.length === 1 ? "Lot" : "Lots",
+      value: `<strong>${lotList}</strong>`,
+    });
+    if (d.buyer_type) adminRows.push({ label: "Buyer type", value: e.buyer_type });
+    if (d.buyer_profile)
+      adminRows.push({ label: "Profile", value: e.buyer_profile });
+    if (d.current_housing)
+      adminRows.push({ label: "Current housing", value: e.current_housing });
+    if (d.purchase_timeline)
+      adminRows.push({ label: "Timeline", value: e.purchase_timeline });
+    if (d.finance_status)
+      adminRows.push({ label: "Finance", value: e.finance_status });
+    if (d.how_heard) adminRows.push({ label: "How heard", value: e.how_heard });
+    if (referrerRow) {
+      const referrerText =
+        `${e.first_name && d.referrer_name ? escapeHtml(d.referrer_name) : ""}` +
+        `${d.referrer_company ? ` — ${escapeHtml(d.referrer_company)}` : ""}` +
+        `${d.referrer_contact ? ` (${escapeHtml(d.referrer_contact)})` : ""}` +
+        ` <span style="color:#94A3B8">[${escapeHtml(d.referrer_type || "")}]</span>`;
+      adminRows.push({ label: "Referrer", value: referrerText });
+    }
+    if (d.notes) adminRows.push({ label: "Notes", value: e.notes });
+
+    if (priceRows) {
+      adminRows.push({
+        label: "Price expectations",
+        value: `<table style="margin:2px 0;border-collapse:collapse">${priceRows.replace(
+          /<tr>/g,
+          '<tr style="background:#F8FAFC">',
+        )}</table>`,
+      });
+    }
+    if (dwellingRows) {
+      adminRows.push({
+        label: "Dwelling preferences",
+        value: `<table style="margin:2px 0;border-collapse:collapse">${dwellingRows}</table>`,
+      });
+    }
+
+    const html = renderBrandedEmail({
+      preheader: `${fullName} registered for ${lotsPlain}`,
+      heading:
+        d.lots_selected.length === 1
+          ? `Another registration for ${subjectLotPhrase} by ${fullName}`
+          : `New registration by ${fullName}`,
+      intro:
+        d.lots_selected.length === 1
+          ? `${escapeHtml(fullName)} just registered interest in <strong>${escapeHtml(subjectLotPhrase)}</strong>.`
+          : `${escapeHtml(fullName)} just registered interest in ${d.lots_selected.length} lots: <strong>${escapeHtml(lotsPlain)}</strong>.`,
+      rows: adminRows,
+      ctaLabel: "Open in admin",
+      ctaHref:
+        "https://f2k-projects.vercel.app/admin/seafields-registrations",
+      footer:
+        "Registration of Interest only — no deposit taken. Reply directly to the registrant from your inbox or follow up from the admin panel.",
+    });
+
     await resend.emails.send({
       from:
         process.env.RESEND_FROM_EMAIL ||
         "Seafields Estate <onboarding@resend.dev>",
-      to: [
-        "dennis@factory2key.com.au",
-        "uwe@factory2key.com.au",
-        "barryh@hld.com.au",
-      ],
-      subject: `Seafields ROI: ${d.first_name} ${d.last_name} — ${d.lots_selected.map((l) => l.replace("L", "Lot ")).join(", ")}`,
-      html: `
-        <h2 style="color:#1A2744;font-family:sans-serif">New Seafields Estate Registration</h2>
-        <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">
-          <tr><td style="padding:4px 12px;color:#666">Name</td><td style="padding:4px 12px;font-weight:bold">${e.first_name} ${e.last_name}</td></tr>
-          <tr><td style="padding:4px 12px;color:#666">Email</td><td style="padding:4px 12px"><a href="mailto:${e.emailHref}">${e.email}</a></td></tr>
-          ${d.phone ? `<tr><td style="padding:4px 12px;color:#666">Phone</td><td style="padding:4px 12px">${e.phone}</td></tr>` : ""}
-          ${d.suburb ? `<tr><td style="padding:4px 12px;color:#666">Location</td><td style="padding:4px 12px">${e.suburb}${d.postcode ? ` ${e.postcode}` : ""}</td></tr>` : ""}
-          ${d.interest_type ? `<tr><td style="padding:4px 12px;color:#666">Interest</td><td style="padding:4px 12px;font-weight:bold">${e.interest_type}</td></tr>` : ""}
-          ${d.buyer_type ? `<tr><td style="padding:4px 12px;color:#666">Buyer Type</td><td style="padding:4px 12px">${e.buyer_type}</td></tr>` : ""}
-          ${d.buyer_profile ? `<tr><td style="padding:4px 12px;color:#666">Profile</td><td style="padding:4px 12px">${e.buyer_profile}</td></tr>` : ""}
-          ${d.current_housing ? `<tr><td style="padding:4px 12px;color:#666">Current Housing</td><td style="padding:4px 12px">${e.current_housing}</td></tr>` : ""}
-          ${d.purchase_timeline ? `<tr><td style="padding:4px 12px;color:#666">Timeline</td><td style="padding:4px 12px">${e.purchase_timeline}</td></tr>` : ""}
-          ${d.finance_status ? `<tr><td style="padding:4px 12px;color:#666">Finance</td><td style="padding:4px 12px">${e.finance_status}</td></tr>` : ""}
-          ${d.how_heard ? `<tr><td style="padding:4px 12px;color:#666">How Heard</td><td style="padding:4px 12px">${e.how_heard}</td></tr>` : ""}
-          <tr><td style="padding:4px 12px;color:#666">Lots</td><td style="padding:4px 12px;font-weight:bold">${lotList}</td></tr>
-          ${referrerRow}
-          ${d.notes ? `<tr><td style="padding:4px 12px;color:#666">Notes</td><td style="padding:4px 12px">${e.notes}</td></tr>` : ""}
-        </table>
-        ${
-          priceRows
-            ? `<h3 style="color:#1A2744;font-family:sans-serif;margin-top:16px">Price Preferences</h3>
-               <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">
-                 <tr style="background:#f5f5f5"><th style="padding:4px 12px;text-align:left">Lot</th><th style="padding:4px 12px;text-align:left">Price Range</th></tr>
-                 ${priceRows}
-               </table>`
-            : ""
-        }
-        ${
-          dwellingRows
-            ? `<h3 style="color:#1A2744;font-family:sans-serif;margin-top:16px">Dwelling Preferences</h3>
-               <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">
-                 <tr style="background:#f5f5f5"><th style="padding:4px 12px;text-align:left">Lot</th><th style="padding:4px 12px;text-align:left">Primary</th><th style="padding:4px 12px;text-align:left">Secondary</th></tr>
-                 ${dwellingRows}
-               </table>`
-            : ""
-        }
-        <p style="margin-top:16px;font-size:12px;color:#999">Seafields Estate — Registration of Interest</p>
-      `,
+      to: recipients,
+      subject: `Another registration for ${subjectLotPhrase} by ${fullName}`,
+      html,
     });
 
   } catch (err) {
