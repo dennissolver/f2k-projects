@@ -261,6 +261,76 @@ export default function BranscombeEstatePage() {
         </div>
       </section>
 
+      {/* ===== PURCHASE TERMS ===== */}
+      <section className="py-16 px-4 bg-warm-grey">
+        <div className="max-w-[900px] mx-auto">
+          <p className="font-ibm-mono text-[0.65rem] tracking-[0.4em] uppercase text-[#00B5AD] mb-4">
+            Sales Terms
+          </p>
+          <h2 className="font-playfair text-[2rem] font-black text-deep-blue leading-tight mb-3">
+            Purchase Terms
+          </h2>
+          <p className="text-slate font-archivo leading-relaxed mb-8 max-w-[700px]">
+            Indicative contract terms for Branscombe Estate house &amp; land
+            packages. Full contract documentation is provided at contract
+            stage. All terms may be varied by mutual agreement.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {
+                label: "Deposit",
+                value: "5%",
+                note: "Payable within 5 days of contract",
+              },
+              {
+                label: "Finance",
+                value: "45 days",
+                note: "Finance approval window from contract date",
+              },
+              {
+                label: "Settlement",
+                value: "30 days",
+                note: "Settlement period after finance approval",
+              },
+              {
+                label: "Build",
+                value: "Modular",
+                note: "Factory-built modules, ~12-14 weeks from site arrival",
+              },
+            ].map((term) => (
+              <div
+                key={term.label}
+                className="bg-white border border-black/5 p-5"
+              >
+                <div className="font-ibm-mono text-[0.6rem] tracking-[0.3em] uppercase text-slate/60 mb-1">
+                  {term.label}
+                </div>
+                <div className="font-playfair text-2xl font-black text-deep-blue mb-2">
+                  {term.value}
+                </div>
+                <div className="font-archivo text-xs text-slate leading-relaxed">
+                  {term.note}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="font-archivo text-xs text-slate/60 mt-6 leading-relaxed">
+            Terms shown are indicative. Settlement is on a turnkey basis —
+            you take possession of a complete, built home. For specific
+            questions on contract conditions or land titles, email{" "}
+            <a
+              href="mailto:dennis@factory2key.com.au?subject=Branscombe%20Estate%20contract%20enquiry"
+              className="text-[#00B5AD] hover:underline"
+            >
+              Dennis
+            </a>{" "}
+            for the full sales contract template.
+          </p>
+        </div>
+      </section>
+
       {/* ===== INTERACTIVE MAP + REGISTRATION FORM ===== */}
       <section className="py-20 px-4 bg-off-white">
         <div className="max-w-[1100px] mx-auto">
