@@ -38,6 +38,7 @@ function substitute(template: string, vars: Record<string, string | number | nul
 }
 
 function prospectVars(p: HempHomesProspect): Record<string, string | number | null> {
+  const canonical = (process.env.NEXT_PUBLIC_CANONICAL_URL ?? "").replace(/\/$/, "");
   return {
     name: p.name,
     location: p.location ?? "",
@@ -50,6 +51,10 @@ function prospectVars(p: HempHomesProspect): Record<string, string | number | nu
     land_size_acres: p.land_size_acres ?? "",
     current_members: p.current_members ?? "",
     unsubscribe_url: buildUnsubscribeUrl(p.id),
+    // Public-facing hemp-homes journey landing page on the f2k-projects
+    // Next.js app — DO NOT hardcode factory2key.com.au URLs in templates;
+    // that domain is a separate WordPress marketing site.
+    public_journey_url: `${canonical}/hemp-homes-for-eco-communities`,
   };
 }
 
