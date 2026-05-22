@@ -576,6 +576,38 @@ export default function RegistrationForm() {
       )}
 
       {/* ===== REGISTRATION FORM ===== */}
+      {selectedUnits.length === 0 ? (
+        <div
+          id="register"
+          className="bg-white border-2 border-dashed border-[#00B5AD]/30 p-8 sm:p-12 text-center"
+        >
+          <p className="font-ibm-mono text-[0.65rem] tracking-[0.4em] uppercase text-[#00B5AD] mb-4">
+            Your Registration
+          </p>
+          <h2 className="font-playfair text-[2rem] font-black text-deep-blue leading-tight mb-3">
+            Pick a Home Above to Begin
+          </h2>
+          <p className="text-slate font-archivo leading-relaxed mb-6 max-w-[560px] mx-auto">
+            The registration form opens once you choose at least one home on
+            the site map above. You can pick multiple homes — each one will
+            give you a slot to set your preferences before you complete the
+            form.
+          </p>
+          <a
+            href="#site-map"
+            className="inline-flex items-center gap-2 bg-[#00B5AD] hover:bg-[#009E97] text-white px-6 py-3 font-archivo font-semibold transition-colors"
+          >
+            <span aria-hidden>↑</span> Scroll back to the site map
+          </a>
+          <p className="font-archivo text-xs text-slate/60 mt-6 leading-relaxed max-w-[560px] mx-auto">
+            <span className="text-[#00B5AD] font-semibold">Available</span>{" "}
+            homes are coloured on the plan and respond to clicks.{" "}
+            <span className="text-slate font-semibold">Reserved</span> and{" "}
+            <span className="text-slate font-semibold">Sold</span> homes
+            cannot be added to a registration.
+          </p>
+        </div>
+      ) : (
       <div id="register">
         <p className="font-ibm-mono text-[0.65rem] tracking-[0.4em] uppercase text-[#00B5AD] mb-4">
           Your Details
@@ -1013,15 +1045,53 @@ export default function RegistrationForm() {
             .
           </p>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="bg-[#00B5AD] hover:bg-[#009E97] text-white px-8 py-3 font-archivo font-semibold transition-colors disabled:opacity-50 w-full sm:w-auto"
-          >
-            {submitting ? "Submitting..." : "Register My Interest"}
-          </button>
+          <div className="space-y-2">
+            <button
+              type="submit"
+              disabled={submitting || selectedUnits.length === 0 || !consent}
+              className="bg-[#00B5AD] hover:bg-[#009E97] text-white px-8 py-3 font-archivo font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              title={
+                selectedUnits.length === 0
+                  ? "Pick a home on the site map above first"
+                  : !consent
+                    ? "Tick the consent checkbox above to continue"
+                    : ""
+              }
+            >
+              {submitting ? "Submitting..." : "Register My Interest"}
+            </button>
+            {(selectedUnits.length === 0 || !consent) && !submitting && (
+              <p className="text-xs text-slate/70 font-archivo">
+                {selectedUnits.length === 0 ? (
+                  <>
+                    <span className="text-[#00B5AD] font-semibold">
+                      Pick a home first
+                    </span>{" "}
+                    —{" "}
+                    <a
+                      href="#site-map"
+                      className="underline hover:text-deep-blue"
+                    >
+                      scroll up to the interactive site map
+                    </a>{" "}
+                    and click any available home to add it to your
+                    registration.
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[#00B5AD] font-semibold">
+                      One more step
+                    </span>{" "}
+                    — tick the consent checkbox above to enable the submit
+                    button.
+                  </>
+                )}
+              </p>
+            )}
+          </div>
         </form>
       </div>
+      )}
     </div>
   );
 }
