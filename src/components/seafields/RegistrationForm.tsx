@@ -1032,8 +1032,14 @@ export default function RegistrationForm() {
                   })}
                 </div>
               ) : (
-                <div className="px-4 py-2.5 text-slate/40">
-                  Select lots on the subdivision plan above
+                <div className="px-4 py-2.5 text-slate/70">
+                  <a
+                    href="#site-map"
+                    className="text-[#00B5AD] font-semibold hover:underline"
+                  >
+                    ↑ Scroll up to the subdivision plan
+                  </a>{" "}
+                  and click any green lot to add it here.
                 </div>
               )}
             </div>
@@ -1171,13 +1177,49 @@ export default function RegistrationForm() {
             .
           </p>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="bg-[#00B5AD] hover:bg-[#009E97] text-white px-8 py-3 font-archivo font-semibold transition-colors disabled:opacity-50 w-full sm:w-auto"
-          >
-            {submitting ? "Submitting..." : "Register My Interest"}
-          </button>
+          <div className="space-y-2">
+            <button
+              type="submit"
+              disabled={submitting || selectedLots.length === 0 || !consent}
+              className="bg-[#00B5AD] hover:bg-[#009E97] text-white px-8 py-3 font-archivo font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              title={
+                selectedLots.length === 0
+                  ? "Pick a lot on the subdivision plan above first"
+                  : !consent
+                    ? "Tick the consent checkbox above to continue"
+                    : ""
+              }
+            >
+              {submitting ? "Submitting..." : "Register My Interest"}
+            </button>
+            {(selectedLots.length === 0 || !consent) && !submitting && (
+              <p className="text-xs text-slate/70 font-archivo">
+                {selectedLots.length === 0 ? (
+                  <>
+                    <span className="text-[#00B5AD] font-semibold">
+                      Pick a lot first
+                    </span>{" "}
+                    —{" "}
+                    <a
+                      href="#site-map"
+                      className="underline hover:text-deep-blue"
+                    >
+                      scroll up to the subdivision plan
+                    </a>{" "}
+                    and click any green lot to add it to your registration.
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[#00B5AD] font-semibold">
+                      One more step
+                    </span>{" "}
+                    — tick the consent checkbox above to enable the submit
+                    button.
+                  </>
+                )}
+              </p>
+            )}
+          </div>
         </form>
       </div>
     </div>
