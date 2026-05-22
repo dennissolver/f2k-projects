@@ -742,6 +742,39 @@ export default function RegistrationForm() {
       )}
 
       {/* ===== REGISTRATION FORM ===== */}
+      {selectedLots.length === 0 ? (
+        <div
+          id="register"
+          className="bg-white border-2 border-dashed border-[#00B5AD]/30 p-8 sm:p-12 text-center"
+        >
+          <p className="font-ibm-mono text-[0.65rem] tracking-[0.4em] uppercase text-[#00B5AD] mb-4">
+            Your Registration
+          </p>
+          <h2 className="font-playfair text-[2rem] font-black text-deep-blue leading-tight mb-3">
+            Pick a Lot Above to Begin
+          </h2>
+          <p className="text-slate font-archivo leading-relaxed mb-6 max-w-[560px] mx-auto">
+            The registration form opens once you choose at least one lot on the
+            subdivision plan above. You can pick multiple lots — each one will
+            give you a slot to set your price expectation and dwelling
+            preference before you complete the form.
+          </p>
+          <a
+            href="#site-map"
+            className="inline-flex items-center gap-2 bg-[#00B5AD] hover:bg-[#009E97] text-white px-6 py-3 font-archivo font-semibold transition-colors"
+          >
+            <span aria-hidden>↑</span> Scroll back to the subdivision plan
+          </a>
+          <p className="font-archivo text-xs text-slate/60 mt-6 leading-relaxed max-w-[560px] mx-auto">
+            <span className="text-[#00B5AD] font-semibold">Available</span>{" "}
+            lots are coloured green on the plan.{" "}
+            <span className="text-slate font-semibold">Reserved</span>,{" "}
+            <span className="text-slate font-semibold">Sold</span>, and{" "}
+            <span className="text-slate font-semibold">Coming soon</span> lots
+            are not selectable for registration.
+          </p>
+        </div>
+      ) : (
       <div id="register">
         <p className="font-ibm-mono text-[0.65rem] tracking-[0.4em] uppercase text-[#00B5AD] mb-4">
           Your Details
@@ -1222,6 +1255,7 @@ export default function RegistrationForm() {
           </div>
         </form>
       </div>
+      )}
     </div>
   );
 }
