@@ -149,6 +149,44 @@ export default function HempHomesProspectsPage() {
     }
   }
 
+  async function draftOutreach(p: HempHomesProspect) {
+    // Wave-matched template selection.
+    const templateSlug =
+      p.wave === 2 ? "intro-wave2-engaged" :
+      p.wave === 3 ? "intro-wave3-cold" :
+      null;
+    if (!templateSlug) {
+      setMessage({ type: "error", text: `No matching template for wave ${p.wave ?? "?"}. Open Outreach Templates to add one.` });
+      return;
+    }
+    if ((p.contact_emails ?? []).length === 0) {
+      setMessage({ type: "error", text: "No contact emails on this prospect — add one first." });
+      return;
+    }
+    if (!confirm(`Generate ${templateSlug} draft for ${p.name}? Will appear in the Outreach Queue for review.`)) return;
+    setBusyId(p.id);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/hemp-homes/outreach/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prospect_id: p.id, template_slug: templateSlug }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage({ type: "error", text: data.error ?? "Draft failed" });
+        return;
+      }
+      setMessage({
+        type: "success",
+        text: `Draft created for ${p.name}. Open the Outreach Queue to review.`,
+      });
+      fetchAll();
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function deleteProspect(p: HempHomesProspect) {
     if (!confirm(`Delete "${p.name}"? Cannot be undone.`)) return;
     setBusyId(p.id);
@@ -387,6 +425,15 @@ export default function HempHomesProspectsPage() {
                       </button>
                     </td>
                     <td className="px-3 py-2 text-right space-x-2 whitespace-nowrap">
+                      <button
+                        type="button"
+                        disabled={busyId === p.id}
+                        onClick={() => draftOutreach(p)}
+                        className="text-xs text-emerald-700 hover:text-emerald-900 font-semibold disabled:opacity-50"
+                        title={p.wave ? `Generate wave-${p.wave} intro draft` : "No template for this wave"}
+                      >
+                        {busyId === p.id ? "…" : "Draft"}
+                      </button>
                       <button
                         type="button"
                         disabled={busyId === p.id}

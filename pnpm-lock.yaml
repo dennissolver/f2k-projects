@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@anthropic-ai/sdk':
+        specifier: ^0.98.0
+        version: 0.98.0(zod@3.25.76)
+      '@caistech/ai-client':
+        specifier: ^0.1.0
+        version: 0.1.0(typescript@5.9.3)
       '@caistech/corporate-components':
         specifier: ^0.3.1
         version: 0.3.1(@caistech/abn-lookup@0.1.1(typescript@5.9.3))(@caistech/mapbox@0.2.0(typescript@5.9.3))(lucide-react@1.16.0(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
@@ -97,8 +103,26 @@ packages:
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
 
+  '@anthropic-ai/sdk@0.98.0':
+    resolution: {integrity: sha512-N7aXtCvC5g6T1Y4V29lJjceu/zTkVkIZF0jdBvagr0TRFHuKeImffalGWEfqZKrvjH+IQbzJWw6TmSmUzrlMgg==}
+    hasBin: true
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
+    peerDependenciesMeta:
+      zod:
+        optional: true
+
+  '@babel/runtime@7.29.2':
+    resolution: {integrity: sha512-JiDShH45zKHWyGe4ZNVRrCjBz8Nh9TMmZG1kh4QTK8hCBTWBi8Da+i7s1fJw7/lYpM4ccepSNfqzZ/QvABBi5g==}
+    engines: {node: '>=6.9.0'}
+
   '@caistech/abn-lookup@0.1.1':
     resolution: {integrity: sha512-KxsRmGlRbM0uShaOuXV8f3yU8BXsTkCnRzxw2HC55G+rEyk9E1ZTffttayHDdxjKlLS+HSGFH/ToJMUC4zLMLQ==, tarball: https://npm.pkg.github.com/download/@caistech/abn-lookup/0.1.1/e741d6215a861fdfde3691e2d63bf3a7644c06f6}
+    peerDependencies:
+      typescript: '>=5.0.0'
+
+  '@caistech/ai-client@0.1.0':
+    resolution: {integrity: sha512-F3z7xvTXOw82Pscc38c5XqtNMSw/PXBBxHkGxFr/Ucejz++wHzuybCJTqp32aMd8uWcsbm0xUmJeg/BDnBnxgA==, tarball: https://npm.pkg.github.com/download/@caistech/ai-client/0.1.0/aa9b2d28924580922d72ca80360b7f6d3c0cfbf5}
     peerDependencies:
       typescript: '>=5.0.0'
 
@@ -1833,6 +1857,10 @@ packages:
   json-buffer@3.0.1:
     resolution: {integrity: sha512-4bV5BfR2mqfQTJm+V5tPPdf+ZpuhiIvTuAB5g8kcrXOZpTT/QwwVRWBywX1ozr6lEuPdbHxwaJlm9G6mI2sfSQ==}
 
+  json-schema-to-ts@3.1.1:
+    resolution: {integrity: sha512-+DWg8jCJG2TEnpy7kOm/7/AxaYoaRbjVB4LFZLySZlWn8exGs3A4OLJR966cVvU26N7X9TWxl+Jsw7dzAqKT6g==}
+    engines: {node: '>=16'}
+
   json-schema-traverse@0.4.1:
     resolution: {integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==}
 
@@ -2636,6 +2664,9 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
+  ts-algebra@2.0.0:
+    resolution: {integrity: sha512-FPAhNPFMrkwz76P7cdjdmiShwMynZYN6SgOujD1urY4oNm80Ou9oMdmbR45LotcKOXoy7wSmHkRFE6Mxbrhefw==}
+
   ts-api-utils@2.5.0:
     resolution: {integrity: sha512-OJ/ibxhPlqrMM0UiNHJ/0CKQkoKF243/AEmplt3qpRgkW8VG7IfOS41h7V8TjITqdByHzrjcS/2si+y4lIh8NA==}
     engines: {node: '>=18.12'}
@@ -2860,10 +2891,23 @@ snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
 
+  '@anthropic-ai/sdk@0.98.0(zod@3.25.76)':
+    dependencies:
+      json-schema-to-ts: 3.1.1
+      standardwebhooks: 1.0.0
+    optionalDependencies:
+      zod: 3.25.76
+
+  '@babel/runtime@7.29.2': {}
+
   '@caistech/abn-lookup@0.1.1(typescript@5.9.3)':
     dependencies:
       typescript: 5.9.3
     optional: true
+
+  '@caistech/ai-client@0.1.0(typescript@5.9.3)':
+    dependencies:
+      typescript: 5.9.3
 
   '@caistech/corporate-components@0.3.1(@caistech/abn-lookup@0.1.1(typescript@5.9.3))(@caistech/mapbox@0.2.0(typescript@5.9.3))(lucide-react@1.16.0(react@18.3.1))(react@18.3.1)(typescript@5.9.3)':
     dependencies:
@@ -4652,6 +4696,11 @@ snapshots:
 
   json-buffer@3.0.1: {}
 
+  json-schema-to-ts@3.1.1:
+    dependencies:
+      '@babel/runtime': 7.29.2
+      ts-algebra: 2.0.0
+
   json-schema-traverse@0.4.1: {}
 
   json-stable-stringify-without-jsonify@1.0.1: {}
@@ -5546,6 +5595,8 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
+
+  ts-algebra@2.0.0: {}
 
   ts-api-utils@2.5.0(typescript@5.9.3):
     dependencies:

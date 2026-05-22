@@ -127,12 +127,66 @@ export interface HempHomesProspect {
   contact_phone: string | null;
   contact_discovery_notes: string | null;
   contact_discovered_at: string | null;
+  // Outreach lifecycle (migration 0019)
+  outreach_status: HempHomesProspectOutreachStatus;
+  last_outreach_at: string | null;
   created_at: string;
   updated_at: string;
   // From the revenue view
   conservative_revenue?: number | null;
   base_revenue?: number | null;
   optimistic_revenue?: number | null;
+}
+
+export type HempHomesOutreachReviewStatus = "pending" | "approved" | "discarded" | "rerolled";
+export type HempHomesOutreachDeliveryStatus = "queued" | "sent" | "bounced" | "complained" | "opened" | "clicked" | "replied";
+export type HempHomesOutreachTriggerType = "stage_transition" | "time_gap" | "manual";
+export type HempHomesProspectOutreachStatus = "idle" | "queued" | "sent" | "in_conversation" | "no_reply" | "paused" | "declined";
+
+export interface HempHomesOutreachTemplate {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  trigger_type: HempHomesOutreachTriggerType;
+  trigger_config: Record<string, unknown>;
+  target_waves: number[] | null;
+  target_statuses: string[] | null;
+  target_states: string[] | null;
+  subject_template: string;
+  preview_template: string | null;
+  body_md_template: string;
+  llm_instruction: string | null;
+  active: boolean;
+  auto_send: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HempHomesProspectOutreach {
+  id: string;
+  prospect_id: string;
+  template_id: string | null;
+  generated_at: string;
+  drafted_subject: string;
+  drafted_preview: string | null;
+  drafted_body_md: string;
+  drafted_body_html: string | null;
+  drafted_to_addresses: string[];
+  review_status: HempHomesOutreachReviewStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  reviewer_edited: boolean;
+  sent_at: string | null;
+  resend_message_id: string | null;
+  delivery_status: HempHomesOutreachDeliveryStatus | null;
+  bounced_at: string | null;
+  opened_at: string | null;
+  clicked_at: string | null;
+  replied_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface HempHomesPricingAssumptions {

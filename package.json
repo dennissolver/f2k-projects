@@ -11,6 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.98.0",
+    "@caistech/ai-client": "^0.1.0",
     "@caistech/corporate-components": "^0.3.1",
     "@caistech/ghl-client": "^0.1.2",
     "@supabase/ssr": "^0.5.0",
