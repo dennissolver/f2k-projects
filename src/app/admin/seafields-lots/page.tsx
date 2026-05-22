@@ -68,6 +68,93 @@ const STAGE_COLOR: Record<string, string> = {
   "7": "bg-gray-200 text-gray-800 border-gray-400",
 };
 
+const STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: "all", label: "All statuses" },
+  { value: "available", label: "Available" },
+  { value: "reserved", label: "Reserved" },
+  { value: "sold", label: "Sold" },
+  { value: "withheld", label: "Withheld" },
+  { value: "backup_list_only", label: "Backup list only" },
+  { value: "unset", label: "(no status)" },
+];
+
+const BUCKET_OPTIONS: { value: string; label: string }[] = [
+  { value: "all", label: "All buckets" },
+  { value: "public", label: "Public" },
+  { value: "groh", label: "GROH" },
+  { value: "baurimus", label: "Baurimus" },
+  { value: "takken", label: "Takken" },
+  { value: "wachs", label: "Wachs" },
+  { value: "f2k_withheld", label: "F2K withheld" },
+  { value: "display_home", label: "Display home" },
+  { value: "heritage_retained", label: "Heritage retained" },
+];
+
+// Sort priority for status when used as a sort key.
+const STATUS_SORT_ORDER: Record<string, number> = {
+  available: 0,
+  reserved: 1,
+  sold: 2,
+  withheld: 3,
+  backup_list_only: 4,
+};
+
+type SortKey =
+  | "lot_number"
+  | "sqm"
+  | "allocated"
+  | "stage"
+  | "dwelling_type"
+  | "land_price"
+  | "interest";
+type SortDir = "asc" | "desc";
+
+function landPriceOf(r: { retail_price: number | null; wholesale_price: number | null }): number | null {
+  return r.retail_price ?? r.wholesale_price ?? null;
+}
+
+function formatCurrency(n: number | null): string {
+  if (n == null) return "—";
+  return new Intl.NumberFormat("en-AU", {
+    style: "currency",
+    currency: "AUD",
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
+function SortableTh({
+  label,
+  sortKey: key,
+  activeKey,
+  dir,
+  onClick,
+  align = "left",
+}: {
+  label: string;
+  sortKey: SortKey;
+  activeKey: SortKey;
+  dir: SortDir;
+  onClick: (k: SortKey) => void;
+  align?: "left" | "right";
+}) {
+  const isActive = activeKey === key;
+  const arrow = isActive ? (dir === "asc" ? "▲" : "▼") : "";
+  return (
+    <th
+      onClick={() => onClick(key)}
+      className={`px-3 py-2 cursor-pointer select-none hover:bg-slate-100 ${
+        align === "right" ? "text-right" : "text-left"
+      } ${isActive ? "text-slate-900" : ""}`}
+      title={`Sort by ${label.toLowerCase()}`}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <span className="text-[10px] w-2 text-slate-400">{arrow}</span>
+      </span>
+    </th>
+  );
+}
+
 export default function SeafieldsLotsPage() {
   const [rows, setRows] = useState<Allocation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +173,12 @@ export default function SeafieldsLotsPage() {
     "all" | "allocated" | "available"
   >("all");
   const [filterStage, setFilterStage] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterBucket, setFilterBucket] = useState<string>("all");
+  const [filterDwelling, setFilterDwelling] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("lot_number");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const fetchRows = useCallback(async () => {
     setLoading(true);
@@ -131,6 +223,15 @@ export default function SeafieldsLotsPage() {
     return map;
   }, [rows]);
 
+  const dwellingOptions = useMemo(() => {
+    const seen = new Set<string>();
+    for (const r of rows) {
+      if (r.dwelling_type && r.dwelling_type.trim())
+        seen.add(r.dwelling_type.trim());
+    }
+    return Array.from(seen).sort((a, b) => a.localeCompare(b));
+  }, [rows]);
+
   const filtered = useMemo(() => {
     return rows.filter((r) => {
       if (filterAllocated === "allocated" && !r.allocated_to) return false;
@@ -138,6 +239,17 @@ export default function SeafieldsLotsPage() {
       if (filterStage !== "all") {
         if (filterStage === "unstaged" && r.stage) return false;
         if (filterStage !== "unstaged" && r.stage !== filterStage) return false;
+      }
+      if (filterStatus !== "all") {
+        if (filterStatus === "unset" && r.status) return false;
+        if (filterStatus !== "unset" && r.status !== filterStatus) return false;
+      }
+      if (filterBucket !== "all" && r.allocation_bucket !== filterBucket)
+        return false;
+      if (filterDwelling !== "all") {
+        if (filterDwelling === "unset" && r.dwelling_type) return false;
+        if (filterDwelling !== "unset" && r.dwelling_type !== filterDwelling)
+          return false;
       }
       if (search.trim()) {
         const q = search.trim().toLowerCase();
@@ -148,7 +260,80 @@ export default function SeafieldsLotsPage() {
       }
       return true;
     });
-  }, [rows, filterAllocated, filterStage, search]);
+  }, [
+    rows,
+    filterAllocated,
+    filterStage,
+    filterStatus,
+    filterBucket,
+    filterDwelling,
+    search,
+  ]);
+
+  const sorted = useMemo(() => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    const cmp = (a: Allocation, b: Allocation): number => {
+      switch (sortKey) {
+        case "lot_number":
+          return (a.lot_number - b.lot_number) * dir;
+        case "sqm":
+          return ((a.sqm ?? 0) - (b.sqm ?? 0)) * dir;
+        case "stage": {
+          const sa = a.stage ? parseInt(a.stage, 10) : Number.POSITIVE_INFINITY;
+          const sb = b.stage ? parseInt(b.stage, 10) : Number.POSITIVE_INFINITY;
+          return (sa - sb) * dir;
+        }
+        case "dwelling_type": {
+          const da = a.dwelling_type || "";
+          const db = b.dwelling_type || "";
+          if (!da && db) return 1; // nulls last regardless of dir
+          if (da && !db) return -1;
+          return da.localeCompare(db) * dir;
+        }
+        case "allocated": {
+          // Sort by typed status first; fall back to allocated_to presence.
+          const sa =
+            a.status != null
+              ? STATUS_SORT_ORDER[a.status] ?? 99
+              : a.allocated_to
+                ? 1
+                : 99;
+          const sb =
+            b.status != null
+              ? STATUS_SORT_ORDER[b.status] ?? 99
+              : b.allocated_to
+                ? 1
+                : 99;
+          return (sa - sb) * dir;
+        }
+        case "land_price": {
+          const pa = landPriceOf(a);
+          const pb = landPriceOf(b);
+          if (pa == null && pb == null) return 0;
+          if (pa == null) return 1; // nulls last
+          if (pb == null) return -1;
+          return (pa - pb) * dir;
+        }
+        case "interest": {
+          const ia = interestCounts[`L${a.lot_number}`] || 0;
+          const ib = interestCounts[`L${b.lot_number}`] || 0;
+          return (ia - ib) * dir;
+        }
+        default:
+          return 0;
+      }
+    };
+    return [...filtered].sort(cmp);
+  }, [filtered, sortKey, sortDir, interestCounts]);
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "lot_number" ? "asc" : "asc");
+    }
+  }
 
   const stats = useMemo(() => {
     const total = rows.length;
@@ -300,6 +485,68 @@ export default function SeafieldsLotsPage() {
         </div>
       </div>
 
+      {/* Secondary filters: status / bucket / dwelling type */}
+      <div className="flex flex-wrap gap-3 items-center mb-4">
+        <label className="text-xs uppercase tracking-wider text-slate-500">
+          Status
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="ml-2 border rounded px-2 py-1 text-sm normal-case tracking-normal text-slate-800"
+          >
+            {STATUS_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs uppercase tracking-wider text-slate-500">
+          Bucket
+          <select
+            value={filterBucket}
+            onChange={(e) => setFilterBucket(e.target.value)}
+            className="ml-2 border rounded px-2 py-1 text-sm normal-case tracking-normal text-slate-800"
+          >
+            {BUCKET_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs uppercase tracking-wider text-slate-500">
+          Dwelling type
+          <select
+            value={filterDwelling}
+            onChange={(e) => setFilterDwelling(e.target.value)}
+            className="ml-2 border rounded px-2 py-1 text-sm normal-case tracking-normal text-slate-800"
+          >
+            <option value="all">All types</option>
+            <option value="unset">(no type)</option>
+            {dwellingOptions.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+        </label>
+        {(filterStatus !== "all" ||
+          filterBucket !== "all" ||
+          filterDwelling !== "all") && (
+          <button
+            onClick={() => {
+              setFilterStatus("all");
+              setFilterBucket("all");
+              setFilterDwelling("all");
+            }}
+            className="text-xs text-blue-600 hover:text-blue-800 underline"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
       {/* Map + Table side-by-side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Map */}
@@ -321,21 +568,68 @@ export default function SeafieldsLotsPage() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 text-slate-600 uppercase text-xs tracking-wider sticky top-0 z-10">
                   <tr>
-                    <th className="px-3 py-2 text-left">Lot</th>
-                    <th className="px-3 py-2 text-left">Sqm</th>
-                    <th className="px-3 py-2 text-left">Allocated</th>
-                    <th className="px-3 py-2 text-left">Stage</th>
-                    <th className="px-3 py-2 text-right">Interest</th>
+                    <SortableTh
+                      label="Lot"
+                      sortKey="lot_number"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onClick={toggleSort}
+                    />
+                    <SortableTh
+                      label="Sqm"
+                      sortKey="sqm"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onClick={toggleSort}
+                    />
+                    <SortableTh
+                      label="Allocated"
+                      sortKey="allocated"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onClick={toggleSort}
+                    />
+                    <SortableTh
+                      label="Stage"
+                      sortKey="stage"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onClick={toggleSort}
+                    />
+                    <SortableTh
+                      label="Type"
+                      sortKey="dwelling_type"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onClick={toggleSort}
+                    />
+                    <SortableTh
+                      label="Land price"
+                      sortKey="land_price"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onClick={toggleSort}
+                      align="right"
+                    />
+                    <SortableTh
+                      label="Interest"
+                      sortKey="interest"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onClick={toggleSort}
+                      align="right"
+                    />
                     <th className="px-3 py-2 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((row) => {
+                  {sorted.map((row) => {
                     const lotId = `L${row.lot_number}`;
                     const interest = interestCounts[lotId] || 0;
                     const isSelected =
                       editing?.lotNumber === row.lot_number;
                     const hasIntent = !!row.intent_locked_to_registration_id;
+                    const landPrice = landPriceOf(row);
                     return (
                       <tr
                         key={row.lot_number}
@@ -375,6 +669,22 @@ export default function SeafieldsLotsPage() {
                             </span>
                           ) : (
                             <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          {row.dwelling_type ? (
+                            <span className="text-slate-700 text-xs">
+                              {row.dwelling_type}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300">—</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-right whitespace-nowrap text-slate-700 text-xs">
+                          {landPrice != null ? (
+                            formatCurrency(landPrice)
+                          ) : (
+                            <span className="text-slate-300">—</span>
                           )}
                         </td>
                         <td className="px-3 py-2 text-right">
