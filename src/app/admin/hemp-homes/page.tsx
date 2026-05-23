@@ -1,4 +1,5 @@
 import { createSupabaseService } from "@/lib/supabase-service";
+import NotifyRecipientsCard from "@/components/admin/NotifyRecipientsCard";
 
 async function getCounts() {
   const supabase = createSupabaseService();
@@ -84,6 +85,11 @@ export default async function HempHomesAdminIndex() {
           design → test → build → certify program moves forward.
         </p>
       </div>
+
+      <NotifyRecipientsCard
+        apiEndpoint="/api/admin/hemp-homes/notify-recipients"
+        description="Who gets emailed on new Hemp Homes waitlist registrations."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((c) => (

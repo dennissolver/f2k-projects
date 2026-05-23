@@ -4,6 +4,10 @@ import { createSupabaseService } from "@/lib/supabase-service";
 import { escapeHtml } from "@/lib/html-escape";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { forwardRegistrationToGHL } from "@/lib/ghl";
+import {
+  getActiveRecipients,
+  renderBrandedEmail,
+} from "@/lib/hemp-homes/notify";
 import { z } from "zod";
 
 const PROGRAM_SLUG = "hemp-homes-for-eco-communities";
@@ -232,37 +236,71 @@ export async function POST(request: Request) {
       ? `<tr><td style="padding:4px 12px;color:#666">Referrer</td><td style="padding:4px 12px">${escapeHtml(d.referrer_name)}${d.referrer_company ? ` — ${escapeHtml(d.referrer_company)}` : ""}${d.referrer_contact ? ` (${escapeHtml(d.referrer_contact)})` : ""} [${escapeHtml(d.referrer_type)}]</td></tr>`
       : "";
 
-    // Admin notification
+    // Admin notification — recipients from DB (managed at /admin/hemp-homes).
+    // Branded template matching Seafields + Branscombe.
+    const recipients = await getActiveRecipients();
+
+    const adminRows: Array<{ label: string; value: string }> = [
+      { label: "Name", value: `<strong>${e.full_name}</strong>` },
+      {
+        label: "Email",
+        value: `<a href="mailto:${e.emailHref}" style="color:#1A2744">${e.email}</a>`,
+      },
+    ];
+    if (d.phone) adminRows.push({ label: "Phone", value: e.phone });
+    if (d.suburb || d.state || d.postcode)
+      adminRows.push({
+        label: "Location",
+        value: [e.suburb, e.state, e.postcode].filter(Boolean).join(" "),
+      });
+    if (d.i_am_a) adminRows.push({ label: "I am a", value: e.i_am_a });
+    if (d.situation) adminRows.push({ label: "Situation", value: e.situation });
+    if (d.timeframe) adminRows.push({ label: "Timeframe", value: e.timeframe });
+    if (d.finance_status)
+      adminRows.push({ label: "Finance", value: e.finance_status });
+    if (d.hear_about)
+      adminRows.push({ label: "How heard", value: e.hear_about });
+    if (d.preferred_config)
+      adminRows.push({ label: "Preferred config", value: e.preferred_config });
+    if (e.build_preference)
+      adminRows.push({
+        label: "Build model",
+        value: `<strong>${e.build_preference}</strong>`,
+      });
+    if (e.regions) adminRows.push({ label: "Regions", value: e.regions });
+    if (e.journey_interests)
+      adminRows.push({ label: "Journey interest", value: e.journey_interests });
+    if (d.what_drew_you)
+      adminRows.push({
+        label: "What drew them",
+        value: `<em>${e.what_drew_you}</em>`,
+      });
+    if (referrerRow) {
+      const referrerText =
+        `${d.referrer_name ? escapeHtml(d.referrer_name) : ""}` +
+        `${d.referrer_company ? ` — ${escapeHtml(d.referrer_company)}` : ""}` +
+        `${d.referrer_contact ? ` (${escapeHtml(d.referrer_contact)})` : ""}` +
+        ` <span style="color:#94A3B8">[${escapeHtml(d.referrer_type || "")}]</span>`;
+      adminRows.push({ label: "Referrer", value: referrerText });
+    }
+    if (d.notes) adminRows.push({ label: "Notes", value: e.notes });
+
+    const adminHtml = renderBrandedEmail({
+      preheader: `${d.full_name} registered for Hemp Homes waitlist`,
+      heading: `Another waitlist registration by ${d.full_name}`,
+      intro: `${escapeHtml(d.full_name)} just signed up for the Hemp Homes for Eco-Communities waitlist.`,
+      rows: adminRows,
+      ctaLabel: "Open admin",
+      ctaHref: "https://f2k-projects.vercel.app/admin/hemp-homes",
+      footer:
+        "Waitlist signup only — no deposit taken. Reply directly to the applicant from your inbox or follow up via the admin panel.",
+    });
+
     await resend.emails.send({
       from: fromAddress,
-      to: [
-        "dennis@factory2key.com.au",
-        "uwe@factory2key.com.au",
-        "steve@wandarra.com.au",
-      ],
-      subject: `Hemp Homes waitlist: ${d.full_name}`,
-      html: `
-        <h2 style="color:#1A2744;font-family:sans-serif">New Hemp Homes Waitlist Registration</h2>
-        <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">
-          <tr><td style="padding:4px 12px;color:#666">Name</td><td style="padding:4px 12px;font-weight:bold">${e.full_name}</td></tr>
-          <tr><td style="padding:4px 12px;color:#666">Email</td><td style="padding:4px 12px"><a href="mailto:${e.emailHref}">${e.email}</a></td></tr>
-          ${d.phone ? `<tr><td style="padding:4px 12px;color:#666">Phone</td><td style="padding:4px 12px">${e.phone}</td></tr>` : ""}
-          ${d.suburb || d.state || d.postcode ? `<tr><td style="padding:4px 12px;color:#666">Location</td><td style="padding:4px 12px">${[e.suburb, e.state, e.postcode].filter(Boolean).join(" ")}</td></tr>` : ""}
-          ${d.i_am_a ? `<tr><td style="padding:4px 12px;color:#666">I am a</td><td style="padding:4px 12px">${e.i_am_a}</td></tr>` : ""}
-          ${d.situation ? `<tr><td style="padding:4px 12px;color:#666">Situation</td><td style="padding:4px 12px">${e.situation}</td></tr>` : ""}
-          ${d.timeframe ? `<tr><td style="padding:4px 12px;color:#666">Timeframe</td><td style="padding:4px 12px">${e.timeframe}</td></tr>` : ""}
-          ${d.finance_status ? `<tr><td style="padding:4px 12px;color:#666">Finance</td><td style="padding:4px 12px">${e.finance_status}</td></tr>` : ""}
-          ${d.hear_about ? `<tr><td style="padding:4px 12px;color:#666">How heard</td><td style="padding:4px 12px">${e.hear_about}</td></tr>` : ""}
-          ${d.preferred_config ? `<tr><td style="padding:4px 12px;color:#666">Preferred config</td><td style="padding:4px 12px">${e.preferred_config}</td></tr>` : ""}
-          ${e.build_preference ? `<tr><td style="padding:4px 12px;color:#666">Build model</td><td style="padding:4px 12px;font-weight:bold">${e.build_preference}</td></tr>` : ""}
-          ${e.regions ? `<tr><td style="padding:4px 12px;color:#666">Regions</td><td style="padding:4px 12px">${e.regions}</td></tr>` : ""}
-          ${e.journey_interests ? `<tr><td style="padding:4px 12px;color:#666">Journey interest</td><td style="padding:4px 12px">${e.journey_interests}</td></tr>` : ""}
-          ${d.what_drew_you ? `<tr><td style="padding:4px 12px;color:#666">What drew them</td><td style="padding:4px 12px;font-style:italic">${e.what_drew_you}</td></tr>` : ""}
-          ${referrerRow}
-          ${d.notes ? `<tr><td style="padding:4px 12px;color:#666">Notes</td><td style="padding:4px 12px">${e.notes}</td></tr>` : ""}
-        </table>
-        <p style="margin-top:16px;font-size:12px;color:#999">Hemp Homes for Eco-Communities — Waitlist Registration</p>
-      `,
+      to: recipients,
+      subject: `Another waitlist signup by ${d.full_name}`,
+      html: adminHtml,
     });
 
     // Applicant confirmation — forest accent (#1B4332) per DESIGN.md §11.
