@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import NotifyRecipientsCard from "@/components/admin/NotifyRecipientsCard";
+import { NotifyRecipientsCard } from "@caistech/property-launch-kit/components";
 
 type Status =
   | "active"

@@ -8,7 +8,7 @@ import {
   HOUSE_TYPES,
   type HouseType,
 } from "@/data/branscombe";
-import NotifyRecipientsCard from "@/components/admin/NotifyRecipientsCard";
+import { NotifyRecipientsCard } from "@caistech/property-launch-kit/components";
 
 interface Allocation {
   unit_number: number;

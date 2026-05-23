@@ -1,9 +1,10 @@
 import { Metadata } from "next";
 import HeroSitePlan from "@/components/seafields/HeroSitePlan";
 import RegistrationForm from "@/components/seafields/RegistrationForm";
-import DesignGallery, {
+import {
+  DesignGallery,
   type Design,
-} from "@/components/property/DesignGallery";
+} from "@caistech/property-launch-kit/components";
 
 const SEAFIELDS_DESIGNS: Design[] = [
   {

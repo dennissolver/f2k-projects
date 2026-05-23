@@ -21,8 +21,8 @@ importers:
         specifier: ^0.1.2
         version: 0.1.2
       '@caistech/property-launch-kit':
-        specifier: ^0.1.0
-        version: 0.1.0(@supabase/supabase-js@2.105.4)(typescript@5.9.3)
+        specifier: ^0.3.0
+        version: 0.3.0(@supabase/supabase-js@2.105.4)(react@18.3.1)(typescript@5.9.3)
       '@supabase/ssr':
         specifier: ^0.5.0
         version: 0.5.2(@supabase/supabase-js@2.105.4)
@@ -167,10 +167,11 @@ packages:
       playwright:
         optional: true
 
-  '@caistech/property-launch-kit@0.1.0':
-    resolution: {integrity: sha512-sXK5T7/C1SijDI2gAXV6Bwg7yJM/eOGNJUPsbCrBPcGzRRLj2AQ78uthG3+C5a2wYmJfih/bzF/y8bTmVj36sw==, tarball: https://npm.pkg.github.com/download/@caistech/property-launch-kit/0.1.0/87d7637fdf3ebd29c9eca70cbc1ec6110f78d428}
+  '@caistech/property-launch-kit@0.3.0':
+    resolution: {integrity: sha512-sxMOhUJQbh4C4AC3t/L1WQEk86DQ72O/b2q1Un9V9xD/0vyHu77KYJqyD4IbtwcCb7abTqugy/s+KjVe4CV+Lg==, tarball: https://npm.pkg.github.com/download/@caistech/property-launch-kit/0.3.0/39032daa2647c4f938daf74fce7aeeae50130caa}
     peerDependencies:
       '@supabase/supabase-js': ^2.0.0
+      react: ^18.0.0 || ^19.0.0
       typescript: '>=5.0.0'
 
   '@emnapi/core@1.10.0':
@@ -2947,9 +2948,10 @@ snapshots:
     optionalDependencies:
       playwright: 1.60.0
 
-  '@caistech/property-launch-kit@0.1.0(@supabase/supabase-js@2.105.4)(typescript@5.9.3)':
+  '@caistech/property-launch-kit@0.3.0(@supabase/supabase-js@2.105.4)(react@18.3.1)(typescript@5.9.3)':
     dependencies:
       '@supabase/supabase-js': 2.105.4
+      react: 18.3.1
       typescript: 5.9.3
 
   '@emnapi/core@1.10.0':

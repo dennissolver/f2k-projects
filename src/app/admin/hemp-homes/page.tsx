@@ -1,5 +1,5 @@
 import { createSupabaseService } from "@/lib/supabase-service";
-import NotifyRecipientsCard from "@/components/admin/NotifyRecipientsCard";
+import { NotifyRecipientsCard } from "@caistech/property-launch-kit/components";
 
 async function getCounts() {
   const supabase = createSupabaseService();
