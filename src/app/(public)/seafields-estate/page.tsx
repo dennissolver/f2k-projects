@@ -20,7 +20,8 @@ const SEAFIELDS_DESIGNS: Design[] = [
       label: "Elevations",
       href: "/seafields/designs/joey-elevations.png",
     },
-    priceFrom: "$485,000",
+    priceFrom: "$297,900",
+    priceLabel: "House only — from",
   },
   {
     name: "Koala",
@@ -35,7 +36,8 @@ const SEAFIELDS_DESIGNS: Design[] = [
       label: "Option 2",
       href: "/seafields/designs/koala-option-2.pdf",
     },
-    priceFrom: "$485,000",
+    priceFrom: "$327,700",
+    priceLabel: "House only — from",
   },
   {
     name: "3x2 Modular",
@@ -43,10 +45,11 @@ const SEAFIELDS_DESIGNS: Design[] = [
     beds: "3 bed · 2 bath",
     tag: "GROH ELIGIBLE",
     detail:
-      "GROH-approved 3-bedroom 2-bathroom modular home. Government Regional Officer Housing eligible. Suitable for first-home buyers and small families.",
+      "GROH-approved 3-bedroom 2-bathroom modular home. Government Regional Officer Housing eligible. Suitable for first-home buyers and small families. House & land pricing on application.",
     hero: "/seafields/designs/3x2-floor-plan.png",
     plan: "/seafields/designs/3x2-floor-plan.pdf",
-    priceFrom: "$485,000",
+    priceFrom: "Price on application",
+    priceLabel: "",
   },
   {
     name: "4x2 Modular",
@@ -57,29 +60,30 @@ const SEAFIELDS_DESIGNS: Design[] = [
       "GROH-approved 4-bedroom 2-bathroom modular home. Larger family layout with the same modular delivery economics.",
     hero: "/seafields/designs/4x2-floor-plan.png",
     plan: "/seafields/designs/4x2-floor-plan.pdf",
-    priceFrom: "$485,000",
+    priceFrom: "$680,000",
   },
   {
-    name: "The Murchison",
-    size: "Premium",
+    name: "BigRoo",
+    size: "≈310m²",
     beds: "4 bed · 2 bath + Theatre",
     tag: "PREMIUM",
     detail:
-      "Premium 4-bed modular with dedicated theatre room and walk-in robes. Architect-designed kitchen feature. The flagship family home.",
+      "Premium ≈310m² modular with dedicated theatre room and walk-in robes. Architect-designed kitchen feature. The flagship family home.",
     hero: "/seafields/designs/murchison-floor-plan.png",
     plan: "/seafields/designs/murchison-floor-plan.png",
-    priceFrom: "$485,000",
+    priceFrom: "$829,700",
   },
   {
-    name: "5x3 Modular",
-    size: "Coming soon",
-    beds: "5 bed · 3 bath",
-    tag: "LARGEST",
+    name: "Wombat",
+    size: "191m²",
+    beds: "4 bed · 2 bath",
+    tag: "FAMILY HOME",
     detail:
-      "Largest design in the range — 5-bedroom 3-bathroom modular for extended families or multi-generational living. Plans being finalised; contact Uwe for early-access details.",
+      "WAM Napier-series 4-bedroom 2-bathroom modular home, 191m². Plans and house & land pricing are being finalised — contact Uwe for early details.",
     hero: null,
     plan: null,
-    priceFrom: "$485,000",
+    priceFrom: "Pricing TBC",
+    priceLabel: "",
     placeholder: true,
   },
 ];
@@ -264,22 +268,23 @@ export default function SeafieldsEstatePage() {
             Development Staging
           </p>
           <h2 className="font-playfair text-[2rem] font-black text-deep-blue leading-tight mb-3">
-            Stage 1 Open Now — SW Block, 20 Lots
+            Stages 1–3 Open Now — 43 Lots
           </h2>
           <p className="text-slate font-archivo leading-relaxed mb-8 max-w-[700px]">
-            Seafields Estate releases in seven stages. Only{" "}
-            <strong>Stage 1 (the 20 SW Block lots)</strong> is open for
-            registration at launch — later stages release sequentially as
-            Stage 1 fills. Pricing is set by lot size, not by stage, so
-            registering early in Stage 1 gives you the best pick of available
-            lots without paying a stage premium.
+            Seafields Estate releases in seven stages.{" "}
+            <strong>Stages 1 and 3 are open for registration now</strong>{" "}
+            (43 lots across the SW Block and Central precincts); Stages 4–7
+            release sequentially as the open stages fill. Stage 2 is a single
+            retained heritage lot and is not part of the sale. Pricing is set by
+            lot size, not by stage, so registering early gives you the best pick
+            of available lots without paying a stage premium.
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             {[
               { stage: "Stage 1", lots: "20", area: "SW Block — Launch", rate: "From $155k", state: "OPEN" },
-              { stage: "Stage 2", lots: "1",  area: "Central Heritage", rate: "$270k",      state: "LOCKED" },
-              { stage: "Stage 3", lots: "23", area: "Central",          rate: "From $155k", state: "LOCKED" },
+              { stage: "Stage 2", lots: "1",  area: "Heritage — retained", rate: "Not for sale", state: "RESERVED" },
+              { stage: "Stage 3", lots: "23", area: "Central",          rate: "From $155k", state: "OPEN" },
               { stage: "Stage 4", lots: "12", area: "East",             rate: "From $155k", state: "LOCKED" },
               { stage: "Stage 5", lots: "25", area: "North",            rate: "From $155k", state: "LOCKED" },
               { stage: "Stage 6", lots: "35", area: "Central Upper",    rate: "From $155k", state: "LOCKED" },
@@ -333,7 +338,7 @@ export default function SeafieldsEstatePage() {
             </div>
             <div className="font-archivo text-sm text-deep-blue">
               <strong>145 freehold lots</strong> &middot; CLE Plan 3027-08B-01,
-              WAPC 202888 &middot; vacant land $155k–$270k by lot size
+              WAPC 202888 &middot; vacant land $155k–$190k by lot size
             </div>
           </div>
         </div>
@@ -418,11 +423,11 @@ export default function SeafieldsEstatePage() {
           </h2>
           <p className="text-slate font-archivo leading-relaxed mb-8 max-w-[760px]">
             Every Factory2Key home is a factory-built modular dwelling delivered
-            to site as complete modules and assembled on a prepared slab. Five
-            base designs span ancillary dwellings through to large family
-            homes — pick a design at registration time and we&apos;ll quote you
-            against your selected lot. Indicative time-to-build from site
-            arrival is 12–14 weeks.
+            to site as complete modules and assembled on a prepared slab. Our
+            range spans ancillary dwellings through to large family homes — pick
+            a design at registration time and we&apos;ll quote you against your
+            selected lot. Indicative time-to-build from site arrival is 12–14
+            weeks.
           </p>
 
           <div className="mb-8">
