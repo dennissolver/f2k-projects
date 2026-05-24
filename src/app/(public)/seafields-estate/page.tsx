@@ -30,7 +30,7 @@ const SEAFIELDS_DESIGNS: Design[] = [
     tag: "ANCILLARY / DUAL-OCC",
     detail:
       "Ancillary dwelling unit — slightly larger footprint than Joey, suitable for granny flat / dual-occupancy use on lots ≥600m² under R20.",
-    hero: "/seafields/designs/joey-floor-plan.png",
+    hero: null,
     plan: "/seafields/designs/koala-floor-plan.pdf",
     secondary: {
       label: "Option 2",
@@ -268,12 +268,12 @@ export default function SeafieldsEstatePage() {
             Development Staging
           </p>
           <h2 className="font-playfair text-[2rem] font-black text-deep-blue leading-tight mb-3">
-            Stages 1–3 Open Now — 43 Lots
+            Stages 1–3 Open Now — 44 Lots
           </h2>
           <p className="text-slate font-archivo leading-relaxed mb-8 max-w-[700px]">
             Seafields Estate releases in seven stages.{" "}
             <strong>Stages 1 and 3 are open for registration now</strong>{" "}
-            (43 lots across the SW Block and Central precincts); Stages 4–7
+            (44 lots across the SW Block and Central precincts); Stages 4–7
             release sequentially as the open stages fill. Stage 2 is a single
             retained heritage lot and is not part of the sale. Pricing is set by
             lot size, not by stage, so registering early gives you the best pick
@@ -284,7 +284,7 @@ export default function SeafieldsEstatePage() {
             {[
               { stage: "Stage 1", lots: "20", area: "SW Block — Launch", rate: "From $155k", state: "OPEN" },
               { stage: "Stage 2", lots: "1",  area: "Heritage — retained", rate: "Not for sale", state: "RESERVED" },
-              { stage: "Stage 3", lots: "23", area: "Central",          rate: "From $155k", state: "OPEN" },
+              { stage: "Stage 3", lots: "24", area: "Central",          rate: "From $155k", state: "OPEN" },
               { stage: "Stage 4", lots: "12", area: "East",             rate: "From $155k", state: "LOCKED" },
               { stage: "Stage 5", lots: "25", area: "North",            rate: "From $155k", state: "LOCKED" },
               { stage: "Stage 6", lots: "35", area: "Central Upper",    rate: "From $155k", state: "LOCKED" },
