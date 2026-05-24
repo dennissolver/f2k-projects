@@ -6,6 +6,15 @@ const ADMIN_PUBLIC_ROUTES = new Set([
   "/admin/reset-password",
 ]);
 
+// Agent portal public routes — reachable without a session (agents aren't
+// logged in yet when they activate). Everything else under /agent is gated.
+const AGENT_PUBLIC_ROUTES = new Set([
+  "/agent/login",
+  "/agent/activate",
+  "/agent/forgot-password",
+  "/agent/reset-password",
+]);
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -13,12 +22,15 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", pathname);
 
-  // Only auth-gate /admin/* (and skip its public sub-pages + the auth callback).
+  // Auth-gate /admin/* and /agent/* page trees (skip their public sub-pages +
+  // the auth callback). /api/* routes self-gate via getAdminUser / getAgentUser.
   const isAdmin = pathname.startsWith("/admin");
+  const isAgent = pathname.startsWith("/agent");
   const isAuthCallback = pathname.startsWith("/api/auth/callback");
-  const isPublicAdminRoute = ADMIN_PUBLIC_ROUTES.has(pathname);
+  const isPublicRoute =
+    ADMIN_PUBLIC_ROUTES.has(pathname) || AGENT_PUBLIC_ROUTES.has(pathname);
 
-  if (!isAdmin || isAuthCallback || isPublicAdminRoute) {
+  if ((!isAdmin && !isAgent) || isAuthCallback || isPublicRoute) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
@@ -52,7 +64,7 @@ export async function middleware(request: NextRequest) {
 
   if (!user) {
     const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/admin/login";
+    loginUrl.pathname = isAgent ? "/agent/login" : "/admin/login";
     loginUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(loginUrl);
   }
