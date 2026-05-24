@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LOTS, CATEGORY_INFO } from "@/data/seafields";
 import polygonsData from "@/data/seafields/polygons.json";
 import SiteMap from "./SiteMap";
@@ -50,6 +50,33 @@ const REFERRER_TYPES = [
   "Friend or Family",
   "Other",
 ] as const;
+
+/**
+ * Partner referral campaigns keyed by the ?ref= URL tag. A printed QR code or
+ * short link carries ?ref=<tag> (e.g. ?ref=raywhite-signage), so any
+ * registration arriving through it is auto-attributed to that partner across
+ * the whole pipeline (admin email + GHL + audit). Add a row here when
+ * onboarding a new referral channel. Unknown tags are still recorded verbatim
+ * as the lead `source` but won't pre-fill the referrer fields. The referrer
+ * `type` MUST match a value in REFERRER_TYPES so the select renders it.
+ */
+const REFERRAL_CAMPAIGNS: Record<
+  string,
+  { type: string; name: string; company: string; contact: string }
+> = {
+  "raywhite-signage": {
+    type: "Real Estate Agent",
+    name: "Henry Van Tiel",
+    company: "Ray White Geraldton",
+    contact: "0429 995 121 / henry.vantiel@raywhite.com",
+  },
+  raywhite: {
+    type: "Real Estate Agent",
+    name: "Henry Van Tiel",
+    company: "Ray White Geraldton",
+    contact: "0429 995 121 / henry.vantiel@raywhite.com",
+  },
+};
 
 const BUYER_TYPES = [
   "First Home Buyer",
@@ -147,6 +174,27 @@ export default function RegistrationForm() {
 
   // Expanded lot panel
   const [expandedLot, setExpandedLot] = useState<string | null>(null);
+
+  // Lead-source attribution. A partner QR code / short link carries a
+  // ?ref=<tag> param. We record the raw tag for the `source` column and, for
+  // known campaigns, pre-fill the referrer fields so the lead is attributed to
+  // the partner end-to-end. The fields stay user-editable on screen.
+  const [refTag, setRefTag] = useState<string | null>(null);
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search)
+      .get("ref")
+      ?.toLowerCase()
+      .trim();
+    if (!ref || !/^[a-z0-9_-]{1,60}$/.test(ref)) return;
+    setRefTag(ref);
+    const campaign = REFERRAL_CAMPAIGNS[ref];
+    if (campaign) {
+      setReferrerType(campaign.type);
+      setReferrerName(campaign.name);
+      setReferrerCompany(campaign.company);
+      setReferrerContact(campaign.contact);
+    }
+  }, []);
 
   const isHL =
     interestType === "House & land package (Factory2Key modular build)" ||
@@ -253,6 +301,7 @@ export default function RegistrationForm() {
           referrer_contact: referrerContact.trim() || null,
           notes: notes.trim() || null,
           consent,
+          source: refTag ?? undefined,
         }),
       });
 
