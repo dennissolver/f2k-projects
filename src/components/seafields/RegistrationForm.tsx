@@ -31,10 +31,10 @@ const HL_PRICE_RANGES = [
 
 const DWELLING_TYPES = [
   "2x1 ADU / Granny Flat",
-  "3x2 Modular Home",
+  "3x2 Modular Home (GROH)",
   "3x2 + Study Modular",
-  "4x2 Modular Home",
-  "4x2 + Theatre Modular",
+  "4x2 Modular Home (GROH)",
+  "BigRoo — 4x2 + Theatre Modular",
   "5x2 Modular Home",
   "Dual Occupancy",
   "Not sure yet",
