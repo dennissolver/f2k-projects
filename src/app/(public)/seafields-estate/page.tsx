@@ -44,7 +44,7 @@ const SEAFIELDS_DESIGNS: Design[] = [
     tag: "GROH ELIGIBLE",
     detail:
       "GROH-approved 3-bedroom 2-bathroom modular home. Government Regional Officer Housing eligible. Suitable for first-home buyers and small families.",
-    hero: "/seafields/designs/joey-elevations.png",
+    hero: "/seafields/designs/3x2-floor-plan.png",
     plan: "/seafields/designs/3x2-floor-plan.pdf",
     priceFrom: "$485,000",
   },
@@ -55,7 +55,7 @@ const SEAFIELDS_DESIGNS: Design[] = [
     tag: "GROH ELIGIBLE",
     detail:
       "GROH-approved 4-bedroom 2-bathroom modular home. Larger family layout with the same modular delivery economics.",
-    hero: "/seafields/designs/joey-elevations.png",
+    hero: "/seafields/designs/4x2-floor-plan.png",
     plan: "/seafields/designs/4x2-floor-plan.pdf",
     priceFrom: "$485,000",
   },
