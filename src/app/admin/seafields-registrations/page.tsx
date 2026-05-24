@@ -23,6 +23,7 @@ interface RegistrationJoinRow {
   created_at: string;
   registration: {
     id: string;
+    agent_id: string | null;
     first_name: string;
     last_name: string;
     email: string;
@@ -70,6 +71,7 @@ type StageFilter = "all" | string;
 
 export default function SeafieldsRegistrationsPage() {
   const [rows, setRows] = useState<RegistrationJoinRow[]>([]);
+  const [agents, setAgents] = useState<{ id: string; name: string; agency: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [notifyingId, setNotifyingId] = useState<string | null>(null);
@@ -107,6 +109,13 @@ export default function SeafieldsRegistrationsPage() {
   useEffect(() => {
     fetchRows();
   }, [fetchRows]);
+
+  useEffect(() => {
+    fetch("/api/admin/agents")
+      .then((r) => (r.ok ? r.json() : { agents: [] }))
+      .then((d) => setAgents(d.agents ?? []))
+      .catch(() => {});
+  }, []);
 
   const stages = useMemo(() => {
     const set = new Set<string>();
@@ -204,6 +213,34 @@ export default function SeafieldsRegistrationsPage() {
     }
   }
 
+  async function assignAgent(registrationId: string, agentId: string | null) {
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/agents/assign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ registration_id: registrationId, agent_id: agentId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage({ type: "error", text: data.error ?? "Assign failed" });
+        return;
+      }
+      // agent_id lives on the parent registration — update every join row that
+      // shares this registration id (a buyer may appear under several lots).
+      setRows((prev) =>
+        prev.map((r) =>
+          r.registration.id === registrationId
+            ? { ...r, registration: { ...r.registration, agent_id: agentId } }
+            : r,
+        ),
+      );
+      setMessage({ type: "success", text: agentId ? "Assigned to agent." : "Unassigned." });
+    } catch {
+      setMessage({ type: "error", text: "Network error during assign." });
+    }
+  }
+
   return (
     <div>
       <h2 className="text-2xl font-bold text-slate-900 mb-1">
@@ -294,6 +331,7 @@ export default function SeafieldsRegistrationsPage() {
                 <th className="px-3 py-2 text-left">Status</th>
                 <th className="px-3 py-2 text-left">Registrant</th>
                 <th className="px-3 py-2 text-left">Email</th>
+                <th className="px-3 py-2 text-left">Agent</th>
                 <th className="px-3 py-2 text-right">Actions</th>
               </tr>
             </thead>
@@ -371,6 +409,24 @@ export default function SeafieldsRegistrationsPage() {
                         </a>
                       </div>
                     )}
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    <select
+                      value={r.registration.agent_id ?? ""}
+                      onChange={(e) =>
+                        assignAgent(r.registration.id, e.target.value || null)
+                      }
+                      className="text-xs border border-slate-300 rounded px-2 py-1 max-w-[150px]"
+                      title="Assign this buyer to an agent (shows in their My Clients)"
+                    >
+                      <option value="">— Unassigned —</option>
+                      {agents.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.name}
+                          {a.agency ? ` (${a.agency})` : ""}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                   <td className="px-3 py-2 text-right whitespace-nowrap">
                     <button

@@ -15,6 +15,7 @@ export type RegistrationJoinRow = {
   created_at: string;
   registration: {
     id: string;
+    agent_id: string | null;
     first_name: string;
     last_name: string;
     email: string;
@@ -45,7 +46,7 @@ export async function GET() {
       "id, lot_number, registration_type, status, position_in_queue, created_at, " +
         "stage_at_registration_id, " +
         "stages(stage_number, stage_label), " +
-        "seafields_registrations!inner(id, first_name, last_name, email, phone, suburb, postcode, buyer_type, purchase_timeline, finance_status, interest_type, created_at)",
+        "seafields_registrations!inner(id, agent_id, first_name, last_name, email, phone, suburb, postcode, buyer_type, purchase_timeline, finance_status, interest_type, created_at)",
     )
     .order("lot_number", { ascending: true })
     .order("registration_type", { ascending: true })
