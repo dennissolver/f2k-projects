@@ -243,6 +243,44 @@ export default function HempHomesPostsPage() {
     });
   }
 
+  async function sendEmail(p: HempHomesPost, mode: "test" | "live") {
+    if (
+      mode === "live" &&
+      !confirm(
+        `Email "${p.title}" to all Hemp Homes subscribers? This sends to real people. Already-sent and unsubscribed addresses are skipped, max 2 emails/week each.`,
+      )
+    ) {
+      return;
+    }
+    setBusyPostId(p.id);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/admin/estates/hemp-homes/posts/${p.id}/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage({ type: "error", text: data.error ?? "Send failed" });
+        return;
+      }
+      if (mode === "test") {
+        setMessage({ type: "success", text: `Test email sent to ${data.to}. Check your inbox before sending to subscribers.` });
+      } else {
+        setMessage({
+          type: "success",
+          text: `Sent to ${data.sent} of ${data.total_subscribers} subscriber(s). Skipped: ${data.skipped_already} already sent, ${data.skipped_optout} unsubscribed, ${data.skipped_cap} over weekly cap.${data.remaining ? ` ${data.remaining} remaining — run again.` : ""}${data.failed ? ` Failed: ${data.failed}.` : ""}`,
+        });
+      }
+      fetchPosts();
+    } catch {
+      setMessage({ type: "error", text: "Network error sending email" });
+    } finally {
+      setBusyPostId(null);
+    }
+  }
+
   async function saveEdit() {
     if (!editing) return;
     const ok = await patchPost(
@@ -486,6 +524,26 @@ export default function HempHomesPostsPage() {
                       >
                         {busy ? "…" : published ? "Unpublish" : "Publish"}
                       </button>
+                      {published && (
+                        <>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => sendEmail(p, "test")}
+                            className="text-xs text-slate-600 hover:text-slate-900 font-semibold disabled:opacity-50"
+                          >
+                            Test email
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => sendEmail(p, "live")}
+                            className="text-xs text-blue-700 hover:text-blue-900 font-semibold disabled:opacity-50"
+                          >
+                            Email subscribers
+                          </button>
+                        </>
+                      )}
                       <button
                         type="button"
                         disabled={busy}

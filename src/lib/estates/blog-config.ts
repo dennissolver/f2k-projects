@@ -25,6 +25,8 @@ export interface EstateBlogConfig {
   driveEnabled: boolean;
   /** Estate-specific facts + guardrails injected into the AI post-drafter prompt. */
   aiContext: string;
+  /** Table holding this estate's email subscribers (must have an `email` column). */
+  subscriberTable: string;
 }
 
 // Only estates with a configured (and migrated) blog appear here. Unlisted
@@ -53,6 +55,7 @@ HARD RULES (a violation makes the post unusable):
 - NEVER name the materials partner, engineering partner, or any partner company (Wandara included) — they stay anonymous publicly until they agree. Say "our materials partner" / "our engineering partner".
 - NEVER claim certification is achieved or give a delivery date earlier than 2027 — the home is being built TOWARD the residential certification pathway; results get published as they happen.
 - NEVER claim specific health outcomes, cost-competitiveness, or lifespan figures beyond the facts above.`,
+    subscriberTable: "hemp_homes_waitlist",
   },
   branscombe: {
     slug: "branscombe",
@@ -73,6 +76,7 @@ HARD RULES (a violation makes the post unusable):
 HARD RULES:
 - Registration of interest only — no deposit is taken or implied. Never promise availability, price, or completion dates that aren't in the supplied material.
 - Do not invent home specifications, prices, or finishes. Ground the post in the supplied photo captions and stage. If captions are thin, write a warm general update about the estate and the build.`,
+    subscriberTable: "branscombe_registrations",
   },
   seafields: {
     slug: "seafields",
@@ -93,6 +97,7 @@ HARD RULES:
 HARD RULES:
 - Registration of interest only — no deposit is taken or implied. Never promise lot availability, price, or release dates that aren't in the supplied material.
 - Do not invent lot details, prices, or stage timing. Ground the post in the supplied photo captions and stage. If captions are thin, write a warm general update about the estate's progress.`,
+    subscriberTable: "seafields_registrations",
   },
 };
 

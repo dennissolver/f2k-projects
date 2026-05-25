@@ -1,0 +1,37 @@
+{
+  "name": "estate-email-send",
+  "description": "Email published blog posts to each estate's subscribers (all estates). Approval-gated (operator clicks Send on a published post; test-to-me option), 2/week per-subscriber cap, dedup, Spam-Act unsubscribe. Reuses Resend + the existing unsubscribe HMAC secret.",
+  "introduced_at": "2026-05-25",
+  "env_vars": [
+    {
+      "name": "RESEND_API_KEY",
+      "required": true,
+      "description": "Resend API key. Already present for outreach + transactional sends.",
+      "scope": ["production", "preview"],
+      "where": "resend.com → API Keys"
+    },
+    {
+      "name": "RESEND_FROM_EMAIL",
+      "required": false,
+      "description": "Sender override. Defaults to 'Factory2Key <noreply@updates.corporateaisolutions.com>' (the only Resend-verified subdomain).",
+      "scope": ["production", "preview"],
+      "where": "Vercel env"
+    },
+    {
+      "name": "HEMP_HOMES_UNSUBSCRIBE_SECRET",
+      "required": true,
+      "description": "HMAC key for signing unsubscribe tokens. Already present (used by outreach). Reused for all estates.",
+      "scope": ["production", "preview", "development"],
+      "where": "Vercel env",
+      "generator": "random-32"
+    },
+    {
+      "name": "NEXT_PUBLIC_CANONICAL_URL",
+      "required": true,
+      "description": "Canonical app URL, used to build unsubscribe + blog links in emails. Already set.",
+      "scope": ["production", "preview", "development"],
+      "where": "Vercel env"
+    }
+  ],
+  "external_setup": []
+}
