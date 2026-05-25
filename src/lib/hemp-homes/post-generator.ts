@@ -118,10 +118,29 @@ function stripFences(s: string): string {
   return s.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
 }
 
+/** Operator's standing "about this estate/product" context → appended to the
+ * system prompt. Empty = no change (Hemp Homes stays verbatim). */
+function withOperatorContext(systemPrompt: string, estateContext?: string | null): string {
+  const t = (estateContext ?? "").trim();
+  if (!t) return systemPrompt;
+  return `${systemPrompt}
+
+WHAT THE OPERATOR WANTS YOU TO KNOW ABOUT THIS ESTATE/PRODUCT (extra background — weave in what's relevant; the HARD RULES above still apply):
+${t}`;
+}
+
+export interface DraftOptions {
+  /** Standing per-estate context (the "system" field, persisted). */
+  estateContext?: string | null;
+  /** One-off steer for THIS post (the "post" field, not persisted). */
+  postPrompt?: string | null;
+}
+
 async function runDraft(
   photos: PostGenInputMedia[],
   recentPosts: PostGenRecentPost[],
   systemPrompt: string,
+  postPrompt?: string | null,
 ): Promise<GeneratedPost> {
   const config = getClaudeClientConfig({
     openrouterKey: process.env.OPENROUTER_API_KEY,
@@ -148,12 +167,17 @@ async function runDraft(
     ? recentPosts.map((r) => `- "${r.title}" (${r.stage})`).join("\n")
     : "(none yet)";
 
+  const steer = (postPrompt ?? "").trim();
+  const steerBlock = steer
+    ? `\nWHAT THE OPERATOR WANTS THIS POST TO BE ABOUT (build the post around this; still ground it in the photos + stage, still obey the rules):\n${steer}\n`
+    : "";
+
   const userMessage = `Available curated photos to choose from (select 1-4 most relevant by exact id; pick the strongest as the hero / first):
 ${photoLines}
 
 Recent posts already published — do NOT repeat these topics or angles:
 ${recentLines}
-
+${steerBlock}
 Write one fresh, standalone build-in-public post. Pick the stage that best matches the photos you select (or the most current stage if writing text-only). Return only the JSON object.`;
 
   const resp = await client.messages.create({
@@ -207,20 +231,34 @@ Write one fresh, standalone build-in-public post. Pick the stage that best match
   };
 }
 
-/** Hemp Homes drafter — prompt preserved verbatim. */
+/** Hemp Homes drafter — base prompt preserved verbatim; operator context + a
+ * per-post steer layer on top when supplied (empty = identical to before). */
 export async function generatePostDraft(
   photos: PostGenInputMedia[],
   recentPosts: PostGenRecentPost[],
+  opts: DraftOptions = {},
 ): Promise<GeneratedPost> {
-  return runDraft(photos, recentPosts, HEMP_SYSTEM_PROMPT);
+  return runDraft(
+    photos,
+    recentPosts,
+    withOperatorContext(HEMP_SYSTEM_PROMPT, opts.estateContext),
+    opts.postPrompt,
+  );
 }
 
-/** Generic estate drafter — prompt composed from the estate's config. */
+/** Generic estate drafter — prompt composed from the estate's config + the
+ * operator's standing context + a per-post steer. */
 export async function generateEstatePostDraft(
   estateName: string,
   aiContext: string,
   photos: PostGenInputMedia[],
   recentPosts: PostGenRecentPost[],
+  opts: DraftOptions = {},
 ): Promise<GeneratedPost> {
-  return runDraft(photos, recentPosts, buildSystemPrompt(estateName, aiContext));
+  return runDraft(
+    photos,
+    recentPosts,
+    withOperatorContext(buildSystemPrompt(estateName, aiContext), opts.estateContext),
+    opts.postPrompt,
+  );
 }

@@ -19,7 +19,7 @@ function slugify(input: string): string {
   return input.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 }
 
-export async function POST(_request: Request, { params }: RouteCtx) {
+export async function POST(request: Request, { params }: RouteCtx) {
   const cfg = getEstateBlog(params.estate);
   if (!cfg) return NextResponse.json({ error: "Unknown estate" }, { status: 404 });
   const admin = await getAdminUser();
@@ -27,7 +27,21 @@ export async function POST(_request: Request, { params }: RouteCtx) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  let postPrompt: string | null = null;
+  try {
+    const body = await request.json();
+    if (typeof body?.post_prompt === "string") postPrompt = body.post_prompt;
+  } catch {
+    // No body — fine.
+  }
+
   const supabase = createSupabaseServiceWithActor(admin.email, `AI-draft ${cfg.slug} post`);
+
+  const { data: settingRow } = await (supabase.from("estate_blog_settings") as any)
+    .select("ai_context")
+    .eq("estate", cfg.slug)
+    .maybeSingle();
+  const estateContext: string | null = settingRow?.ai_context ?? null;
 
   const { data: mediaRows, error: mediaErr } = await (supabase.from(cfg.mediaTable) as any)
     .select("id, kind, caption, alt_text")
@@ -51,7 +65,10 @@ export async function POST(_request: Request, { params }: RouteCtx) {
 
   let draft;
   try {
-    draft = await generateEstatePostDraft(cfg.name, cfg.aiContext, photos, recentPosts);
+    draft = await generateEstatePostDraft(cfg.name, cfg.aiContext, photos, recentPosts, {
+      estateContext,
+      postPrompt,
+    });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 502 });
   }

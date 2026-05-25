@@ -16,13 +16,27 @@ function slugify(input: string): string {
     .slice(0, 80);
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   const admin = await getAdminUser();
   if (!admin || !hasPermission(admin.role, "manage_hemp_homes_posts")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  let postPrompt: string | null = null;
+  try {
+    const body = await request.json();
+    if (typeof body?.post_prompt === "string") postPrompt = body.post_prompt;
+  } catch {
+    // No body — fine.
+  }
+
   const supabase = createSupabaseServiceWithActor(admin.email, "AI-draft hemp-homes post");
+
+  const { data: settingRow } = await (supabase.from("estate_blog_settings") as any)
+    .select("ai_context")
+    .eq("estate", "hemp-homes")
+    .maybeSingle();
+  const estateContext: string | null = settingRow?.ai_context ?? null;
 
   // Photo pool: curated (shown in gallery) OR captioned — the vetted set the
   // LLM can ground a post in. Uncaptioned raw dumps are excluded as noise.
@@ -57,7 +71,7 @@ export async function POST() {
 
   let draft;
   try {
-    draft = await generatePostDraft(photos, recentPosts);
+    draft = await generatePostDraft(photos, recentPosts, { estateContext, postPrompt });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 502 });
   }

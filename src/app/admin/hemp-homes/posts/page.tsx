@@ -55,6 +55,9 @@ export default function HempHomesPostsPage() {
   const [busyPostId, setBusyPostId] = useState<string | null>(null);
   const [editing, setEditing] = useState<EditDraft | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [estateContext, setEstateContext] = useState("");
+  const [savingContext, setSavingContext] = useState(false);
+  const [postPrompt, setPostPrompt] = useState("");
 
   // Create form state
   const [title, setTitle] = useState("");
@@ -80,15 +83,53 @@ export default function HempHomesPostsPage() {
     }
   }, []);
 
+  const fetchContext = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/estates/hemp-homes/settings");
+      if (!res.ok) return;
+      const data = await res.json();
+      setEstateContext(data.ai_context ?? "");
+    } catch {
+      // Non-fatal.
+    }
+  }, []);
+
   useEffect(() => {
     fetchPosts();
-  }, [fetchPosts]);
+    fetchContext();
+  }, [fetchPosts, fetchContext]);
+
+  async function saveContext() {
+    setSavingContext(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/admin/estates/hemp-homes/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ai_context: estateContext }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage({ type: "error", text: data.error ?? "Could not save context" });
+        return;
+      }
+      setMessage({ type: "success", text: "Saved — the AI will use this for every draft." });
+    } catch {
+      setMessage({ type: "error", text: "Network error saving context" });
+    } finally {
+      setSavingContext(false);
+    }
+  }
 
   async function generateDraft() {
     setGenerating(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/admin/hemp-homes/posts/generate", { method: "POST" });
+      const res = await fetch("/api/admin/hemp-homes/posts/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ post_prompt: postPrompt }),
+      });
       const data = await res.json();
       if (!res.ok) {
         setMessage({ type: "error", text: data.error ?? "AI draft failed" });
@@ -242,22 +283,58 @@ export default function HempHomesPostsPage() {
         </div>
       )}
 
+      {/* Persisted AI context (the "system" prompt) */}
+      <div className="bg-white border rounded-lg p-5 space-y-2">
+        <h3 className="font-semibold text-slate-900">About Hemp Homes</h3>
+        <p className="text-sm text-slate-600 max-w-2xl">
+          Tell the AI about the Joey60 Hemp Edition so it can write better posts — what it is,
+          who it&apos;s for, the tone, and anything it should always mention or never claim.
+          Saved once and used for every draft (on top of the built-in hemp facts).
+        </p>
+        <textarea
+          value={estateContext}
+          onChange={(e) => setEstateContext(e.target.value)}
+          rows={4}
+          placeholder="e.g. We're building for eco-communities along the east coast … Always emphasise the build-in-public honesty … Never name the partners …"
+          className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+        />
+        <button
+          type="button"
+          onClick={saveContext}
+          disabled={savingContext}
+          className="bg-slate-900 hover:bg-slate-700 text-white px-4 py-2 rounded text-sm font-semibold disabled:opacity-50"
+        >
+          {savingContext ? "Saving…" : "Save AI context"}
+        </button>
+      </div>
+
       {/* AI draft */}
-      <div className="bg-gradient-to-br from-emerald-50 to-white border border-emerald-200 rounded-lg p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-        <div className="flex-1">
+      <div className="bg-gradient-to-br from-emerald-50 to-white border border-emerald-200 rounded-lg p-5 space-y-3">
+        <div>
           <h3 className="font-semibold text-slate-900">Draft a post with AI</h3>
           <p className="text-sm text-slate-600 mt-0.5 max-w-2xl">
             The assistant writes an upbeat, educational update about the Joey60 build
             and picks relevant photos from your curated library. It lands as a{" "}
-            <strong>draft</strong> — you edit and approve before anything publishes or
-            sends. Best results when your gallery photos have captions.
+            <strong>draft</strong> — you edit and approve before anything publishes or sends.
           </p>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            What do you want to say about this post? (optional)
+          </label>
+          <textarea
+            value={postPrompt}
+            onChange={(e) => setPostPrompt(e.target.value)}
+            rows={2}
+            placeholder="e.g. This update is about the first hemp panel arriving from the workshop — focus on how it feels and smells."
+            className="w-full border border-slate-300 rounded px-3 py-2 text-sm"
+          />
         </div>
         <button
           type="button"
           onClick={generateDraft}
           disabled={generating}
-          className="shrink-0 bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 rounded text-sm font-semibold disabled:opacity-50"
+          className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 rounded text-sm font-semibold disabled:opacity-50"
         >
           {generating ? "Drafting…" : "✨ Draft a post with AI"}
         </button>
