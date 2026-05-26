@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { LOTS, CATEGORY_INFO } from "@/data/seafields";
 import polygonsData from "@/data/seafields/polygons.json";
 import SiteMap from "./SiteMap";
+import SuburbAutocomplete from "@/components/SuburbAutocomplete";
 
 const BUILDABLE_ENVELOPES = (
   polygonsData as { buildableEnvelopes: Record<string, { areaM2: number }> }
@@ -922,11 +923,11 @@ export default function RegistrationForm() {
                   <label htmlFor="sf-suburb" className={labelClass}>
                     Current Suburb / Town
                   </label>
-                  <input
+                  <SuburbAutocomplete
                     id="sf-suburb"
-                    type="text"
                     value={suburb}
-                    onChange={(e) => setSuburb(e.target.value)}
+                    onChange={setSuburb}
+                    onSelectPostcode={setPostcode}
                     className={inputClass}
                     placeholder="e.g. Geraldton, Waggrakine, Bluff Point"
                   />

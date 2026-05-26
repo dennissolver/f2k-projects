@@ -15,11 +15,14 @@ importers:
         specifier: ^0.1.0
         version: 0.1.0(typescript@5.9.3)
       '@caistech/corporate-components':
-        specifier: ^0.3.1
-        version: 0.3.1(@caistech/abn-lookup@0.1.1(typescript@5.9.3))(@caistech/mapbox@0.2.0(typescript@5.9.3))(lucide-react@1.16.0(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
+        specifier: ^0.3.3
+        version: 0.3.3(@caistech/abn-lookup@0.1.1(typescript@5.9.3))(@caistech/mapbox@0.2.0(typescript@5.9.3))(lucide-react@1.16.0(react@18.3.1))(react@18.3.1)(typescript@5.9.3)
       '@caistech/ghl-client':
         specifier: ^0.1.2
         version: 0.1.2
+      '@caistech/mapbox':
+        specifier: ^0.2.0
+        version: 0.2.0(typescript@5.9.3)
       '@caistech/property-launch-kit':
         specifier: ^0.3.2
         version: 0.3.2(@supabase/supabase-js@2.105.4)(react@18.3.1)(typescript@5.9.3)
@@ -132,21 +135,14 @@ packages:
     peerDependencies:
       typescript: '>=5.0.0'
 
-  '@caistech/corporate-components@0.3.1':
-    resolution: {integrity: sha512-/qVlXVmtEz5natInmWOZ/pkDwOQfRqq4GEomVUJq6yzHbpZwh+fOG98vxMSMDmTbcBqvTwxLESMrPQaBhwzSMw==, tarball: https://npm.pkg.github.com/download/@caistech/corporate-components/0.3.1/eca93f1da4d69e502dd02a4b9a83260ed9899a91}
+  '@caistech/corporate-components@0.3.3':
+    resolution: {integrity: sha512-sWyS3S5HSET+CjQapSixifzuxzOILqUk3LrokCUf/9+xOatyMbAZS6nHgLMz3FcKDi1tlzMz/kFvt4tlJR4YJw==, tarball: https://npm.pkg.github.com/download/@caistech/corporate-components/0.3.3/4228f422e43694edd13a437f1fcbab35ac6d80c1}
     peerDependencies:
       '@caistech/abn-lookup': '*'
       '@caistech/mapbox': '*'
       lucide-react: '>=0.300.0'
       react: ^18.0.0 || ^19.0.0
       typescript: '>=5.0.0'
-    peerDependenciesMeta:
-      '@caistech/abn-lookup':
-        optional: true
-      '@caistech/mapbox':
-        optional: true
-      lucide-react:
-        optional: true
 
   '@caistech/ghl-client@0.1.2':
     resolution: {integrity: sha512-l1jCzmc4h5MFGrAwFvCMMVEsuGkOKMXjIgbVeeolSBU57GY68TG9mTV1jgNWIiOEeoSfNoIr6mcuhTd/s3S5yA==, tarball: https://npm.pkg.github.com/download/@caistech/ghl-client/0.1.2/f864cea9c90a30fd3004fbb1d5cb6808f7f02270}
@@ -173,6 +169,9 @@ packages:
       '@supabase/supabase-js': ^2.0.0
       react: ^18.0.0 || ^19.0.0
       typescript: '>=5.0.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -2919,27 +2918,24 @@ snapshots:
   '@caistech/abn-lookup@0.1.1(typescript@5.9.3)':
     dependencies:
       typescript: 5.9.3
-    optional: true
 
   '@caistech/ai-client@0.1.0(typescript@5.9.3)':
     dependencies:
       typescript: 5.9.3
 
-  '@caistech/corporate-components@0.3.1(@caistech/abn-lookup@0.1.1(typescript@5.9.3))(@caistech/mapbox@0.2.0(typescript@5.9.3))(lucide-react@1.16.0(react@18.3.1))(react@18.3.1)(typescript@5.9.3)':
+  '@caistech/corporate-components@0.3.3(@caistech/abn-lookup@0.1.1(typescript@5.9.3))(@caistech/mapbox@0.2.0(typescript@5.9.3))(lucide-react@1.16.0(react@18.3.1))(react@18.3.1)(typescript@5.9.3)':
     dependencies:
-      react: 18.3.1
-      typescript: 5.9.3
-    optionalDependencies:
       '@caistech/abn-lookup': 0.1.1(typescript@5.9.3)
       '@caistech/mapbox': 0.2.0(typescript@5.9.3)
       lucide-react: 1.16.0(react@18.3.1)
+      react: 18.3.1
+      typescript: 5.9.3
 
   '@caistech/ghl-client@0.1.2': {}
 
   '@caistech/mapbox@0.2.0(typescript@5.9.3)':
     dependencies:
       typescript: 5.9.3
-    optional: true
 
   '@caistech/portfolio-gate@0.3.0(next@14.2.35(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(playwright@1.60.0)(typescript@5.9.3)':
     dependencies:
@@ -2951,8 +2947,9 @@ snapshots:
   '@caistech/property-launch-kit@0.3.2(@supabase/supabase-js@2.105.4)(react@18.3.1)(typescript@5.9.3)':
     dependencies:
       '@supabase/supabase-js': 2.105.4
-      react: 18.3.1
       typescript: 5.9.3
+    optionalDependencies:
+      react: 18.3.1
 
   '@emnapi/core@1.10.0':
     dependencies:
@@ -4796,7 +4793,6 @@ snapshots:
   lucide-react@1.16.0(react@18.3.1):
     dependencies:
       react: 18.3.1
-    optional: true
 
   magic-string@0.30.21:
     dependencies:

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { UNITS, HOUSE_TYPE_INFO, type HouseType } from "@/lib/branscombe-units";
 import SiteMap from "./SiteMap";
-import SuburbAutocomplete from "./SuburbAutocomplete";
+import SuburbAutocomplete from "@/components/SuburbAutocomplete";
 
 const PRICE_RANGES = [
   "$600,000 – $650,000",
