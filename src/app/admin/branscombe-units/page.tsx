@@ -35,7 +35,8 @@ type SortKey =
   | "home_type"
   | "area_m2"
   | "allocated"
-  | "interest";
+  | "interest"
+  | "retail";
 type SortDir = "asc" | "desc";
 
 const STATUS_SORT_ORDER: Record<string, number> = {
@@ -43,6 +44,15 @@ const STATUS_SORT_ORDER: Record<string, number> = {
   soft: 1,
   available: 2,
 };
+
+const AUD0 = new Intl.NumberFormat("en-AU", {
+  style: "currency",
+  currency: "AUD",
+  maximumFractionDigits: 0,
+});
+function formatRetail(v: number | null): string {
+  return v == null ? "—" : AUD0.format(v);
+}
 
 function SortableTh({
   label,
@@ -104,8 +114,10 @@ export default function BranscombeUnitsPage() {
     try {
       const [allocRes, countsRes] = await Promise.all([
         fetch("/api/admin/branscombe/allocations"),
-        // Investor-portal exposes the public counts endpoint at the same path
-        fetch("/api/admin/branscombe/units"),
+        // Interest counts come from the (no-cache) public units endpoint —
+        // there is no /api/admin/branscombe/units route, so the old path 404'd
+        // and the Interest column + total always read 0 (Uwe, 2026-05-26).
+        fetch("/api/branscombe/units"),
       ]);
       if (allocRes.ok) {
         const data = await allocRes.json();
@@ -180,6 +192,8 @@ export default function BranscombeUnitsPage() {
           return ((a.area_m2 ?? 0) - (b.area_m2 ?? 0)) * dir;
         case "home_type":
           return (a.home_type || "").localeCompare(b.home_type || "") * dir;
+        case "retail":
+          return ((a.retail_price ?? 0) - (b.retail_price ?? 0)) * dir;
         case "allocated":
           return (allocRank(a) - allocRank(b)) * dir;
         case "interest": {
@@ -409,6 +423,14 @@ export default function BranscombeUnitsPage() {
                       align="right"
                     />
                     <SortableTh
+                      label="Retail"
+                      sortKey="retail"
+                      activeKey={sortKey}
+                      dir={sortDir}
+                      onClick={toggleSort}
+                      align="right"
+                    />
+                    <SortableTh
                       label="Allocated"
                       sortKey="allocated"
                       activeKey={sortKey}
@@ -467,6 +489,15 @@ export default function BranscombeUnitsPage() {
                         </td>
                         <td className="px-3 py-2 text-right">
                           {row.area_m2}
+                        </td>
+                        <td className="px-3 py-2 text-right whitespace-nowrap">
+                          {row.retail_price != null ? (
+                            <span className="font-medium text-slate-700">
+                              {formatRetail(row.retail_price)}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300">—</span>
+                          )}
                         </td>
                         <td className="px-3 py-2">
                           {row.allocated_to ? (
