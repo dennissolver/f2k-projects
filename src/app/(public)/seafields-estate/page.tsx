@@ -15,7 +15,7 @@ const SEAFIELDS_DESIGNS: Design[] = [
     detail:
       "Compact modular — bed × 2, single bath, carport + verandah. Ideal as a downsizer, holiday let, or second dwelling on a larger lot.",
     hero: "/seafields/designs/joey-floor-plan.png",
-    plan: "/seafields/designs/joey-floor-plan.png",
+    plan: "/seafields/designs/joey-60-floor-plan.pdf",
     secondary: {
       label: "Elevations",
       href: "/seafields/designs/joey-elevations.png",
@@ -70,7 +70,7 @@ const SEAFIELDS_DESIGNS: Design[] = [
     detail:
       "Premium ≈310m² modular with dedicated theatre room and walk-in robes. Architect-designed kitchen feature. The flagship family home.",
     hero: "/seafields/designs/murchison-floor-plan.png",
-    plan: "/seafields/designs/murchison-floor-plan.png",
+    plan: "/seafields/designs/bigroo-floor-plan.pdf",
     priceFrom: "$829,700",
   },
   {
