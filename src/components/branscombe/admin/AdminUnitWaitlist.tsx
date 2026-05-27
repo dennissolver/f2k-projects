@@ -176,6 +176,41 @@ export default function AdminUnitWaitlist({
     onConvertedToAllocation(fullName);
   }
 
+  async function removeInterest(reg: Registration) {
+    const fullName = `${reg.first_name} ${reg.last_name}`.trim();
+    const onlyHere =
+      reg.units_selected.filter((u) => u !== unitId).length === 0;
+    const msg = onlyHere
+      ? `Remove ${fullName}'s interest in ${unitId}? They aren't registered on any other home, so this deletes their registration entirely. This can't be undone.`
+      : `Remove ${fullName}'s interest in ${unitId}? They stay registered on their other homes. This can't be undone.`;
+    if (!confirm(msg)) return;
+    setActingOn(reg.id);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/admin/branscombe/registrations/${reg.id}/remove-interest`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ unitId }),
+        },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Remove failed");
+        return;
+      }
+      // Drop it from the list; if it held this unit's soft-lock, the endpoint
+      // cleared it — tell the parent so the allocation summary refreshes.
+      setRegistrations((prev) => prev.filter((r) => r.id !== reg.id));
+      if (intentLockedToRegistrationId === reg.id) onIntentLockChanged(null);
+    } catch {
+      setError("Network error");
+    } finally {
+      setActingOn(null);
+    }
+  }
+
   async function assignAgent(registrationId: string, agentId: string | null) {
     setAssigningId(registrationId);
     setError(null);
@@ -312,6 +347,14 @@ export default function AdminUnitWaitlist({
                         }`}
                     </div>
                   </div>
+                  <button
+                    onClick={() => removeInterest(r)}
+                    disabled={isActing}
+                    className="text-[11px] text-slate-400 hover:text-red-600 disabled:opacity-50 whitespace-nowrap"
+                    title="Remove this buyer's interest in this home"
+                  >
+                    {isActing ? "…" : "Remove"}
+                  </button>
                 </div>
 
                 {(r.buyer_type ||

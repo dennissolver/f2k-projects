@@ -111,6 +111,8 @@ export default function BranscombeUnitsPage() {
   const [bulkType, setBulkType] = useState<HouseType | "">("");
   const [bulkPrice, setBulkPrice] = useState("");
   const [bulkBusy, setBulkBusy] = useState(false);
+  // Hovering a table row lights up that home on the map (Uwe's reference ask).
+  const [previewUnitId, setPreviewUnitId] = useState<string | null>(null);
 
   const fetchRows = useCallback(async () => {
     setLoading(true);
@@ -475,6 +477,7 @@ export default function BranscombeUnitsPage() {
             selectedUnitId={editing?.unitId ?? null}
             onSelectUnit={handleSelectUnit}
             highlightedUnitIds={filtersActive ? matchingUnitIds : null}
+            previewUnitId={previewUnitId}
           />
         </div>
 
@@ -549,6 +552,8 @@ export default function BranscombeUnitsPage() {
                         className={`border-t hover:bg-slate-50 cursor-pointer ${
                           isSelected ? "bg-blue-50" : ""
                         }`}
+                        onMouseEnter={() => setPreviewUnitId(unitId)}
+                        onMouseLeave={() => setPreviewUnitId(null)}
                         onClick={() =>
                           setEditing({
                             unitId,

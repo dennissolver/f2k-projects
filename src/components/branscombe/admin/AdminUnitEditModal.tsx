@@ -147,7 +147,7 @@ export default function AdminUnitEditModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="edit-unit-heading"
-      className="fixed inset-0 z-50 flex items-stretch justify-end bg-black/40"
+      className="fixed inset-0 z-50 flex items-stretch justify-end bg-black/20"
       onClick={onClose}
     >
       <div

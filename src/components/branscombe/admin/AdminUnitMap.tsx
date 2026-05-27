@@ -35,6 +35,9 @@ interface Props {
    * is dimmed. Mirrors the active filter set from the parent table so the
    * map and table stay in lockstep. */
   highlightedUnitIds?: Set<string> | null;
+  /** The unit currently hovered in the table — rendered like a selected lot so
+   * scanning the register lights up each home on the map (Uwe's reference ask). */
+  previewUnitId?: string | null;
 }
 
 function pointsToD(pts: number[][]): string {
@@ -86,6 +89,7 @@ export default function AdminUnitMap({
   selectedUnitId,
   onSelectUnit,
   highlightedUnitIds,
+  previewUnitId,
 }: Props) {
   return (
     <div className="bg-white border border-slate-200 rounded overflow-hidden">
@@ -161,7 +165,9 @@ export default function AdminUnitMap({
         {Object.entries(POLYGONS.homes).map(([id, h]) => {
           const unit = UNIT_BY_ID[id];
           if (!unit) return null;
-          const isSelected = selectedUnitId === id;
+          // A hovered (preview) lot renders like the selected one, so pointing
+          // at a row in the table lights up that home on the map.
+          const isSelected = selectedUnitId === id || previewUnitId === id;
           const status = statusFor(
             id,
             unit.unitNumber,
