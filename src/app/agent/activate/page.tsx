@@ -42,11 +42,8 @@ export default function AgentActivatePage() {
         setError(data.error || "Activation failed.");
         return;
       }
-      const { createBrowserClient } = await import("@supabase/ssr");
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
+      const { createSupabaseBrowser } = await import("@/lib/supabase-browser");
+      const supabase = createSupabaseBrowser();
       const { error: signInErr } = await supabase.auth.signInWithPassword({
         email: data.email,
         password,

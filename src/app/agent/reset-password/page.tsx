@@ -22,11 +22,8 @@ export default function AgentResetPasswordPage() {
     }
     setBusy(true);
     try {
-      const { createBrowserClient } = await import("@supabase/ssr");
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
+      const { createSupabaseBrowser } = await import("@/lib/supabase-browser");
+      const supabase = createSupabaseBrowser();
       // The recovery link establishes a session; update the password on it.
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {

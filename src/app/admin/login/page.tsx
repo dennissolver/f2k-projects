@@ -3,7 +3,7 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
+import { createSupabaseBrowser } from "@/lib/supabase-browser";
 import { useCanonicalOrigin } from "@/lib/use-canonical-origin";
 import { PasswordField } from "@/components/admin/PasswordField";
 
@@ -19,10 +19,7 @@ function LoginInner() {
   const [loading, setLoading] = useState<"password" | "magic" | "reset" | null>(null);
 
   function getClient() {
-    return createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
+    return createSupabaseBrowser();
   }
 
   async function handlePasswordLogin(e: React.FormEvent) {

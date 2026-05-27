@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { createSupabaseBrowser } from "@/lib/supabase-browser";
 import { PasswordField } from "./PasswordField";
 
 type AdminRole = "super_admin" | "fund_manager" | "compliance" | "read_only";
@@ -243,10 +243,7 @@ function PasswordSection() {
 
     setSaving(true);
     try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
+      const supabase = createSupabaseBrowser();
       const { error: updErr } = await supabase.auth.updateUser({ password });
       if (updErr) {
         setError(updErr.message);
@@ -366,10 +363,7 @@ function AccountSection() {
   async function handleSignOutEverywhere() {
     setSigningOut(true);
     try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      );
+      const supabase = createSupabaseBrowser();
       await supabase.auth.signOut({ scope: "global" });
       window.location.href = "/admin/login";
     } finally {
