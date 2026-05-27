@@ -8,8 +8,11 @@ export function AgentTopBar({ name }: { name: string }) {
   async function signOut() {
     setOut(true);
     try {
-      const { createSupabaseBrowser } = await import("@/lib/supabase-browser");
-      const supabase = createSupabaseBrowser();
+      const { createBrowserClient } = await import("@supabase/ssr");
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      );
       await supabase.auth.signOut();
       window.location.href = "/agent/login";
     } finally {

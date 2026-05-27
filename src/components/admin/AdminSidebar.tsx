@@ -44,8 +44,11 @@ export function AdminSidebar({ email }: { email?: string | null }) {
   async function handleSignOut() {
     setSigningOut(true);
     try {
-      const { createSupabaseBrowser } = await import("@/lib/supabase-browser");
-      const supabase = createSupabaseBrowser();
+      const { createBrowserClient } = await import("@supabase/ssr");
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      );
       await supabase.auth.signOut();
       window.location.href = "/admin/login";
     } finally {

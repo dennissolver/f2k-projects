@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createSupabaseBrowser } from "@/lib/supabase-browser";
+import { createBrowserClient } from "@supabase/ssr";
 import { useCanonicalOrigin } from "@/lib/use-canonical-origin";
 import { PasswordField } from "@/components/admin/PasswordField";
 
@@ -18,7 +18,10 @@ export default function ResetPasswordPage() {
 
   // Verify the user landed here with an active recovery session
   useEffect(() => {
-    const supabase = createSupabaseBrowser();
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
     supabase.auth.getSession().then(({ data: { session } }) => {
       setHasSession(Boolean(session));
       setSessionEmail(session?.user?.email ?? null);
@@ -40,7 +43,10 @@ export default function ResetPasswordPage() {
     }
 
     setLoading(true);
-    const supabase = createSupabaseBrowser();
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
     const { error: updateError } = await supabase.auth.updateUser({ password });
 
     if (updateError) {

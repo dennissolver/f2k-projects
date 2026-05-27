@@ -3,8 +3,11 @@
 import { useState } from "react";
 
 async function browserClient() {
-  const { createSupabaseBrowser } = await import("@/lib/supabase-browser");
-  return createSupabaseBrowser();
+  const { createBrowserClient } = await import("@supabase/ssr");
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
 }
 
 export default function AgentLoginPage() {
