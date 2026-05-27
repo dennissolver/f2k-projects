@@ -16,19 +16,35 @@ const INTEREST_TYPES = [
   "Either — exploring options",
 ] as const;
 
-const LAND_PRICE_RANGES = [
-  "From $150,000",
-  "From $160,000",
-] as const;
+// Price-expectation options are derived PER LOT from the lot's actual reserve
+// (seafields_public_lots: land_total for bare land, total_price for H&L) so we
+// NEVER suggest a figure below what Uwe has set. (Uwe, 2026-05-27: Lot 338's
+// $160k reserve must not show a "from $150k" option.) When a lot's price isn't
+// public, we fall back to the band floor — and never below it.
+const LAND_FLOOR = 155_000; // cheapest Seafields land band
+const HL_FLOOR = 485_000; // cheapest house & land package
+const LAND_STEP = 10_000;
+const HL_STEP = 25_000;
 
-const HL_PRICE_RANGES = [
-  "From $485,000",
-  "From $500,000",
-  "From $550,000",
-  "From $600,000",
-  "From $650,000",
-  "From $700,000",
-] as const;
+function fmtFrom(n: number): string {
+  return `From $${Math.round(n).toLocaleString("en-AU")}`;
+}
+
+/**
+ * Three ascending "From $X" options for a lot, floored at its reserve (or the
+ * band floor when the reserve isn't public). The lowest option always equals
+ * the lot's set price — never below it.
+ */
+function priceOptionsForLot(base: number | null, isHL: boolean): string[] {
+  // No public reserve for this lot → never guess a number (it could land below
+  // the lot's real price). Ask them to enquire instead.
+  if (base == null || base <= 0) return ["Price on application"];
+  // Floor at the lot's reserve (band floor is a secondary guard) — never below.
+  const floor = isHL ? HL_FLOOR : LAND_FLOOR;
+  const step = isHL ? HL_STEP : LAND_STEP;
+  const start = Math.max(base, floor);
+  return [start, start + step, start + 2 * step].map(fmtFrom);
+}
 
 const DWELLING_TYPES = [
   "2x1 ADU / Granny Flat",
@@ -197,13 +213,44 @@ export default function RegistrationForm() {
     }
   }, []);
 
+  // Per-lot public prices (land_total / total_price) from the same view the
+  // public map reads, so the price-expectation options floor at each lot's
+  // real reserve instead of a hardcoded list.
+  const [priceByLot, setPriceByLot] = useState<
+    Record<number, { land_total: number | null; total_price: number | null }>
+  >({});
+  useEffect(() => {
+    fetch("/api/seafields/allocations")
+      .then((r) => (r.ok ? r.json() : { lots: [] }))
+      .then(
+        (d: {
+          lots?: Array<{
+            lot_number: number;
+            land_total: number | null;
+            total_price: number | null;
+          }>;
+        }) => {
+          const map: Record<
+            number,
+            { land_total: number | null; total_price: number | null }
+          > = {};
+          for (const l of d.lots ?? [])
+            map[l.lot_number] = {
+              land_total: l.land_total,
+              total_price: l.total_price,
+            };
+          setPriceByLot(map);
+        },
+      )
+      .catch(() => {});
+  }, []);
+
   const isHL =
     interestType === "House & land package (Factory2Key modular build)" ||
     interestType === "Either — exploring options";
   const isLandOnly =
     interestType === "Vacant serviced land only" ||
     interestType === "Either — exploring options";
-  const priceRanges = isHL ? HL_PRICE_RANGES : LAND_PRICE_RANGES;
 
   const toggleLot = (lotId: string) => {
     const target = LOTS.find((l) => l.id === lotId);
@@ -683,7 +730,14 @@ export default function RegistrationForm() {
                               : " This is for the serviced, titled land only."}
                           </p>
                           <div className="grid grid-cols-1 gap-1.5">
-                            {priceRanges.map((range) => (
+                            {priceOptionsForLot(
+                              isHL
+                                ? (priceByLot[lot.lotNumber]?.total_price ??
+                                    null)
+                                : (priceByLot[lot.lotNumber]?.land_total ??
+                                    null),
+                              isHL,
+                            ).map((range) => (
                               <button
                                 key={range}
                                 type="button"
