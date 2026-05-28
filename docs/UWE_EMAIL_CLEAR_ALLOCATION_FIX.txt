@@ -1,0 +1,66 @@
+Subject: Seafields Admin — "Clear Allocation" Button Fix (Lots 307, 310, etc.)
+
+---
+
+Hi Uwe,
+
+Found and fixed the missing "Clear Allocation" button issue you reported.
+
+THE PROBLEM
+───────────
+
+The button was only showing up on lots with specific allocation statuses
+(like Lot 342, which you could reset). It wasn't showing on Lots 307 and 310
+even though you needed to reset them.
+
+Root cause: The button logic was checking if:
+• allocated_to was set, OR
+• allocation_bucket was something other than "public"
+
+But Lots 307 and 310 had both:
+• allocated_to = NULL
+• allocation_bucket = "public" (or null)
+• status = "available"
+
+So the button never appeared.
+
+THE FIX
+───────
+
+Updated the button logic to also show the button when status != "available".
+
+Now it shows if ANY of these are true:
+✓ allocated_to is set
+✓ allocation_bucket is not 'public'
+✓ status is not 'available'
+
+This means you can reset any lot that's in a non-standard state, which covers
+your testing scenarios.
+
+WHAT YOU CAN DO NOW
+───────────────────
+
+✅ Lot 307 — "Clear allocation" button will now appear
+✅ Lot 310 — "Clear allocation" button will now appear
+✅ Any other lot in a test state — button will appear
+
+Just click the button, enter a reason (≥10 characters), and it resets to:
+• status = available
+• allocation_bucket = public
+• allocated_to = null
+
+DEPLOYMENT
+──────────
+
+Fix is live on main branch (commit 6f52a59).
+Next Vercel build will include this.
+
+Let me know if the button shows up correctly now or if you hit any other
+issues resetting test data.
+
+Cheers
+
+---
+
+P.S. — Previous issue (pricing confusion) is also fixed and documented.
+Check docs/SEAFIELDS_PRICING_QUICK_REFERENCE.md for that summary.
