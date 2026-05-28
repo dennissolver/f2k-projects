@@ -25,6 +25,7 @@ export default function AdminAgentsPage() {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -70,6 +71,20 @@ export default function AdminAgentsPage() {
       load();
     } else {
       setMsg({ type: "error", text: "Delete failed" });
+    }
+  }
+
+  async function updateAgent(agent: Agent, updates: Partial<Agent>) {
+    const res = await fetch(`/api/admin/agents/${agent.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    });
+    if (res.ok) {
+      setMsg({ type: "success", text: `${agent.name} updated` });
+      load();
+    } else {
+      setMsg({ type: "error", text: "Update failed" });
     }
   }
 
@@ -140,6 +155,12 @@ export default function AdminAgentsPage() {
               </div>
               <div className="flex gap-2 mt-3">
                 <button
+                  onClick={() => setEditingAgent(a)}
+                  className="text-sm px-3 py-1.5 min-h-[40px] rounded border border-slate-300 hover:bg-slate-50 font-medium"
+                >
+                  Edit
+                </button>
+                <button
                   onClick={() => setActive(a, !a.active)}
                   className="text-sm px-3 py-1.5 min-h-[40px] rounded border border-slate-300 hover:bg-slate-50 font-medium"
                 >
@@ -162,6 +183,17 @@ export default function AdminAgentsPage() {
           onClose={() => setShowCreate(false)}
           onCreated={() => {
             load();
+          }}
+        />
+      )}
+
+      {editingAgent && (
+        <EditAgentModal
+          agent={editingAgent}
+          onClose={() => setEditingAgent(null)}
+          onSave={(updates) => {
+            updateAgent(editingAgent, updates);
+            setEditingAgent(null);
           }}
         />
       )}
@@ -304,6 +336,73 @@ function CreateAgentModal({
             </button>
           </form>
         )}
+      </div>
+    </div>
+  );
+}
+
+function EditAgentModal({
+  agent,
+  onClose,
+  onSave,
+}: {
+  agent: Agent;
+  onClose: () => void;
+  onSave: (updates: Partial<Agent>) => void;
+}) {
+  const [name, setName] = useState(agent.name);
+  const [agency, setAgency] = useState(agent.agency || "");
+  const [phone, setPhone] = useState(agent.phone || "");
+  const [saving, setSaving] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    onSave({
+      name: name.trim(),
+      phone: phone.trim() || null,
+      agency: agency.trim() || null,
+    });
+  }
+
+  const inputClass =
+    "w-full border border-slate-300 rounded px-3 py-2.5 text-sm focus:outline-none focus:border-slate-900";
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white w-full sm:max-w-md rounded-lg shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 bg-white border-b px-5 py-4 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-slate-900">Edit agent</h3>
+          <button onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-700 text-2xl leading-none">
+            &times;
+          </button>
+        </div>
+
+        <form onSubmit={submit} className="px-5 py-5 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Name *</label>
+            <input required value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder="Ant Manton" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Agency</label>
+            <input value={agency} onChange={(e) => setAgency(e.target.value)} className={inputClass} placeholder="LJ Hooker" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} placeholder="0429 995 121" />
+          </div>
+          <button type="submit" disabled={saving} className="w-full bg-slate-900 hover:bg-slate-700 text-white px-5 py-2.5 min-h-[44px] rounded text-sm font-semibold disabled:opacity-50">
+            {saving ? "Saving…" : "Save changes"}
+          </button>
+        </form>
       </div>
     </div>
   );

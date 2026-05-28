@@ -6,9 +6,14 @@ import { createSupabaseService } from "@/lib/supabase-service";
 const AGENT_SELECT =
   "id, name, email, phone, agency, estate_access, active, status, invite_expires_at, created_at";
 
-const patchSchema = z.object({ active: z.boolean() });
+const patchSchema = z.object({
+  active: z.boolean().optional(),
+  name: z.string().min(1).optional(),
+  phone: z.string().nullable().optional(),
+  agency: z.string().nullable().optional(),
+});
 
-// PATCH — block / unblock an agent. active=false denies them at getAgentUser()
+// PATCH — block / unblock an agent, or edit details. active=false denies them at getAgentUser()
 // on their next request (the portal layout + APIs bounce inactive agents).
 export async function PATCH(
   request: Request,
@@ -20,24 +25,50 @@ export async function PATCH(
   }
   const parsed = patchSchema.safeParse(await request.json());
   if (!parsed.success) {
-    return NextResponse.json({ error: "active (boolean) required" }, { status: 400 });
+    return NextResponse.json({ error: parsed.error.errors[0]?.message || "Invalid data" }, { status: 400 });
   }
+  
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (parsed.data.active !== undefined) updates.active = parsed.data.active;
+  if (parsed.data.name !== undefined) updates.name = parsed.data.name;
+  if (parsed.data.phone !== undefined) updates.phone = parsed.data.phone;
+  if (parsed.data.agency !== undefined) updates.agency = parsed.data.agency;
+  
   const service = createSupabaseService();
   const { data: agent, error } = await (service.from("agents") as any)
-    .update({ active: parsed.data.active, updated_at: new Date().toISOString() })
+    .update(updates)
     .eq("id", params.id)
     .select(AGENT_SELECT)
     .single();
   if (error || !agent) {
     return NextResponse.json({ error: "Agent not found" }, { status: 404 });
   }
-  await service.from("audit_log").insert({
-    actor_email: admin.email,
-    action: parsed.data.active ? "agent_unblocked" : "agent_blocked",
-    entity_type: "agent",
-    entity_id: params.id,
-    details: { email: agent.email },
-  });
+  
+  // Audit log
+  if (parsed.data.active !== undefined) {
+    await service.from("audit_log").insert({
+      actor_email: admin.email,
+      action: parsed.data.active ? "agent_unblocked" : "agent_blocked",
+      entity_type: "agent",
+      entity_id: params.id,
+      details: { email: agent.email },
+    });
+  }
+  if (parsed.data.name !== undefined || parsed.data.phone !== undefined || parsed.data.agency !== undefined) {
+    await service.from("audit_log").insert({
+      actor_email: admin.email,
+      action: "agent_updated",
+      entity_type: "agent",
+      entity_id: params.id,
+      details: { 
+        email: agent.email,
+        name: parsed.data.name,
+        phone: parsed.data.phone,
+        agency: parsed.data.agency,
+      },
+    });
+  }
+  
   return NextResponse.json({ agent });
 }
 
