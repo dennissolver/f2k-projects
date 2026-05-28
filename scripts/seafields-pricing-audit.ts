@@ -225,7 +225,7 @@ async function main() {
     }
 
     // Build map for quick lookup
-    const viewMap = new Map(
+    const viewMap: Map<number, PublicLotRow> = new Map(
       (viewData || []).map((row: PublicLotRow) => [row.lot_number, row])
     );
 
