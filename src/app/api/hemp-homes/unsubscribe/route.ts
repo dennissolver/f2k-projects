@@ -75,7 +75,7 @@ async function performUnsubscribe(token: string, req: Request): Promise<{ ok: bo
       via: "public-unsubscribe-link",
       ip_hash: ipHash,
     },
-  }).then(() => {}, (err) => console.error("audit insert failed", err));
+  }).then(() => {}, (err: unknown) => console.error("audit insert failed", err));
 
   return { ok: true, prospect_name: prospect.name };
 }

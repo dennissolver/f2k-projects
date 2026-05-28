@@ -122,7 +122,7 @@ export async function POST(_request: Request, { params }: Ctx) {
       subject: outreach.drafted_subject,
       resend_id: resendId ?? null,
     },
-  }).then(() => {}, (err) => console.error("audit insert failed", err));
+  }).then(() => {}, (err: unknown) => console.error("audit insert failed", err));
 
   return NextResponse.json({ ok: true, resend_id: resendId ?? null });
 }
