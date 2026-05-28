@@ -716,46 +716,51 @@ export default function RegistrationForm() {
                         </div>
 
                         {/* Price selector */}
-                        <div>
-                          <p className="font-ibm-mono text-[0.6rem] tracking-[0.3em] uppercase text-slate/50 mb-2">
-                            {isHL
-                              ? "House & Land Package — Your Price Expectation"
-                              : "Bare Serviced Land — Your Price Expectation"}
-                          </p>
-                          <p className="text-xs text-slate/60 font-archivo mb-3">
-                            What would you expect to pay for Lot{" "}
-                            {lot.lotNumber} ({lot.area}m²)?
-                            {isHL
-                              ? " This includes the land, modular home build, and all site works."
-                              : " This is for the serviced, titled land only."}
-                          </p>
-                          <div className="grid grid-cols-1 gap-1.5">
-                            {priceOptionsForLot(
-                              isHL
-                                ? (priceByLot[lot.lotNumber]?.total_price ??
-                                    null)
-                                : (priceByLot[lot.lotNumber]?.land_total ??
-                                    null),
-                              isHL,
-                            ).map((range) => (
-                              <button
-                                key={range}
-                                type="button"
-                                onClick={() => setPricePref(lotId, range)}
-                                className={`px-4 py-2 text-sm font-archivo text-left border transition-all ${
-                                  selectedPrice === range
-                                    ? "bg-[#00B5AD] text-white border-[#00B5AD] font-semibold"
-                                    : "bg-white text-deep-blue border-black/10 hover:border-[#00B5AD]/50 hover:bg-[#00B5AD]/5"
-                                }`}
-                              >
-                                {range}
-                                {selectedPrice === range && (
-                                  <span className="float-right">&#10003;</span>
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
+                         <div>
+                           <div className="flex items-baseline justify-between gap-2 mb-2">
+                             <p className="font-ibm-mono text-[0.6rem] tracking-[0.3em] uppercase text-slate/50">
+                               {isHL
+                                 ? "House & Land Package"
+                                 : "Serviced Land Only"}
+                             </p>
+                             <span className="inline-block bg-[#00B5AD]/10 text-[#00B5AD] text-[0.5rem] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                               {isHL ? "Full Package" : "Land Only"}
+                             </span>
+                           </div>
+                           <p className="text-xs text-slate/60 font-archivo mb-3">
+                             What would you expect to pay for Lot{" "}
+                             {lot.lotNumber} ({lot.area}m²)?
+                             {isHL
+                               ? " This includes the land, Factory2Key modular home build, and all site works."
+                               : " This is for the serviced, titled land only. You arrange your own design and build."}
+                           </p>
+                           <div className="grid grid-cols-1 gap-1.5">
+                             {priceOptionsForLot(
+                               isHL
+                                 ? (priceByLot[lot.lotNumber]?.total_price ??
+                                     null)
+                                 : (priceByLot[lot.lotNumber]?.land_total ??
+                                     null),
+                               isHL,
+                             ).map((range) => (
+                               <button
+                                 key={range}
+                                 type="button"
+                                 onClick={() => setPricePref(lotId, range)}
+                                 className={`px-4 py-2 text-sm font-archivo text-left border transition-all ${
+                                   selectedPrice === range
+                                     ? "bg-[#00B5AD] text-white border-[#00B5AD] font-semibold"
+                                     : "bg-white text-deep-blue border-black/10 hover:border-[#00B5AD]/50 hover:bg-[#00B5AD]/5"
+                                 }`}
+                               >
+                                 {range}
+                                 {selectedPrice === range && (
+                                   <span className="float-right">&#10003;</span>
+                                 )}
+                               </button>
+                             ))}
+                           </div>
+                         </div>
                       </div>
 
                       {/* Dwelling type picker — primary always, secondary on larger lots */}

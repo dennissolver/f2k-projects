@@ -97,29 +97,67 @@ export default function LotInfoCard({
             Lot {lot.lotNumber}
           </h3>
 
-          <dl className="space-y-2 text-sm font-archivo">
-            <Row label="Size" value={`${lot.area} m²`} />
-            <Row
-              label="Category"
-              value={CATEGORY_INFO[lot.category].label}
-            />
-            <Row label="Zone" value={lot.zone} />
-            <Row label="Status" value={statusText} />
-            {publicRow?.total_price != null && publicRow.total_price > 0 && (
-              <Row
-                label="House + Land"
-                value={`From ${formatPrice(publicRow.total_price)}`}
-              />
-            )}
-            {publicRow?.land_total != null &&
-              publicRow.land_total > 0 &&
-              (publicRow.land_only || publicRow.total_price == null) && (
-                <Row
-                  label="Land Only"
-                  value={`From ${formatPrice(publicRow.land_total)}`}
-                />
-              )}
-          </dl>
+           <dl className="space-y-2 text-sm font-archivo">
+             <Row label="Size" value={`${lot.area} m²`} />
+             <Row
+               label="Category"
+               value={CATEGORY_INFO[lot.category].label}
+             />
+             <Row label="Zone" value={lot.zone} />
+             <Row label="Status" value={statusText} />
+           </dl>
+
+           {/* Pricing section with clear tier labels */}
+           {(publicRow?.total_price != null && publicRow.total_price > 0) ||
+           (publicRow?.land_total != null && publicRow.land_total > 0) ? (
+             <div className="mt-4 space-y-2 border-t border-white/10 pt-3">
+               <p className="font-ibm-mono text-[0.6rem] tracking-[0.3em] uppercase text-white/50 mb-2">
+                 Available Options
+               </p>
+
+               {publicRow?.total_price != null &&
+                 publicRow.total_price > 0 &&
+                 !publicRow.land_only && (
+                   <div className="bg-gradient-to-r from-white/5 to-white/0 border border-white/20 rounded px-3 py-2.5">
+                     <div className="flex items-baseline justify-between gap-2">
+                       <span className="text-white/70 text-xs font-semibold uppercase tracking-wide">
+                         House + Land Package
+                       </span>
+                       <span className="text-white font-bold text-lg">
+                         {formatPrice(publicRow.total_price)}
+                       </span>
+                     </div>
+                     <p className="text-white/60 text-[10px] mt-1">
+                       Includes land, modular home build & site works
+                     </p>
+                   </div>
+                 )}
+
+               {publicRow?.land_total != null &&
+                 publicRow.land_total > 0 &&
+                 (publicRow.land_only ||
+                   (publicRow.total_price != null && publicRow.total_price > 0)) && (
+                   <div className="bg-gradient-to-r from-white/5 to-white/0 border border-white/20 rounded px-3 py-2.5">
+                     <div className="flex items-baseline justify-between gap-2">
+                       <span className="text-white/70 text-xs font-semibold uppercase tracking-wide">
+                         Serviced Land Only
+                       </span>
+                       <span className="text-white font-bold text-lg">
+                         {formatPrice(publicRow.land_total)}
+                       </span>
+                     </div>
+                     <p className="text-white/60 text-[10px] mt-1">
+                       Titled land only — build your own design
+                     </p>
+                   </div>
+                 )}
+
+               <p className="text-white/40 text-[9px] mt-2 italic px-3">
+                 Prices shown are from the current reserve. Contact us for
+                 specific details about your chosen lot.
+               </p>
+             </div>
+           ) : null}
 
           {publicRow?.public_label && (
             <div className="mt-4 bg-white/10 border border-white/25 px-3 py-2 text-[11px] text-white/90 leading-relaxed">
