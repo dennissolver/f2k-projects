@@ -18,7 +18,7 @@
     "@caistech/mapbox": "^0.2.0",
     "@caistech/property-launch-kit": "^0.3.2",
     "@supabase/ssr": "0.5.2",
-    "@supabase/supabase-js": "2.39.0",
+    "@supabase/supabase-js": "2.47.0",
     "googleapis": "^172.0.0",
     "lucide-react": "^1.17.0",
     "mapbox-gl": "^3.23.1",

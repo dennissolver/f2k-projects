@@ -32,7 +32,7 @@ const FIXED_RECIPIENTS = [
 
 export async function getActiveRecipients(): Promise<string[]> {
   const dbRecipients = await getActiveRecipientsShared({
-    supabase: createSupabaseService(),
+    supabase: createSupabaseService() as any,
     table: "seafields_notify_recipients",
     fallback: FALLBACK_RECIPIENTS,
   });

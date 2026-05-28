@@ -29,7 +29,7 @@ const FALLBACK_RECIPIENTS = [
 
 export async function getActiveRecipients(): Promise<string[]> {
   return getActiveRecipientsShared({
-    supabase: createSupabaseService(),
+    supabase: createSupabaseService() as any,
     table: "hemp_homes_notify_recipients",
     fallback: FALLBACK_RECIPIENTS,
   });
