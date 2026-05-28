@@ -789,7 +789,8 @@ export default function AdminLotEditModal({
         <div className="sticky bottom-0 bg-white border-t border-slate-200 px-6 py-3 flex items-center justify-between gap-3">
           {allocation?.allocated_to ||
           (allocation?.allocation_bucket &&
-            allocation.allocation_bucket !== "public") ? (
+            allocation.allocation_bucket !== "public") ||
+          allocation?.status !== "available" ? (
             <button
               onClick={handleClear}
               disabled={saving}
