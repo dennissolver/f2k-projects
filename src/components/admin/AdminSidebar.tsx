@@ -11,12 +11,11 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard" },
-  { href: "/admin/registrations", label: "Registrations", group: "Inbox" },
+  { href: "/admin/registrations", label: "All Registrations", group: "Inbox" },
   // Each estate group leads with the same two items — Blog, Media — in the same
   // order, so the nav reads consistently across estates. Estate-specific tools follow.
   { href: "/admin/estates/seafields/posts", label: "Blog", group: "Seafields" },
   { href: "/admin/estates/seafields/media", label: "Media", group: "Seafields" },
-  { href: "/admin/seafields-registrations", label: "Seafields Registrations", group: "Seafields" },
   { href: "/admin/seafields-stages", label: "Seafields Stages", group: "Seafields" },
   { href: "/admin/seafields-dwelling-types", label: "Seafields Dwelling Types", group: "Seafields" },
   { href: "/admin/seafields-lots", label: "Seafields Lots", group: "Seafields" },
@@ -25,11 +24,9 @@ const NAV: NavItem[] = [
   { href: "/admin/estates/branscombe/posts", label: "Blog", group: "Branscombe" },
   { href: "/admin/estates/branscombe/media", label: "Media", group: "Branscombe" },
   { href: "/admin/branscombe-units", label: "Branscombe Units", group: "Branscombe" },
-  { href: "/admin/registrations?type=branscombe", label: "Branscombe Registrations", group: "Branscombe" },
   { href: "/admin/branscombe-pipeline", label: "Branscombe Pipeline", group: "Branscombe" },
   { href: "/admin/wavecrest/posts", label: "Blog", group: "Wavecrest" },
   { href: "/admin/wavecrest/media", label: "Media", group: "Wavecrest" },
-  { href: "/admin/wavecrest-registrations", label: "Wavecrest Registrations", group: "Wavecrest" },
   { href: "/admin/wavecrest-stages", label: "Wavecrest Stages", group: "Wavecrest" },
   { href: "/admin/wavecrest-dwelling-types", label: "Wavecrest Dwelling Types", group: "Wavecrest" },
   { href: "/admin/wavecrest-lots", label: "Wavecrest Lots", group: "Wavecrest" },
