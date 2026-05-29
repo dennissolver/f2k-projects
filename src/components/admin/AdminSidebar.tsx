@@ -25,6 +25,7 @@ const NAV: NavItem[] = [
   { href: "/admin/estates/branscombe/posts", label: "Blog", group: "Branscombe" },
   { href: "/admin/estates/branscombe/media", label: "Media", group: "Branscombe" },
   { href: "/admin/branscombe-units", label: "Branscombe Units", group: "Branscombe" },
+  { href: "/admin/registrations?type=branscombe", label: "Branscombe Registrations", group: "Branscombe" },
   { href: "/admin/branscombe-pipeline", label: "Branscombe Pipeline", group: "Branscombe" },
   { href: "/admin/hemp-homes/posts", label: "Blog", group: "Hemp Homes" },
   { href: "/admin/hemp-homes/media", label: "Media", group: "Hemp Homes" },
