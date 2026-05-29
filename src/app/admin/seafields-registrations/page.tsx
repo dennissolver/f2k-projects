@@ -133,6 +133,7 @@ export default function SeafieldsRegistrationsPage() {
     const TEST_PATTERNS = /test|qa|marcus|testerton|testbuyer|qatester/i;
 
     let filtered = rows.filter((r) => {
+      if (!r.registration?.first_name) return false;
       const reg = r.registration;
       if (hideTestData && reg?.first_name) {
         const name = `${reg.first_name} ${reg.last_name}`.toLowerCase();
