@@ -133,6 +133,7 @@ export default function SeafieldsRegistrationsPage() {
     const TEST_PATTERNS = /test|qa|marcus|testerton|testbuyer|qatester/i;
 
     let filtered = rows.filter((r) => {
+      if (!r.registration) return false;
       if (hideTestData) {
         const name = `${r.registration.first_name} ${r.registration.last_name}`.toLowerCase();
         const email = r.registration.email.toLowerCase();
@@ -173,6 +174,7 @@ export default function SeafieldsRegistrationsPage() {
   const testRecordCount = useMemo(() => {
     const TEST_PATTERNS = /test|qa|marcus|testerton|testbuyer|qatester/i;
     return rows.filter((r) => {
+      if (!r.registration) return false;
       const name = `${r.registration.first_name} ${r.registration.last_name}`.toLowerCase();
       const email = r.registration.email.toLowerCase();
       const phone = r.registration.phone || "";
