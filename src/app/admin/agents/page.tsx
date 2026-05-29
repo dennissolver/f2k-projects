@@ -15,6 +15,20 @@ interface Agent {
   created_at: string;
 }
 
+interface Registration {
+  id: string;
+  client_name: string;
+  client_email: string;
+  client_phone: string | null;
+  lot_number: string | null;
+  unit_number: string | null;
+  dwelling_type: string | null;
+  stage: string | null;
+  status: string;
+  created_at: string;
+  estate: string;
+}
+
 const ESTATES = [
   { value: "seafields", label: "Seafields" },
   { value: "branscombe", label: "Branscombe" },
@@ -26,6 +40,7 @@ export default function AdminAgentsPage() {
   const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
+  const [viewingAgent, setViewingAgent] = useState<Agent | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -155,6 +170,12 @@ export default function AdminAgentsPage() {
               </div>
               <div className="flex gap-2 mt-3">
                 <button
+                  onClick={() => setViewingAgent(a)}
+                  className="text-sm px-3 py-1.5 min-h-[40px] rounded border border-slate-300 hover:bg-slate-50 font-medium"
+                >
+                  View
+                </button>
+                <button
                   onClick={() => setEditingAgent(a)}
                   className="text-sm px-3 py-1.5 min-h-[40px] rounded border border-slate-300 hover:bg-slate-50 font-medium"
                 >
@@ -196,6 +217,10 @@ export default function AdminAgentsPage() {
             setEditingAgent(null);
           }}
         />
+      )}
+
+      {viewingAgent && (
+        <AgentDetailModal agent={viewingAgent} onClose={() => setViewingAgent(null)} />
       )}
     </div>
   );
@@ -295,7 +320,7 @@ function CreateAgentModal({
             <div>
               <div className="text-xs uppercase tracking-wider text-slate-500 mb-1">Access code</div>
               <div className="flex gap-2">
-                <input readOnly value={result.code} className={`${inputClass} font-mono tracking-[0.3em] text-base`} onFocus={(e) => e.target.select()} />
+                <input readOnly value={result.code} className={inputClass + " font-mono tracking-[0.3em] text-base"} onFocus={(e) => e.target.select()} />
                 <button onClick={() => navigator.clipboard?.writeText(result.code)} className="shrink-0 px-3 py-2.5 min-h-[44px] rounded border border-slate-300 text-sm">Copy</button>
               </div>
             </div>
@@ -403,6 +428,82 @@ function EditAgentModal({
             {saving ? "Saving…" : "Save changes"}
           </button>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function AgentDetailModal({ agent, onClose }: { agent: Agent; onClose: () => void }) {
+  const [regs, setRegs] = useState<Registration[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"seafields" | "branscombe">(
+    agent.estate_access?.[0] === "branscombe" ? "branscombe" : "seafields"
+  );
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      try {
+        const table = activeTab === "branscombe" ? "branscombe" : "seafields";
+        const res = await fetch("/api/admin/" + table + "/registrations?agent_id=" + agent.id);
+        if (res.ok) {
+          const data = await res.json();
+          setRegs(data.registrations || []);
+        }
+      } catch { setRegs([]); } 
+      finally { setLoading(false); }
+    }
+    load();
+  }, [activeTab, agent.id]);
+
+  return (
+    <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="bg-white w-full sm:max-w-2xl rounded-lg shadow-2xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 bg-white border-b px-5 py-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">{agent.name}</h3>
+            <p className="text-sm text-slate-500">{agent.agency || agent.email}</p>
+          </div>
+          <button onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+        </div>
+        <div className="border-b px-5 py-2 flex gap-4">
+          {agent.estate_access?.includes("seafields") && (
+            <button onClick={() => setActiveTab("seafields")} className={"text-sm font-medium pb-2 border-b-2 " + (activeTab === "seafields" ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500")}>
+              Seafields ({regs.filter((r) => r.estate === "seafields").length})
+            </button>
+          )}
+          {agent.estate_access?.includes("branscombe") && (
+            <button onClick={() => setActiveTab("branscombe")} className={"text-sm font-medium pb-2 border-b-2 " + (activeTab === "branscombe" ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500")}>
+              Branscombe ({regs.filter((r) => r.estate === "branscombe").length})
+            </button>
+          )}
+        </div>
+        <div className="overflow-y-auto p-5">
+          {loading ? <div className="text-slate-500 text-sm">Loading...</div> : 
+           regs.filter((r) => r.estate === activeTab).length === 0 ? (
+            <div className="text-slate-400 text-sm border border-dashed rounded p-6 text-center">No registrations assigned yet.</div>
+          ) : (
+            <div className="space-y-3">
+              {regs.filter((r) => r.estate === activeTab).map((r) => (
+                <div key={r.id} className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-semibold">{r.client_name}</div>
+                      <div className="text-sm text-slate-500">{r.client_email}</div>
+                      {r.client_phone && <div className="text-sm text-slate-500">{r.client_phone}</div>}
+                    </div>
+                    <span className={"text-xs px-2 py-0.5 rounded " + (r.status === "allocated" ? "bg-emerald-100 text-emerald-800" : r.status === "qualified" ? "bg-blue-100 text-blue-800" : r.status === "unqualified" ? "bg-rose-100 text-rose-800" : "bg-slate-100")}>{r.status}</span>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-slate-200 text-sm text-slate-600 flex flex-wrap gap-3">
+                    {activeTab === "seafields" ? <>{r.lot_number && <span>Lot: {r.lot_number}</span>}{r.stage && <span>Stage: {r.stage}</span>}</> : <>{r.unit_number && <span>Unit: {r.unit_number}</span>}</>}
+                    {r.dwelling_type && <span>Type: {r.dwelling_type}</span>}
+                    <span className="text-slate-400">{new Date(r.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
