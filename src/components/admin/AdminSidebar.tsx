@@ -15,19 +15,16 @@ const NAV: NavItem[] = [
   // Seafields
   { href: "/admin/estates/seafields/posts", label: "Blog", group: "Seafields" },
   { href: "/admin/estates/seafields/media", label: "Media", group: "Seafields" },
-  { href: "/admin/seafields-registrations", label: "Pipeline", group: "Seafields" },
   { href: "/admin/seafields-stages", label: "Stages", group: "Seafields" },
   { href: "/admin/seafields-lots", label: "Lots", group: "Seafields" },
   { href: "/admin/seafields-import", label: "Import", group: "Seafields" },
   // Branscombe
   { href: "/admin/estates/branscombe/posts", label: "Blog", group: "Branscombe" },
   { href: "/admin/estates/branscombe/media", label: "Media", group: "Branscombe" },
-  { href: "/admin/branscombe-pipeline", label: "Pipeline", group: "Branscombe" },
   { href: "/admin/branscombe-units", label: "Units", group: "Branscombe" },
   // Wavecrest
   { href: "/admin/wavecrest/posts", label: "Blog", group: "Wavecrest" },
   { href: "/admin/wavecrest/media", label: "Media", group: "Wavecrest" },
-  { href: "/admin/wavecrest-registrations", label: "Pipeline", group: "Wavecrest" },
   { href: "/admin/wavecrest-stages", label: "Stages", group: "Wavecrest" },
   { href: "/admin/wavecrest-lots", label: "Lots", group: "Wavecrest" },
   { href: "/admin/wavecrest-import", label: "Import", group: "Wavecrest" },
