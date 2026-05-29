@@ -3,6 +3,18 @@ import { redirect } from "next/navigation";
 
 const currentDevelopments = [
   {
+    name: "Wavecrest Estate",
+    location: "Waggrakine, Geraldton WA",
+    state: "WA",
+    dwellings: "~1,860 lots",
+    type: "Residential Subdivision",
+    status: "Coming Soon",
+    desc: "~1,860-lot structure-planned coastal estate in Geraldton's growth corridor. Stage 2 approved, Stage 3 coming. Vacant land or house & land packages.",
+    image: "/wavecrest/site-photo-01.jpg",
+    href: "/wavecrest-estate",
+    cta: "Register interest",
+  },
+  {
     name: "Seafields Estate",
     location: "Waggrakine, Geraldton WA",
     state: "WA",
