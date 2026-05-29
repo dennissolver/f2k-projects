@@ -134,11 +134,10 @@ export default function SeafieldsRegistrationsPage() {
 
     let filtered = rows.filter((r) => {
       const reg = r.registration;
-      if (!reg?.first_name) return false;
-      if (hideTestData) {
+      if (hideTestData && reg?.first_name) {
         const name = `${reg.first_name} ${reg.last_name}`.toLowerCase();
-        const email = reg.email.toLowerCase();
-        const phone = reg.phone || "";
+        const email = reg?.email?.toLowerCase() || "";
+        const phone = reg?.phone || "";
         if (TEST_PATTERNS.test(name) || TEST_PATTERNS.test(email) || TEST_PATTERNS.test(phone)) {
           return false;
         }
@@ -146,7 +145,7 @@ export default function SeafieldsRegistrationsPage() {
       if (statusFilter !== "all" && r.status !== statusFilter) return false;
       if (stageFilter !== "all" && String(r.stage_number) !== stageFilter)
         return false;
-      if (q) {
+      if (q && reg?.first_name) {
         const haystack = `${reg.first_name} ${reg.last_name} ${reg.email} L${r.lot_number}`.toLowerCase();
         if (!haystack.includes(q)) return false;
       }
@@ -157,8 +156,8 @@ export default function SeafieldsRegistrationsPage() {
       if (sortBy === "name") {
         const regA = a.registration;
         const regB = b.registration;
-        const nameA = regA ? `${regA.first_name} ${regA.last_name}`.toLowerCase() : "";
-        const nameB = regB ? `${regB.first_name} ${regB.last_name}`.toLowerCase() : "";
+        const nameA = regA?.first_name ? `${regA.first_name} ${regA.last_name}`.toLowerCase() : "zzz";
+        const nameB = regB?.first_name ? `${regB.first_name} ${regB.last_name}`.toLowerCase() : "zzz";
         return nameA.localeCompare(nameB);
       }
       if (sortBy === "lot") return a.lot_number - b.lot_number;
@@ -180,7 +179,7 @@ export default function SeafieldsRegistrationsPage() {
       const reg = r.registration;
       if (!reg?.first_name) return false;
       const name = `${reg.first_name} ${reg.last_name}`.toLowerCase();
-      const email = reg.email.toLowerCase();
+      const email = reg.email?.toLowerCase() || "";
       const phone = reg.phone || "";
       return TEST_PATTERNS.test(name) || TEST_PATTERNS.test(email) || TEST_PATTERNS.test(phone);
     }).length;
