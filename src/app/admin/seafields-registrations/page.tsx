@@ -78,6 +78,9 @@ export default function SeafieldsRegistrationsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [stageFilter, setStageFilter] = useState<StageFilter>("all");
   const [search, setSearch] = useState("");
+  const [hideTestData, setHideTestData] = useState(false);
+  const [sortBy, setSortBy] = useState<"date" | "name" | "lot">("date");
+  const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState<{
     joinId: string;
     field: "status" | "registration_type";
@@ -127,7 +130,17 @@ export default function SeafieldsRegistrationsPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return rows.filter((r) => {
+    const TEST_PATTERNS = /test|qa|marcus|testerton|testbuyer|qatester/i;
+
+    let filtered = rows.filter((r) => {
+      if (hideTestData) {
+        const name = `${r.registration.first_name} ${r.registration.last_name}`.toLowerCase();
+        const email = r.registration.email.toLowerCase();
+        const phone = r.registration.phone || "";
+        if (TEST_PATTERNS.test(name) || TEST_PATTERNS.test(email) || TEST_PATTERNS.test(phone)) {
+          return false;
+        }
+      }
       if (statusFilter !== "all" && r.status !== statusFilter) return false;
       if (stageFilter !== "all" && String(r.stage_number) !== stageFilter)
         return false;
@@ -137,13 +150,55 @@ export default function SeafieldsRegistrationsPage() {
       }
       return true;
     });
-  }, [rows, statusFilter, stageFilter, search]);
+
+    filtered.sort((a, b) => {
+      if (sortBy === "name") {
+        const nameA = `${a.registration.first_name} ${a.registration.last_name}`.toLowerCase();
+        const nameB = `${b.registration.first_name} ${b.registration.last_name}`.toLowerCase();
+        return nameA.localeCompare(nameB);
+      }
+      if (sortBy === "lot") return a.lot_number - b.lot_number;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    return filtered;
+  }, [rows, statusFilter, stageFilter, search, hideTestData, sortBy]);
 
   const counts = useMemo(() => {
     const c = { active: 0, locked_in: 0, released: 0, converted_to_sale: 0, cancelled: 0 };
     for (const r of rows) c[r.status] += 1;
     return c;
   }, [rows]);
+
+  const testRecordCount = useMemo(() => {
+    const TEST_PATTERNS = /test|qa|marcus|testerton|testbuyer|qatester/i;
+    return rows.filter((r) => {
+      const name = `${r.registration.first_name} ${r.registration.last_name}`.toLowerCase();
+      const email = r.registration.email.toLowerCase();
+      const phone = r.registration.phone || "";
+      return TEST_PATTERNS.test(name) || TEST_PATTERNS.test(email) || TEST_PATTERNS.test(phone);
+    }).length;
+  }, [rows]);
+
+  async function deleteTestData() {
+    if (!confirm(`Delete ${testRecordCount} test records? This cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/admin/seafields/registrations/delete-test", {
+        method: "POST",
+      });
+      if (res.ok) {
+        setMessage({ type: "success", text: `Deleted ${testRecordCount} test records.` });
+        fetchRows();
+      } else {
+        setMessage({ type: "error", text: "Failed to delete test data" });
+      }
+    } catch {
+      setMessage({ type: "error", text: "Network error" });
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   function openEdit(
     joinId: string,
@@ -288,6 +343,33 @@ export default function SeafieldsRegistrationsPage() {
             </option>
           ))}
         </select>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as "date" | "name" | "lot")}
+          className="border border-slate-300 rounded px-2 py-1 text-sm"
+        >
+          <option value="date">Sort: Newest</option>
+          <option value="name">Sort: Name</option>
+          <option value="lot">Sort: Lot</option>
+        </select>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={hideTestData}
+            onChange={(e) => setHideTestData(e.target.checked)}
+            className="w-4 h-4"
+          />
+          Hide test data ({testRecordCount})
+        </label>
+        {testRecordCount > 0 && (
+          <button
+            onClick={deleteTestData}
+            disabled={deleting}
+            className="ml-auto text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50"
+          >
+            {deleting ? "Deleting..." : `Delete ${testRecordCount} test records`}
+          </button>
+        )}
         <input
           type="search"
           placeholder="Search name, email, lot…"
