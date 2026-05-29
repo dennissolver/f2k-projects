@@ -203,6 +203,12 @@ export default function LotInfoCard({
                 onClick={() => {
                   onToggle();
                   onClose();
+                  setTimeout(() => {
+                    const regForm = document.getElementById("register");
+                    if (regForm) {
+                      regForm.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                  }, 400);
                 }}
                 className={`w-full py-3 font-archivo font-semibold transition-colors ${
                   isSelected

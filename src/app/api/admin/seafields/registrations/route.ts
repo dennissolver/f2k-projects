@@ -30,7 +30,10 @@ export type RegistrationJoinRow = {
   };
 };
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const agentId = searchParams.get("agent_id");
+
   const admin = await getAdminUser();
   if (!admin || !hasPermission(admin.role, "view_registrations")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -38,16 +41,20 @@ export async function GET() {
 
   const supabase = createSupabaseService();
 
-  // Pull join rows with full contact context. Sort by lot then position
-  // so primary registrants render above backup_list within each lot.
-  const { data, error } = await (supabase
-    .from("seafields_registration_lots") as any)
+  let query: any = supabase
+    .from("seafields_registration_lots")
     .select(
       "id, lot_number, registration_type, status, position_in_queue, created_at, " +
         "stage_at_registration_id, " +
         "stages(stage_number, stage_label), " +
         "seafields_registrations!inner(id, agent_id, first_name, last_name, email, phone, suburb, postcode, buyer_type, purchase_timeline, finance_status, interest_type, created_at)",
-    )
+    );
+
+  if (agentId) {
+    query = query.eq("seafields_registrations.agent_id", agentId);
+  }
+
+  const { data, error } = await query
     .order("lot_number", { ascending: true })
     .order("registration_type", { ascending: true })
     .order("position_in_queue", { ascending: true, nullsFirst: false });
@@ -79,5 +86,18 @@ export async function GET() {
     registration: r.seafields_registrations,
   }));
 
-  return NextResponse.json({ registrations: rows });
+  const formatted = rows.map((r) => ({
+    id: r.registration.id,
+    client_name: `${r.registration.first_name} ${r.registration.last_name}`.trim(),
+    client_email: r.registration.email,
+    client_phone: r.registration.phone,
+    lot_number: `L${r.lot_number}`,
+    stage: r.stage_label,
+    dwelling_type: r.registration.interest_type,
+    status: r.status,
+    created_at: r.created_at,
+    estate: "seafields",
+  }));
+
+  return NextResponse.json({ registrations: formatted });
 }

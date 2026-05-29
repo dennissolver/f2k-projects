@@ -289,13 +289,6 @@ export default function RegistrationForm() {
         return prev.filter((id) => id !== lotId);
       }
       setExpandedLot(lotId);
-      // Scroll to registration form when adding a lot
-      setTimeout(() => {
-        const regForm = document.getElementById("register");
-        if (regForm) {
-          regForm.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 100);
       return [...prev, lotId];
     });
   };
