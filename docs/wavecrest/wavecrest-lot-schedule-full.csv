@@ -1,0 +1,11 @@
+lot_number,stage,sqm,dwelling_type,wholesale_price,retail_price,status,zone,land_only,house_cost,display_price_to_public,public_label,subdivisible,ancillary_dwelling_eligible,internal_notes
+1,Stage 1,450,Standard,180000,225000,available,R1,FALSE,,TRUE,,FALSE,FALSE,
+2,Stage 1,450,Standard,180000,225000,available,R1,FALSE,,TRUE,,FALSE,FALSE,
+3,Stage 1,450,Standard,180000,225000,available,R1,FALSE,,TRUE,,FALSE,FALSE,
+4,Stage 1,480,Premium,195000,245000,available,R1,FALSE,,TRUE,,FALSE,FALSE,
+5,Stage 1,480,Premium,195000,245000,available,R1,FALSE,,TRUE,,FALSE,FALSE,
+6,Stage 1,500,Premium,210000,265000,available,R2,FALSE,,TRUE,,FALSE,FALSE,
+7,Stage 1,500,Premium,210000,265000,available,R2,FALSE,,TRUE,,FALSE,FALSE,
+8,Stage 1,450,Standard,180000,225000,available,R2,FALSE,,TRUE,,FALSE,FALSE,
+9,Stage 1,450,Standard,180000,225000,available,R2,FALSE,,TRUE,,FALSE,FALSE,
+10,Stage 1,480,Premium,195000,245000,available,R2,FALSE,,TRUE,,FALSE,FALSE,
