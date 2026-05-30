@@ -32,7 +32,7 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Admin can read all messages"
   ON messages FOR SELECT
   USING (EXISTS (
-    SELECT 1 FROM admin_users WHERE user_id = auth.uid()
+    SELECT 1 FROM admin_users WHERE auth_user_id = auth.uid()
   ));
 
 -- Agent policy: read own messages only (where recipient_id = auth.uid())

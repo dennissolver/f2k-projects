@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ViewAsAgentModal } from "./ViewAsAgentModal";
+import { BulkEmailModal } from "./BulkEmailModal";
 
 interface Agent {
   id: string;
@@ -43,6 +44,8 @@ export default function AdminAgentsPage() {
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
   const [viewingAgent, setViewingAgent] = useState<Agent | null>(null);
   const [viewingAsAgent, setViewingAsAgent] = useState<Agent | null>(null);
+  const [selectedAgents, setSelectedAgents] = useState<Set<string>>(new Set());
+  const [showBulkEmail, setShowBulkEmail] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -127,12 +130,22 @@ export default function AdminAgentsPage() {
         </div>
       )}
 
-      <button
-        onClick={() => setShowCreate(true)}
-        className="mb-6 bg-slate-900 hover:bg-slate-700 text-white px-5 py-2.5 min-h-[44px] rounded text-sm font-semibold"
-      >
-        + Create agent
-      </button>
+      <div className="flex gap-3 mb-6">
+        <button
+          onClick={() => setShowCreate(true)}
+          className="bg-slate-900 hover:bg-slate-700 text-white px-5 py-2.5 min-h-[44px] rounded text-sm font-semibold"
+        >
+          + Create agent
+        </button>
+        {selectedAgents.size > 0 && (
+          <button
+            onClick={() => setShowBulkEmail(true)}
+            className="bg-[#00B5AD] hover:bg-[#009d94] text-white px-5 py-2.5 min-h-[44px] rounded text-sm font-semibold"
+          >
+            Email {selectedAgents.size} agent{selectedAgents.size > 1 ? "s" : ""}
+          </button>
+        )}
+      </div>
 
       {loading ? (
         <div className="text-slate-500">Loading agents…</div>
@@ -145,6 +158,20 @@ export default function AdminAgentsPage() {
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
+                <th className="text-left px-4 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={selectedAgents.size === agents.filter((a) => a.active).length && selectedAgents.size > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedAgents(new Set(agents.filter((a) => a.active).map((a) => a.id)));
+                      } else {
+                        setSelectedAgents(new Set());
+                      }
+                    }}
+                    className="h-4 w-4 rounded"
+                  />
+                </th>
                 <th className="text-left px-4 py-3 font-semibold">Name</th>
                 <th className="text-left px-4 py-3 font-semibold">Agency</th>
                 <th className="text-left px-4 py-3 font-semibold">Project</th>
@@ -152,9 +179,26 @@ export default function AdminAgentsPage() {
                 <th className="text-left px-4 py-3 font-semibold">Actions</th>
               </tr>
             </thead>
-            <tbody>
+              <tbody>
               {agents.map((a) => (
                 <tr key={a.id} className="border-b border-slate-100 hover:bg-slate-50">
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedAgents.has(a.id)}
+                      disabled={!a.active}
+                      onChange={(e) => {
+                        const newSelected = new Set(selectedAgents);
+                        if (e.target.checked) {
+                          newSelected.add(a.id);
+                        } else {
+                          newSelected.delete(a.id);
+                        }
+                        setSelectedAgents(newSelected);
+                      }}
+                      className="h-4 w-4 rounded"
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <div className="font-medium text-slate-900">{a.name}</div>
                     <div className="text-xs text-slate-500">{a.email}</div>
@@ -249,6 +293,20 @@ export default function AdminAgentsPage() {
 
       {viewingAsAgent && (
         <ViewAsAgentModal agent={viewingAsAgent} onClose={() => setViewingAsAgent(null)} />
+      )}
+
+      {showBulkEmail && (
+        <BulkEmailModal
+          agentIds={Array.from(selectedAgents)}
+          agents={agents.filter((a) => selectedAgents.has(a.id))}
+          onClose={() => {
+            setShowBulkEmail(false);
+            setSelectedAgents(new Set());
+          }}
+          onSent={() => {
+            setMsg({ type: "success", text: "Emails sent successfully" });
+          }}
+        />
       )}
     </div>
   );
