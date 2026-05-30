@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { ViewAsAgentModal } from "./ViewAsAgentModal";
 
 interface Agent {
   id: string;
@@ -228,6 +229,10 @@ export default function AdminAgentsPage() {
 
       {viewingAgent && (
         <AgentDetailModal agent={viewingAgent} onClose={() => setViewingAgent(null)} />
+      )}
+
+      {viewingAsAgent && (
+        <ViewAsAgentModal agent={viewingAsAgent} onClose={() => setViewingAsAgent(null)} />
       )}
     </div>
   );
