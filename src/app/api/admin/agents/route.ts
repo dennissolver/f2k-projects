@@ -105,7 +105,8 @@ export async function POST(request: Request) {
       ctaLabel: "Activate my account",
       ctaHref: activateUrl,
       footer:
-        "This invite expires in 14 days. The access code is required in addition to this link. If you weren't expecting this, you can ignore this email.",
+        "This invite expires in 14 days. The access code is required in addition to this link. If you weren't expecting this, you can ignore this email." +
+        `<br><br><strong>For future logins:</strong> Go to <a href="${SITE_URL}/agent/login">${SITE_URL}/agent/login</a> and sign in with your email and password.`,
     });
     const guard = guardRecipients([d.email.trim()], { triggeredByEmail: d.email });
     await resend.emails.send({

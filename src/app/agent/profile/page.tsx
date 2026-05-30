@@ -9,6 +9,8 @@ interface Agent {
   email: string;
   phone: string | null;
   agency: string | null;
+  notify_new_client: boolean;
+  notify_status_change: boolean;
 }
 
 export default function AgentProfilePage() {
@@ -22,6 +24,8 @@ export default function AgentProfilePage() {
   const [agency, setAgency] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [notifyNewClient, setNotifyNewClient] = useState(true);
+  const [notifyStatusChange, setNotifyStatusChange] = useState(true);
   const router = useRouter();
 
   const load = useCallback(async () => {
@@ -34,6 +38,8 @@ export default function AgentProfilePage() {
         setName(data.agent.name || "");
         setPhone(data.agent.phone || "");
         setAgency(data.agent.agency || "");
+        setNotifyNewClient(data.agent.notify_new_client ?? true);
+        setNotifyStatusChange(data.agent.notify_status_change ?? true);
       } else if (res.status === 401) {
         router.push("/agent/login");
       }
@@ -61,6 +67,8 @@ export default function AgentProfilePage() {
           name: name.trim(),
           phone: phone.trim() || null,
           agency: agency.trim() || null,
+          notify_new_client: notifyNewClient,
+          notify_status_change: notifyStatusChange,
         }),
       });
       
@@ -198,6 +206,42 @@ export default function AgentProfilePage() {
                 {saving ? "Saving…" : "Save Changes"}
               </button>
             </form>
+          </section>
+
+          {/* Notification Preferences */}
+          <section className="bg-white rounded-xl border border-slate-200 p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">Notification Preferences</h2>
+            <p className="text-sm text-slate-500 mb-4">Choose what emails you receive about your clients.</p>
+            <div className="space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={notifyNewClient}
+                  onChange={(e) => setNotifyNewClient(e.target.checked)}
+                  className="w-5 h-5 rounded border-slate-300 text-[#00B5AD] focus:ring-[#00B5AD]"
+                />
+                <span className="text-sm text-slate-700">New client registrations</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={notifyStatusChange}
+                  onChange={(e) => setNotifyStatusChange(e.target.checked)}
+                  className="w-5 h-5 rounded border-slate-300 text-[#00B5AD] focus:ring-[#00B5AD]"
+                />
+                <span className="text-sm text-slate-700">Client status changes</span>
+              </label>
+            </div>
+            <button 
+              onClick={() => {
+                setSaving(true);
+                saveProfile(new Event('submit') as any);
+              }}
+              disabled={saving}
+              className="mt-4 w-full bg-slate-900 hover:bg-slate-700 text-white px-5 py-2.5 min-h-[44px] rounded text-sm font-semibold disabled:opacity-50"
+            >
+              {saving ? "Saving…" : "Save Preferences"}
+            </button>
           </section>
 
           {/* Change Password */}
