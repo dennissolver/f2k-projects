@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       results.push({
         email: agent.email,
         status: error ? "failed" : "sent",
-        error,
+        error: error || undefined,
       });
     } catch (err) {
       results.push({
