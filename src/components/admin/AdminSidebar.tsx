@@ -11,6 +11,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/agents", label: "Agents" },
   { href: "/admin/registrations", label: "All Registrations", group: "Inbox" },
   // Seafields
   { href: "/admin/estates/seafields/posts", label: "Blog", group: "Seafields" },
@@ -34,8 +35,6 @@ const NAV: NavItem[] = [
   { href: "/admin/hemp-homes/journey", label: "Journey", group: "Hemp Homes" },
   { href: "/admin/hemp-homes/prospects", label: "Prospects", group: "Hemp Homes" },
   { href: "/admin/hemp-homes/outreach/queue", label: "Outreach", group: "Hemp Homes" },
-  // Team
-  { href: "/admin/agents", label: "Agents", group: "Team" },
   // Compliance
   { href: "/admin/email-templates", label: "Email Templates", group: "Compliance" },
   { href: "/admin/audit-log", label: "Audit Log", group: "Compliance" },
