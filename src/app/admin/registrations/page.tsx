@@ -1,5 +1,6 @@
 // @explanatory-header-exempt — nested workflow page; entry-point header lives on the parent surface
 import { createSupabaseService } from "@/lib/supabase-service";
+import { RegistrationActions } from "./RegistrationActions";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,8 @@ interface UnifiedRegistration {
   purchase_timeline: string | null;
   finance_status: string | null;
   agent_name: string | null;
+  ownership: "agent" | "house" | "unassigned" | null;
+  agent_id: string | null;
 }
 
 async function loadRegistrations(filter: ProjectFilter, search: string): Promise<UnifiedRegistration[]> {
@@ -52,6 +55,8 @@ async function loadRegistrations(filter: ProjectFilter, search: string): Promise
         purchase_timeline: r.purchase_timeline,
         finance_status: r.finance_status,
         agent_name: getAgentName(r.agent_id),
+        ownership: r.ownership,
+        agent_id: r.agent_id,
       });
     }
   }
@@ -73,6 +78,8 @@ async function loadRegistrations(filter: ProjectFilter, search: string): Promise
         purchase_timeline: r.purchase_timeline,
         finance_status: r.finance_status,
         agent_name: getAgentName(r.agent_id),
+        ownership: r.ownership,
+        agent_id: r.agent_id,
       });
     }
   }
@@ -94,7 +101,9 @@ async function loadRegistrations(filter: ProjectFilter, search: string): Promise
           buyer_type: r.i_am_a,
           purchase_timeline: r.timeframe,
           finance_status: r.finance_status,
-          agent_name: null, // Hemp Homes doesn't have agent assignment
+          agent_name: null,
+          ownership: null,
+          agent_id: null,
         });
       }
     } catch {
@@ -222,15 +231,17 @@ export default async function RegistrationsPage({
               <th className="px-4 py-2 font-semibold">Buyer</th>
               <th className="px-4 py-2 font-semibold">Timeline</th>
               <th className="px-4 py-2 font-semibold">Agent</th>
+              <th className="px-4 py-2 font-semibold">Status</th>
+              <th className="px-4 py-2 font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {registrations.length === 0 ? (
-              <tr>
-                <td className="px-4 py-8 text-center text-slate-500" colSpan={8}>
-                  No registrations match these filters.
-                </td>
-              </tr>
+                <tr>
+                  <td className="px-4 py-8 text-center text-slate-500" colSpan={10}>
+                    No registrations match these filters.
+                  </td>
+                </tr>
             ) : (
               registrations.map((r) => (
                 <tr key={`${r.project}-${r.id}`} className="hover:bg-slate-50">
@@ -283,6 +294,31 @@ export default async function RegistrationsPage({
                   </td>
                   <td className="px-4 py-2 text-xs text-slate-600">
                     {r.agent_name ?? "—"}
+                  </td>
+                  <td className="px-4 py-2">
+                    {r.ownership === "agent" ? (
+                      <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] font-semibold bg-green-100 text-green-800">
+                        Agent
+                      </span>
+                    ) : r.ownership === "house" ? (
+                      <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] font-semibold bg-purple-100 text-purple-800">
+                        House
+                      </span>
+                    ) : (
+                      <span className="inline-block px-2 py-0.5 rounded text-[0.65rem] font-semibold bg-gray-100 text-gray-800">
+                        Unassigned
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2">
+                    {r.project !== "hemp" && (
+                      <RegistrationActions
+                        registrationId={r.id}
+                        project={r.project}
+                        ownership={r.ownership}
+                        agentId={r.agent_id}
+                      />
+                    )}
                   </td>
                 </tr>
               ))
