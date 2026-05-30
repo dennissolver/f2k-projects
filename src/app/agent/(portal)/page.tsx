@@ -116,7 +116,7 @@ function ClientGrid({ clients, title }: { clients: Client[]; title: string }) {
       <section className="mb-8">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">{title}</h2>
         <div className="text-slate-400 text-sm border border-dashed rounded p-6 text-center">
-          No clients linked to you yet. When a buyer you referred registers — or an admin assigns one to you — they'll appear here.
+          No clients linked to you yet. When a buyer you referred registers — or an admin assigns one to you - they&apos;ll appear here.
         </div>
       </section>
     );
