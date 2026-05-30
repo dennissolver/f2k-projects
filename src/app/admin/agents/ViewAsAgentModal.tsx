@@ -64,8 +64,8 @@ export function ViewAsAgentModal({ agent, onClose }: { agent: Agent; onClose: ()
   }, [agent.id, agent.name]);
 
   const filteredClients = clients.filter((c) => c.estate === activeTab);
-  const stages = Array.from(new Set(filteredClients.map((c) => c.stage_name).filter(Boolean))).sort();
-  const statuses = Array.from(new Set(filteredClients.map((c) => c.lead_status).filter(Boolean))).sort();
+  const stages = Array.from(new Set(filteredClients.map((c) => c.stage_name).filter((v): v is string => v !== null && v !== undefined))).sort();
+  const statuses = Array.from(new Set(filteredClients.map((c) => c.lead_status).filter((v): v is string => v !== null && v !== undefined))).sort();
 
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState("all");
