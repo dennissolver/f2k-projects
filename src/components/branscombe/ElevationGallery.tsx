@@ -7,7 +7,11 @@ import Image from "next/image";
 // Unison / Luke Tingley, 2026-06-05 — finishes taken verbatim from the original
 // concept-plan schedules). Defined once and reused for both types so the two
 // galleries can never drift apart again (was F2KSFLDS-20).
-type Finish = { part: string; colour: string; hex: string; note?: string };
+//
+// `name` is a plain-English colour tag estimated from the render + hex (the
+// Unison/Dulux spec names alone don't read to buyers); it leads the caption
+// with the spec name kept in muted text underneath.
+type Finish = { part: string; name: string; colour: string; hex: string; note?: string };
 
 const SCHEMES: {
   id: "scheme1" | "scheme2" | "scheme3";
@@ -20,33 +24,33 @@ const SCHEMES: {
     label: "Scheme 1 — The Forest",
     tag: "DA approved",
     finishes: [
-      { part: "AXON cladding", colour: "Dulux Domino", hex: "#3C3E3F" },
-      { part: "STRIA cladding", colour: "Dulux Dieskau", hex: "#CBC9C5" },
-      { part: "EASYLAP cladding", colour: "Dulux Malay", hex: "#8E7C66", note: "visual approximation" },
-      { part: "Windows / metal", colour: "Colorbond Monument", hex: "#323233" },
-      { part: "Roof", colour: "Colorbond Basalt", hex: "#6D6C6E" },
+      { part: "AXON cladding", name: "Charcoal", colour: "Dulux Domino", hex: "#3C3E3F" },
+      { part: "STRIA cladding", name: "Stone Grey", colour: "Dulux Dieskau", hex: "#CBC9C5" },
+      { part: "EASYLAP cladding", name: "Warm Timber", colour: "Dulux Malay", hex: "#8E7C66", note: "visual approximation" },
+      { part: "Windows / metal", name: "Monument", colour: "Colorbond Monument", hex: "#323233" },
+      { part: "Roof", name: "Basalt Grey", colour: "Colorbond Basalt", hex: "#6D6C6E" },
     ],
   },
   {
     id: "scheme2",
     label: "Scheme 2 — Dark Contemporary",
     finishes: [
-      { part: "AXON cladding", colour: "Dulux Domino", hex: "#3C3E3F" },
-      { part: "STRIA cladding", colour: "Dulux Klavier", hex: "#363436" },
-      { part: "EASYLAP cladding", colour: "Dulux Teahouse", hex: "#666966" },
-      { part: "Windows / metal", colour: "Colorbond Monument", hex: "#323233" },
-      { part: "Roof", colour: "Colorbond Ironstone", hex: "#3E434C" },
+      { part: "AXON cladding", name: "Charcoal", colour: "Dulux Domino", hex: "#3C3E3F" },
+      { part: "STRIA cladding", name: "Graphite", colour: "Dulux Klavier", hex: "#363436" },
+      { part: "EASYLAP cladding", name: "Slate Grey", colour: "Dulux Teahouse", hex: "#666966" },
+      { part: "Windows / metal", name: "Monument", colour: "Colorbond Monument", hex: "#323233" },
+      { part: "Roof", name: "Ironstone", colour: "Colorbond Ironstone", hex: "#3E434C" },
     ],
   },
   {
     id: "scheme3",
     label: "Scheme 3 — Light Coastal",
     finishes: [
-      { part: "AXON cladding", colour: "Dulux Dieskau", hex: "#CBC9C5" },
-      { part: "STRIA cladding", colour: "Dulux Flooded Gum", hex: "#A3A29F" },
-      { part: "EASYLAP cladding", colour: "Dulux Natural White", hex: "#EEECE5" },
-      { part: "Windows / metal", colour: "Colorbond Shale Grey", hex: "#BDBFBA" },
-      { part: "Roof", colour: "Colorbond Surfmist", hex: "#E4E2D5" },
+      { part: "AXON cladding", name: "Soft Stone", colour: "Dulux Dieskau", hex: "#CBC9C5" },
+      { part: "STRIA cladding", name: "Eucalypt Grey", colour: "Dulux Flooded Gum", hex: "#A3A29F" },
+      { part: "EASYLAP cladding", name: "Natural White", colour: "Dulux Natural White", hex: "#EEECE5" },
+      { part: "Windows / metal", name: "Shale Grey", colour: "Colorbond Shale Grey", hex: "#BDBFBA" },
+      { part: "Roof", name: "Surfmist", colour: "Colorbond Surfmist", hex: "#E4E2D5" },
     ],
   },
 ];
@@ -104,7 +108,8 @@ export default function ElevationGallery() {
                             {finish.part}:
                           </dt>
                           <dd className="font-archivo text-[0.65rem] text-slate/80 font-medium">
-                            {finish.colour}
+                            {finish.name}
+                            <span className="text-slate/40"> — {finish.colour}</span>
                             {finish.note && (
                               <span className="text-slate/40"> ({finish.note})</span>
                             )}
