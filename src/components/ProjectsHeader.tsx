@@ -66,7 +66,7 @@ export default function ProjectsHeader() {
                 Factory2Key Projects
               </span>
               <span className="text-xs ml-2 hidden sm:inline text-slate-500">
-                Australian Housing Developments
+                Developer: Dual Focus
               </span>
             </div>
           </Link>
