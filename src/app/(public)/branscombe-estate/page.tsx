@@ -3,7 +3,7 @@ import RegistrationForm from "@/components/branscombe/RegistrationForm";
 import FloorPlanGallery from "@/components/branscombe/FloorPlanGallery";
 import ElevationGallery from "@/components/branscombe/ElevationGallery";
 import HeroSitePlan from "@/components/branscombe/HeroSitePlan";
-import { HOUSE_TYPES, HOUSE_TYPE_INFO } from "@/data/branscombe";
+import { HOUSE_TYPES, HOUSE_TYPE_INFO, ESTATE_PARKING } from "@/data/branscombe";
 
 export const metadata: Metadata = {
   title: "Branscombe Estate — Register Your Interest | F2K",
@@ -155,6 +155,10 @@ export default function BranscombeEstatePage() {
                 { label: "House Types", value: "Types 1A, 1B, 2A, 2B, 2C" },
                 { label: "Land Sizes", value: "~350m² – 550m² per lot" },
                 { label: "Site Area", value: "19,981 m²" },
+                {
+                  label: "Parking",
+                  value: `${ESTATE_PARKING.residentSpacesPerUnit} dedicated spaces per home · ${ESTATE_PARKING.visitorSpaces} shared visitor spaces`,
+                },
                 { label: "Energy Rating", value: "7 Star" },
                 { label: "Designer", value: "Unison" },
                 { label: "Timeline", value: "Construction 2026 — Estimated completion late 2027 to mid-2028" },

@@ -17,6 +17,34 @@
 
 export type HouseType = "1A" | "1B" | "2A" | "2B" | "2C";
 
+/**
+ * Where a home's dedicated car spaces sit relative to the dwelling.
+ * Raw workbook values: "Under Home" / "Exterior Besides" / "Exterior Near" /
+ * "Exterior Besides/Near".
+ */
+export type ParkingLocation =
+  | "under_home"
+  | "exterior_beside"
+  | "exterior_near"
+  | "exterior_beside_near";
+
+export interface ParkingInfo {
+  /** Dedicated resident car spaces for this home (per-lot, not hardcoded). */
+  spaces: number;
+  /** Where those spaces sit relative to the home. */
+  location: ParkingLocation;
+  /** Human-readable label for display (see PARKING_LOCATION_LABEL). */
+  locationLabel: string;
+}
+
+/** Canonical display strings for each parking location. */
+export const PARKING_LOCATION_LABEL: Record<ParkingLocation, string> = {
+  under_home: "Under home",
+  exterior_beside: "Beside home",
+  exterior_near: "Near home",
+  exterior_beside_near: "Beside / near home",
+};
+
 export interface UnitData {
   /** Unit identifier — "U1" through "U37". */
   id: string;
@@ -26,10 +54,28 @@ export interface UnitData {
   type: HouseType;
   /** Geographic zone within the site (informational). */
   zone: string;
+  /** Resident car parking for this home. */
+  parking: ParkingInfo;
 }
 
-function unit(n: number, type: HouseType, zone: string): UnitData {
-  return { id: `U${n}`, unitNumber: n, type, zone };
+function unit(
+  n: number,
+  type: HouseType,
+  zone: string,
+  parkingLocation: ParkingLocation,
+  parkingSpaces = 2,
+): UnitData {
+  return {
+    id: `U${n}`,
+    unitNumber: n,
+    type,
+    zone,
+    parking: {
+      spaces: parkingSpaces,
+      location: parkingLocation,
+      locationLabel: PARKING_LOCATION_LABEL[parkingLocation],
+    },
+  };
 }
 
 /**
@@ -38,43 +84,43 @@ function unit(n: number, type: HouseType, zone: string): UnitData {
  * Type 1A/1B = 104m² home, Type 2A/2B/2C = 114m² home, all + 24m² deck).
  */
 export const UNITS: UnitData[] = [
-  unit(1,  "1A", "SW Entry"),
-  unit(2,  "1B", "SW Entry"),
-  unit(3,  "1A", "SW Mid"),
-  unit(4,  "2A", "SW Mid"),
-  unit(5,  "2B", "SW Entry"),
-  unit(6,  "2C", "SW Entry"),
-  unit(7,  "1B", "Mid West"),
-  unit(8,  "2A", "Mid West"),
-  unit(9,  "1A", "Mid West"),
-  unit(10, "2B", "North Mid"),
-  unit(11, "1A", "North West"),
-  unit(12, "1B", "North West"),
-  unit(13, "2A", "North"),
-  unit(14, "1A", "North"),
-  unit(15, "2B", "North"),
-  unit(16, "2C", "North"),
-  unit(17, "1B", "North Mid"),
-  unit(18, "2A", "NE"),
-  unit(19, "1A", "NE Mid"),
-  unit(20, "2B", "NE"),
-  unit(21, "2C", "East Mid"),
-  unit(22, "1A", "East"),
-  unit(23, "1B", "East Mid"),
-  unit(24, "2A", "SE Mid"),
-  unit(25, "2B", "SE Mid"),
-  unit(26, "2C", "SE"),
-  unit(27, "1A", "SE"),
-  unit(28, "1B", "SE"),
-  unit(29, "2A", "South"),
-  unit(30, "2B", "South"),
-  unit(31, "2C", "SE Corner"),
-  unit(32, "1A", "SE Corner"),
-  unit(33, "1B", "East Lower"),
-  unit(34, "2A", "East Lower"),
-  unit(35, "2B", "East Lower"),
-  unit(36, "2C", "East Mid"),
-  unit(37, "1A", "East"),
+  unit(1,  "1A", "SW Entry",   "exterior_beside"),
+  unit(2,  "1B", "SW Entry",   "exterior_beside"),
+  unit(3,  "1A", "SW Mid",     "exterior_beside"),
+  unit(4,  "2A", "SW Mid",     "exterior_beside"),
+  unit(5,  "2B", "SW Entry",   "exterior_near"),
+  unit(6,  "2C", "SW Entry",   "exterior_near"),
+  unit(7,  "1B", "Mid West",   "exterior_beside"),
+  unit(8,  "2A", "Mid West",   "exterior_beside"),
+  unit(9,  "1A", "Mid West",   "exterior_beside"),
+  unit(10, "2B", "North Mid",  "exterior_beside"),
+  unit(11, "1A", "North West", "exterior_beside"),
+  unit(12, "1B", "North West", "under_home"),
+  unit(13, "2A", "North",      "under_home"),
+  unit(14, "1A", "North",      "exterior_beside"),
+  unit(15, "2B", "North",      "under_home"),
+  unit(16, "2C", "North",      "exterior_beside"),
+  unit(17, "1B", "North Mid",  "under_home"),
+  unit(18, "2A", "NE",         "exterior_beside"),
+  unit(19, "1A", "NE Mid",     "under_home"),
+  unit(20, "2B", "NE",         "exterior_beside"),
+  unit(21, "2C", "East Mid",   "under_home"),
+  unit(22, "1A", "East",       "exterior_beside"),
+  unit(23, "1B", "East Mid",   "under_home"),
+  unit(24, "2A", "SE Mid",     "exterior_beside"),
+  unit(25, "2B", "SE Mid",     "under_home"),
+  unit(26, "2C", "SE",         "exterior_beside"),
+  unit(27, "1A", "SE",         "under_home"),
+  unit(28, "1B", "SE",         "exterior_beside"),
+  unit(29, "2A", "South",      "under_home"),
+  unit(30, "2B", "South",      "under_home"),
+  unit(31, "2C", "SE Corner",  "exterior_beside_near"),
+  unit(32, "1A", "SE Corner",  "exterior_near"),
+  unit(33, "1B", "East Lower", "under_home"),
+  unit(34, "2A", "East Lower", "exterior_beside"),
+  unit(35, "2B", "East Lower", "exterior_beside"),
+  unit(36, "2C", "East Mid",   "exterior_beside"),
+  unit(37, "1A", "East",       "exterior_near"),
 ];
 
 export const HOUSE_TYPE_INFO: Record<HouseType, {
@@ -114,6 +160,18 @@ export const NOTIONAL_LAND_M2: Record<number, number> = {
   26: 460, 27: 495, 28: 460, 29: 505, 30: 510, 31: 375, 32: 350, 33: 405,
   34: 350, 35: 370, 36: 385, 37: 410,
 };
+
+/**
+ * Estate-level parking totals (not per-home).
+ * Source: "122-124 Branscombe Rd - Parking.xlsx" totals + the approved Traffic
+ * Impact Assessment (84 required, 87 provided). Do not round or recompute.
+ */
+export const ESTATE_PARKING = {
+  residentSpacesPerUnit: 2,
+  totalResidentSpaces: 74,
+  visitorSpaces: 13,
+  totalSpaces: 87,
+} as const;
 
 /** Convenience lookup: unit id -> UnitData. */
 export const UNIT_BY_ID: Record<string, UnitData> = Object.fromEntries(

@@ -11,6 +11,10 @@ export {
   HOUSE_TYPES,
   HOUSE_TYPE_INFO,
   NOTIONAL_LAND_M2,
+  PARKING_LOCATION_LABEL,
+  ESTATE_PARKING,
   type UnitData,
   type HouseType,
+  type ParkingLocation,
+  type ParkingInfo,
 } from "./units";

@@ -89,6 +89,10 @@ export default function UnitInfoCard({
             <Row label="Home size" value={`${info.size} + ${info.deck}`} />
             <Row label="Beds / baths" value={`${info.beds} bed / ${info.baths} bath`} />
             {land != null && <Row label="Notional land" value={`${land} m²`} />}
+            <Row
+              label="Parking"
+              value={`${unit.parking.spaces} cars · ${unit.parking.locationLabel}`}
+            />
             <Row label="Status" value={statusText} />
           </dl>
 
