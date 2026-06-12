@@ -17,6 +17,7 @@ const DEFAULT_NAV: NavItem[] = [
   { href: "/seafields-estate", label: "Seafields" },
   { href: "/branscombe-estate", label: "Branscombe" },
   { href: "/hemp-homes-for-eco-communities", label: "Hemp Homes" },
+  { href: "/developers", label: "For Developers" },
   { href: "/blog", label: "Blog" },
   ABOUT_F2K,
 ];
