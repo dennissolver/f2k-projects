@@ -30,7 +30,7 @@ const SEAFIELDS_DESIGNS: Design[] = [
     tag: "ANCILLARY / DUAL-OCC",
     detail:
       "Ancillary dwelling unit — slightly larger footprint than Joey, suitable for granny flat / dual-occupancy use on lots ≥600m² under R20.",
-    hero: null,
+    hero: "/seafields/designs/koala-floor-plan.png",
     plan: "/seafields/designs/koala-floor-plan.pdf",
     secondary: {
       label: "Option 2",
