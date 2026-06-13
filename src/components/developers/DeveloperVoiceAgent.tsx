@@ -89,7 +89,7 @@ export default function DeveloperVoiceAgent({
   );
 
   return (
-    <div className="bg-[#1A2744] text-white p-6 sm:p-8">
+    <div className="dev-voice-widget bg-[#1A2744] text-white p-6 sm:p-8">
       <div className="mb-5">
         <p className="font-ibm-mono text-[0.6rem] tracking-[0.4em] uppercase text-[#00B5AD] mb-2">
           Talk to Morgan

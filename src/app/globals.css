@@ -5,3 +5,28 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* /developers — keep the embedded Morgan voice widget inside its container on phones.
+   The convai flex rows + the text-fallback input have intrinsic min-widths that refuse
+   to shrink, pushing ~40px of horizontal scroll at <=390px (naive-tester, 2026-06-13).
+   Let the rows wrap and the input shrink so nothing overflows (no clipping). */
+.dev-voice-widget {
+  overflow-x: clip;
+}
+.dev-voice-widget .convai-launch--inline,
+.dev-voice-widget .convai-panel--embedded {
+  max-width: 100%;
+  min-width: 0;
+}
+.dev-voice-widget .convai-row,
+.dev-voice-widget .convai-fallback {
+  flex-wrap: wrap;
+}
+.dev-voice-widget .convai-fallback input {
+  min-width: 0;
+  flex: 1 1 8rem;
+}
+.dev-voice-widget .convai-btn,
+.dev-voice-widget .convai-transcript {
+  max-width: 100%;
+}
