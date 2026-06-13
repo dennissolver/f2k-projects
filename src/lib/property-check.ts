@@ -48,8 +48,13 @@ export async function runPropertyCheck(
   timeoutMs = 25_000,
 ): Promise<PropertyCheck> {
   const ran_at = new Date().toISOString();
-  const supabaseUrl = process.env.PROPERTY_SERVICES_URL;
-  const apiKey = process.env.PROPERTY_SERVICES_API_KEY;
+  // Accept either the server-side names or the portfolio's NEXT_PUBLIC_* convention
+  // (DealFindrs / mmcbuild use the prefixed names) so whichever is set on Vercel works.
+  const supabaseUrl =
+    process.env.PROPERTY_SERVICES_URL || process.env.NEXT_PUBLIC_PROPERTY_SERVICES_URL;
+  const apiKey =
+    process.env.PROPERTY_SERVICES_API_KEY ||
+    process.env.NEXT_PUBLIC_PROPERTY_SERVICES_API_KEY;
 
   if (!supabaseUrl || !apiKey) {
     return { status: "skipped", ran_at, reason: "property-services env not configured" };
