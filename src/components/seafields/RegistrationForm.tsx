@@ -1,10 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { LOTS, CATEGORY_INFO } from "@/data/seafields";
 import polygonsData from "@/data/seafields/polygons.json";
-import SiteMap from "./SiteMap";
+import LazyVisible from "@/components/LazyVisible";
 import SuburbAutocomplete from "@/components/SuburbAutocomplete";
+
+// The interactive subdivision map (143-lot SVG + lazy satellite layer) is the
+// heaviest client subtree on the page and sits ~9 sections below the fold.
+// Code-split it into its own chunk (ssr: false) and only mount it once it
+// scrolls near the viewport (LazyVisible), so the initial page load — and the
+// hydration memory spike on low-end mobile — never pays for it up front.
+const SiteMap = dynamic(() => import("./SiteMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-[420px] flex items-center justify-center rounded bg-off-white border border-black/5">
+      <span className="font-archivo text-sm text-slate/60">
+        Loading subdivision plan…
+      </span>
+    </div>
+  ),
+});
 
 const BUILDABLE_ENVELOPES = (
   polygonsData as { buildableEnvelopes: Record<string, { areaM2: number }> }
@@ -491,7 +508,9 @@ export default function RegistrationForm() {
           final confirmation by CLE.
         </p>
 
-        <SiteMap selectedLots={selectedLots} onToggleLot={toggleLot} />
+        <LazyVisible minHeight={520}>
+          <SiteMap selectedLots={selectedLots} onToggleLot={toggleLot} />
+        </LazyVisible>
 
         {/* Your Selected Lot(s) summary card */}
         {selectedLots.length > 0 && (
