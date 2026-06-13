@@ -93,6 +93,50 @@ export default function DevelopersPage() {
             The more you tell us, the better prepared we&apos;ll be when we talk.
           </p>
 
+          {/* ===== WHAT YOU'LL NEED ===== */}
+          <div className="bg-white border border-black/5 p-6 mb-8">
+            <h3 className="font-archivo font-bold text-deep-blue text-base mb-1">
+              What you&apos;ll need
+            </h3>
+            <p className="font-archivo text-sm text-slate/70 mb-4">
+              Handy to have ready before you start — but don&apos;t go hunting.
+              Bring what you have and leave the rest; Morgan and the form both let
+              you skip anything you&apos;re not sure about.
+            </p>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5">
+              {[
+                "Your vision — what you want to build, who it's for, what success looks like",
+                "The estate / project name and where it is (suburb & postcode)",
+                "Planning / zoning status (zoned, DA lodged or approved, concept, or raw land)",
+                "Whether you own or control the site (owned, under option, or negotiating)",
+                "The land owner's details, if that isn't you (e.g. you're an agent)",
+                "The certificate of title, if you have it — it carries the accurate lot details",
+                "Any plans, sketches, drawings or preferred house designs to upload",
+                "How you'd like to do a deal (sale, joint venture, staged, build-to-rent)",
+              ].map((item) => (
+                <li key={item} className="flex gap-2.5">
+                  <svg
+                    className="w-4 h-4 text-[#00B5AD] shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2.5"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span className="font-archivo text-sm text-slate leading-relaxed">
+                    {item}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           <DeveloperOnboarding />
         </div>
       </section>

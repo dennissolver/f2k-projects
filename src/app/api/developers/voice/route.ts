@@ -2,19 +2,16 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getClaudeClientConfig, resolveClaudeModel } from "@caistech/ai-client";
 import { z } from "zod";
+import { DEVELOPER_VOICE_PROMPT } from "@/lib/developer-voice-prompt.mjs";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Voice-discovery agent for the developer onboarding page — "Morgan", a warm,
- * focused discovery coach modelled on the Morgan voice coach from the pipeline.
- *
- * The browser handles speech (Web Speech API: speech-to-text + text-to-speech);
- * this route is the brain. It takes the running transcript and returns Morgan's
- * next spoken line, guiding the developer through their vision, goals, planning
- * status and deal preferences (e.g. joint ventures) to enrich the data before any
- * commercial discussion. Real model call via @caistech/ai-client — no canned
- * replies, no stub.
+ * Text fallback for "Morgan", the developer-onboarding guide. The primary experience is the
+ * canonical ElevenLabs voice agent (see DeveloperVoiceAgent.tsx + voice.config.ts). This route
+ * is the no-mic fallback brain: when voice can't run, the widget's typed box routes here and
+ * we return Morgan's next line using the SAME prompt baked into the voice agent
+ * (src/lib/developer-voice-prompt.mjs) so the spoken and typed experiences never drift.
  */
 
 const schema = z.object({
@@ -36,26 +33,11 @@ const schema = z.object({
     .optional(),
 });
 
-const SYSTEM_PROMPT = `You are Morgan, a warm and focused discovery coach for Factory2Key (F2K), a modular-home developer partner. You are speaking out loud with a property developer who has landed on F2K's developer onboarding page. Your job is to guide a short, natural spoken conversation that draws out the developer's vision so the F2K team is well prepared before any commercial discussion.
+// Shared with the provisioned voice agent so spoken + typed never drift. The trailing line
+// keeps the typed path turn-shaped (one reply, plain text — no stage directions).
+const SYSTEM_PROMPT = `${DEVELOPER_VOICE_PROMPT}
 
-WHAT YOU ARE TRYING TO LEARN (cover these conversationally, not as a checklist):
-- Their vision for the estate / project and what success looks like to them.
-- Goals and motivations — why this project, why now, who it's for.
-- Where the project is at on planning / zoning / approvals.
-- Deal preferences — how they like to structure projects: outright sale, joint venture, profit-share, staged delivery, etc. Explore JV appetite gently.
-- Any constraints, timelines or concerns.
-
-HOW TO SPEAK:
-- This is VOICE. Keep every reply short — one or two sentences, then ONE clear question. Never deliver a paragraph; people are listening, not reading.
-- Be warm, curious and genuinely interested. Australian English spelling.
-- Ask ONE question at a time and build on what they just said.
-- Acknowledge their answer briefly before moving on.
-- If they greet you or it's the first turn, introduce yourself in one sentence and open with an inviting question about their project.
-- Do NOT make commercial commitments, quote prices, or promise terms — you gather, you don't negotiate. If pushed on numbers, say the F2K team will follow up on commercials and steer back to understanding their goals.
-- Do NOT invent facts about F2K beyond: F2K builds architecturally-designed modular homes and partners with developers on residential estates.
-- When you sense the key areas are covered, warmly let them know you've got a good picture, suggest they finish the details in the form below, and thank them.
-
-Return ONLY Morgan's next spoken line as plain text — no stage directions, no quotes, no markdown.`;
+Return ONLY Morgan's next line as plain text — no stage directions, no quotes, no markdown.`;
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);

@@ -4,6 +4,22 @@ import { useState } from "react";
 import SuburbAutocomplete from "@/components/SuburbAutocomplete";
 import type { VoiceMessage } from "./DeveloperVoiceAgent";
 
+const SUBMITTER_ROLES = [
+  "Developer",
+  "Land owner",
+  "Real estate agent / broker",
+  "Builder",
+  "Other",
+] as const;
+
+const SITE_CONTROL = [
+  "Owned outright",
+  "Under option or contract",
+  "Currently negotiating",
+  "Not yet secured",
+  "Not sure",
+] as const;
+
 const ZONING_STATUSES = [
   "Zoned residential — ready",
   "Zoning / rezoning in progress",
@@ -27,6 +43,7 @@ interface Props {
 }
 
 export default function DeveloperOnboardingForm({ voiceTranscript }: Props) {
+  const [submitterRole, setSubmitterRole] = useState("");
   const [developerName, setDeveloperName] = useState("");
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
@@ -35,12 +52,23 @@ export default function DeveloperOnboardingForm({ voiceTranscript }: Props) {
   const [estateLocation, setEstateLocation] = useState("");
   const [estatePostcode, setEstatePostcode] = useState("");
   const [zoningStatus, setZoningStatus] = useState("");
+  const [siteControl, setSiteControl] = useState("");
   const [vision, setVision] = useState("");
   const [dealPreference, setDealPreference] = useState("");
   const [dealNotes, setDealNotes] = useState("");
+  // Land owner details — captured when the person enquiring isn't the owner (e.g. an agent).
+  const [landownerName, setLandownerName] = useState("");
+  const [landownerEmail, setLandownerEmail] = useState("");
+  const [landownerPhone, setLandownerPhone] = useState("");
+  const [landownerNote, setLandownerNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [titleFiles, setTitleFiles] = useState<File[]>([]);
   const [consent, setConsent] = useState(false);
   const [honeypot, setHoneypot] = useState("");
+
+  // When the submitter IS the land owner, their own contact details are the owner's —
+  // so we only ask for separate land-owner details otherwise.
+  const submitterIsOwner = submitterRole === "Land owner";
 
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -51,25 +79,32 @@ export default function DeveloperOnboardingForm({ voiceTranscript }: Props) {
   const labelClass =
     "block text-deep-blue font-semibold font-archivo text-sm mb-1";
 
-  const addFiles = (list: FileList | null) => {
-    if (!list) return;
-    setFiles((prev) => {
-      const combined = [...prev, ...Array.from(list)];
-      // De-dupe by name+size and cap at 10.
-      const seen = new Set<string>();
-      const deduped: File[] = [];
-      for (const f of combined) {
-        const key = `${f.name}-${f.size}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        deduped.push(f);
-      }
-      return deduped.slice(0, 10);
-    });
-  };
+  const addToList =
+    (setter: React.Dispatch<React.SetStateAction<File[]>>) =>
+    (list: FileList | null) => {
+      if (!list) return;
+      setter((prev) => {
+        const combined = [...prev, ...Array.from(list)];
+        // De-dupe by name+size and cap at 10.
+        const seen = new Set<string>();
+        const deduped: File[] = [];
+        for (const f of combined) {
+          const key = `${f.name}-${f.size}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          deduped.push(f);
+        }
+        return deduped.slice(0, 10);
+      });
+    };
+  const addFiles = addToList(setFiles);
+  const addTitleFiles = addToList(setTitleFiles);
 
-  const removeFile = (idx: number) =>
-    setFiles((prev) => prev.filter((_, i) => i !== idx));
+  const removeFromList =
+    (setter: React.Dispatch<React.SetStateAction<File[]>>) => (idx: number) =>
+      setter((prev) => prev.filter((_, i) => i !== idx));
+  const removeFile = removeFromList(setFiles);
+  const removeTitleFile = removeFromList(setTitleFiles);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +123,18 @@ export default function DeveloperOnboardingForm({ voiceTranscript }: Props) {
       .filter(Boolean)
       .join(" — ");
 
+    // Land owner details only when the submitter isn't the owner and gave something.
+    const landowner = submitterIsOwner
+      ? null
+      : (() => {
+          const o: Record<string, string> = {};
+          if (landownerName.trim()) o.name = landownerName.trim();
+          if (landownerEmail.trim()) o.email = landownerEmail.trim();
+          if (landownerPhone.trim()) o.phone = landownerPhone.trim();
+          if (landownerNote.trim()) o.note = landownerNote.trim();
+          return Object.keys(o).length ? o : null;
+        })();
+
     setSubmitting(true);
     try {
       const fd = new FormData();
@@ -102,14 +149,18 @@ export default function DeveloperOnboardingForm({ voiceTranscript }: Props) {
           estate_location: estateLocation.trim() || null,
           estate_postcode: estatePostcode.trim() || null,
           zoning_status: zoningStatus || null,
+          site_control: siteControl || null,
           vision: vision.trim() || null,
           deal_preferences: dealPreferences || null,
+          submitter_role: submitterRole || null,
+          landowner_details: landowner,
           voice_transcript: voiceTranscript,
           consent,
           website_url: "",
         }),
       );
       for (const f of files) fd.append("files", f);
+      for (const f of titleFiles) fd.append("title_files", f);
 
       const res = await fetch("/api/developers/onboarding", {
         method: "POST",
@@ -179,10 +230,34 @@ export default function DeveloperOnboardingForm({ voiceTranscript }: Props) {
           Your details
         </p>
         <div className="space-y-4">
+          <div>
+            <label htmlFor="submitterRole" className={labelClass}>
+              I&apos;m enquiring as
+            </label>
+            <select
+              id="submitterRole"
+              value={submitterRole}
+              onChange={(e) => setSubmitterRole(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">— Select —</option>
+              {SUBMITTER_ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+            {submitterRole && !submitterIsOwner && (
+              <p className="text-xs text-slate/60 font-archivo mt-1">
+                Since you&apos;re not the land owner, we&apos;ll ask for the
+                owner&apos;s details below.
+              </p>
+            )}
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="developerName" className={labelClass}>
-                Full name *
+                Your full name *
               </label>
               <input
                 id="developerName"
@@ -308,6 +383,28 @@ export default function DeveloperOnboardingForm({ voiceTranscript }: Props) {
             </select>
           </div>
           <div>
+            <label htmlFor="siteControl" className={labelClass}>
+              Site ownership / control
+            </label>
+            <select
+              id="siteControl"
+              value={siteControl}
+              onChange={(e) => setSiteControl(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">— Select —</option>
+              {SITE_CONTROL.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-slate/50 font-archivo mt-1">
+              We can help with feasibility, planning and finance — but a project
+              needs the site owned or under your control to go ahead.
+            </p>
+          </div>
+          <div>
             <label htmlFor="vision" className={labelClass}>
               Your vision for the estate
             </label>
@@ -321,6 +418,151 @@ export default function DeveloperOnboardingForm({ voiceTranscript }: Props) {
             />
           </div>
         </div>
+      </div>
+
+      {/* ---- Land owner (only when the submitter isn't the owner) ---- */}
+      {submitterRole && !submitterIsOwner && (
+        <div className="border border-black/5 bg-white p-5">
+          <p className="font-ibm-mono text-[0.6rem] tracking-[0.3em] uppercase text-[#00B5AD] mb-1">
+            Land owner
+          </p>
+          <p className="text-xs text-slate/50 font-archivo mb-4">
+            Who owns the land? This helps us understand who we&apos;ll ultimately
+            be working with. Leave blank if you&apos;d rather tell us later.
+          </p>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="landownerName" className={labelClass}>
+                  Owner name
+                </label>
+                <input
+                  id="landownerName"
+                  type="text"
+                  value={landownerName}
+                  onChange={(e) => setLandownerName(e.target.value)}
+                  className={inputClass}
+                  placeholder="Person or entity on the title"
+                />
+              </div>
+              <div>
+                <label htmlFor="landownerEmail" className={labelClass}>
+                  Owner email
+                </label>
+                <input
+                  id="landownerEmail"
+                  type="email"
+                  value={landownerEmail}
+                  onChange={(e) => setLandownerEmail(e.target.value)}
+                  className={inputClass}
+                  placeholder="owner@example.com"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="landownerPhone" className={labelClass}>
+                  Owner phone
+                </label>
+                <input
+                  id="landownerPhone"
+                  type="tel"
+                  value={landownerPhone}
+                  onChange={(e) => setLandownerPhone(e.target.value)}
+                  className={inputClass}
+                  placeholder="0400 000 000"
+                />
+              </div>
+              <div>
+                <label htmlFor="landownerNote" className={labelClass}>
+                  Your relationship to the owner
+                </label>
+                <input
+                  id="landownerNote"
+                  type="text"
+                  value={landownerNote}
+                  onChange={(e) => setLandownerNote(e.target.value)}
+                  className={inputClass}
+                  placeholder="e.g. acting agent, family, business partner"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---- Land title / certificate of title ---- */}
+      <div className="border border-black/5 bg-white p-5">
+        <p className="font-ibm-mono text-[0.6rem] tracking-[0.3em] uppercase text-[#00B5AD] mb-1">
+          Land title / certificate of title
+        </p>
+        <p className="text-xs text-slate/50 font-archivo mb-4">
+          If you have the certificate of title, upload it here. It confirms
+          ownership and carries the accurate lot details (legal description, area,
+          easements and covenants) we&apos;d need anyway. Optional.
+        </p>
+
+        <label
+          htmlFor="titleFiles"
+          className="flex flex-col items-center justify-center border-2 border-dashed border-[#00B5AD]/30 hover:border-[#00B5AD]/60 bg-off-white px-4 py-6 cursor-pointer transition-colors text-center"
+        >
+          <svg
+            className="w-7 h-7 text-[#00B5AD] mb-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <span className="font-archivo text-sm text-deep-blue font-semibold">
+            Upload land title (optional)
+          </span>
+          <span className="font-archivo text-xs text-slate/50 mt-1">
+            PDF or image
+          </span>
+          <input
+            id="titleFiles"
+            type="file"
+            multiple
+            accept=".pdf,.jpg,.jpeg,.png,.webp,.tiff,image/*,application/pdf"
+            onChange={(e) => {
+              addTitleFiles(e.target.files);
+              e.target.value = "";
+            }}
+            className="hidden"
+          />
+        </label>
+
+        {titleFiles.length > 0 && (
+          <ul className="mt-4 space-y-2">
+            {titleFiles.map((f, i) => (
+              <li
+                key={`${f.name}-${i}`}
+                className="flex items-center justify-between bg-off-white border border-black/5 px-3 py-2 font-archivo text-sm"
+              >
+                <span className="text-deep-blue truncate mr-3">
+                  {f.name}{" "}
+                  <span className="text-slate/40 text-xs">
+                    ({Math.round(f.size / 1024)} KB)
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeTitleFile(i)}
+                  className="text-slate/50 hover:text-red-600 shrink-0"
+                  aria-label={`Remove ${f.name}`}
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* ---- Deal preferences ---- */}

@@ -36,6 +36,19 @@ const detailsSchema = z.object({
   zoning_status: z.string().max(200).nullable().optional(),
   vision: z.string().max(8000).nullable().optional(),
   deal_preferences: z.string().max(4000).nullable().optional(),
+  // Who is enquiring (developer / land owner / agent / …) + the real green-light gate.
+  submitter_role: z.string().max(120).nullable().optional(),
+  site_control: z.string().max(200).nullable().optional(),
+  // Land owner details when the submitter isn't the owner (e.g. an agent on a client's behalf).
+  landowner_details: z
+    .object({
+      name: z.string().max(200).optional(),
+      email: z.string().max(200).optional(),
+      phone: z.string().max(60).optional(),
+      note: z.string().max(2000).optional(),
+    })
+    .nullable()
+    .optional(),
   voice_transcript: z
     .array(
       z.object({
@@ -98,51 +111,64 @@ export async function POST(request: Request) {
   const supabase = createSupabaseService();
 
   // ---- Upload files (best-effort per-file; a failed upload is skipped, not fatal) ----
-  const files = formData
-    .getAll("files")
-    .filter((f): f is File => f instanceof File && f.size > 0)
-    .slice(0, MAX_FILES);
-
-  const uploads: Array<{
+  // Two groups: "files" = plans/sketches/designs; "title_files" = land title / certificate
+  // of title (tagged so the team can spot the authoritative ownership document).
+  type UploadEntry = {
     name: string;
     path: string;
     url: string;
     size: number;
     type: string;
-  }> = [];
-
+    category: "plan" | "land_title";
+  };
+  const uploads: UploadEntry[] = [];
   const submissionId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
-  for (const file of files) {
-    if (file.size > MAX_FILE_BYTES) continue;
-    if (file.type && !ALLOWED_MIME.has(file.type)) continue;
-    const ext = extFromName(file.name);
-    const safeBase = file.name
-      .replace(/\.[^.]+$/, "")
-      .replace(/[^a-zA-Z0-9-_]+/g, "-")
-      .slice(0, 60) || "file";
-    const storagePath = `${submissionId}/${safeBase}-${uploads.length}.${ext}`;
-    const arrayBuffer = await file.arrayBuffer();
-    const uploadRes = await supabase.storage
-      .from(BUCKET)
-      .upload(storagePath, arrayBuffer, {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
+  const groups: Array<{ field: string; category: UploadEntry["category"] }> = [
+    { field: "files", category: "plan" },
+    { field: "title_files", category: "land_title" },
+  ];
+
+  for (const group of groups) {
+    const files = formData
+      .getAll(group.field)
+      .filter((f): f is File => f instanceof File && f.size > 0)
+      .slice(0, MAX_FILES);
+
+    for (const file of files) {
+      if (uploads.length >= MAX_FILES) break;
+      if (file.size > MAX_FILE_BYTES) continue;
+      if (file.type && !ALLOWED_MIME.has(file.type)) continue;
+      const ext = extFromName(file.name);
+      const safeBase =
+        file.name
+          .replace(/\.[^.]+$/, "")
+          .replace(/[^a-zA-Z0-9-_]+/g, "-")
+          .slice(0, 60) || "file";
+      const storagePath = `${submissionId}/${group.category}-${safeBase}-${uploads.length}.${ext}`;
+      const arrayBuffer = await file.arrayBuffer();
+      const uploadRes = await supabase.storage
+        .from(BUCKET)
+        .upload(storagePath, arrayBuffer, {
+          contentType: file.type || "application/octet-stream",
+          upsert: false,
+        });
+      if (uploadRes.error) {
+        console.error("Developer onboarding upload failed:", uploadRes.error.message);
+        continue;
+      }
+      const { data: publicData } = supabase.storage
+        .from(BUCKET)
+        .getPublicUrl(storagePath);
+      uploads.push({
+        name: file.name,
+        path: storagePath,
+        url: publicData.publicUrl,
+        size: file.size,
+        type: file.type || "application/octet-stream",
+        category: group.category,
       });
-    if (uploadRes.error) {
-      console.error("Developer onboarding upload failed:", uploadRes.error.message);
-      continue;
     }
-    const { data: publicData } = supabase.storage
-      .from(BUCKET)
-      .getPublicUrl(storagePath);
-    uploads.push({
-      name: file.name,
-      path: storagePath,
-      url: publicData.publicUrl,
-      size: file.size,
-      type: file.type || "application/octet-stream",
-    });
   }
 
   // ---- Persist the submission ----
@@ -160,6 +186,9 @@ export async function POST(request: Request) {
       zoning_status: d.zoning_status ?? null,
       vision: d.vision ?? null,
       deal_preferences: d.deal_preferences ?? null,
+      submitter_role: d.submitter_role ?? null,
+      site_control: d.site_control ?? null,
+      landowner_details: d.landowner_details ?? {},
       voice_transcript: d.voice_transcript ?? [],
       uploads,
       source: "web",
@@ -226,7 +255,17 @@ export async function POST(request: Request) {
       zoning_status: escapeHtml(d.zoning_status),
       vision: escapeHtml(d.vision),
       deal_preferences: escapeHtml(d.deal_preferences),
+      submitter_role: escapeHtml(d.submitter_role),
+      site_control: escapeHtml(d.site_control),
+      landowner_name: escapeHtml(d.landowner_details?.name ?? null),
+      landowner_email: escapeHtml(d.landowner_details?.email ?? null),
+      landowner_phone: escapeHtml(d.landowner_details?.phone ?? null),
+      landowner_note: escapeHtml(d.landowner_details?.note ?? null),
     };
+
+    const landownerBlock = [e.landowner_name, e.landowner_email, e.landowner_phone]
+      .filter(Boolean)
+      .join(" · ");
 
     const row = (label: string, value: string) =>
       value
@@ -237,7 +276,7 @@ export async function POST(request: Request) {
       ? uploads
           .map(
             (u) =>
-              `<li><a href="${u.url}" style="color:#00B5AD">${escapeHtml(u.name)}</a> (${Math.round(u.size / 1024)} KB)</li>`,
+              `<li><a href="${u.url}" style="color:#00B5AD">${escapeHtml(u.name)}</a> (${Math.round(u.size / 1024)} KB)${u.category === "land_title" ? ' <strong style="color:#1A2744">— land title</strong>' : ""}</li>`,
           )
           .join("")
       : "";
@@ -259,13 +298,17 @@ export async function POST(request: Request) {
         </div>
         <div style="padding:24px 32px;background:#fff">
           <table style="border-collapse:collapse;font-size:14px;width:100%">
-            ${row("Developer", `<strong>${e.developer_name}</strong>`)}
+            ${row("Enquiring as", e.submitter_role)}
+            ${row("Contact", `<strong>${e.developer_name}</strong>`)}
             ${row("Email", `<a href="mailto:${encodeURIComponent(d.email)}" style="color:#1A2744">${e.email}</a>`)}
             ${row("Mobile", e.mobile)}
             ${row("Website", d.website ? `<a href="${escapeHtml(d.website)}" style="color:#00B5AD">${e.website}</a>` : "")}
             ${row("Estate / project", `<strong>${e.estate_name}</strong>`)}
             ${row("Location", `${e.estate_location}${d.estate_postcode ? ` ${e.estate_postcode}` : ""}`)}
             ${row("Zoning / status", e.zoning_status)}
+            ${row("Site control", e.site_control)}
+            ${row("Land owner", landownerBlock)}
+            ${row("Owner note", e.landowner_note)}
           </table>
           ${e.vision ? `<h3 style="color:#1A2744;font-size:14px;margin:20px 0 4px">Vision</h3><p style="font-size:14px;color:#4A5568;line-height:1.6;white-space:pre-wrap">${e.vision}</p>` : ""}
           ${e.deal_preferences ? `<h3 style="color:#1A2744;font-size:14px;margin:20px 0 4px">Deal preferences</h3><p style="font-size:14px;color:#4A5568;line-height:1.6;white-space:pre-wrap">${e.deal_preferences}</p>` : ""}
