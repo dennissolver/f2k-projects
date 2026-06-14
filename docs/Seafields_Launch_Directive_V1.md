@@ -75,7 +75,7 @@ The launch implements a **staged price-escalation strategy** where FOMO is drive
 
 4. **The FOMO chain on individual Available lots** runs: Waitlist (1st registrant) → Heating Up (2nd registrant, both parties notified) → Multiple Interested (3rd+, all parties notified, agent urged to lock down).
 
-5. **GROH (14 lots), Baurimus (5 lots), Takken (10 lots) sit as Reserved.** They are not in the public pool. Reserved lots are visible on the site with their allocation context, and accept backup-list registrations.
+5. **GROH (14 lots), Bairamis (5 lots), Takken (10 lots) sit as Reserved.** They are not in the public pool. Reserved lots are visible on the site with their allocation context, and accept backup-list registrations.
 
 6. **Pricing model:** Land $ = Area (m²) × Stage Rate ($/m²). H&L packages add a House $ component. Per-lot pricing overrides exist for institutional allocations.
 
@@ -293,7 +293,7 @@ ON UPDATE of lots.status:
       AND trigger notification email batch to prior registrants of this stage
 ```
 
-**Important:** the auto-advance threshold counts allocations *out of the public pool*. Reserved institutional lots (GROH/Baurimus/Takken) do not count toward triggering advancement — they're already off-market. Only public-pool conversions (waitlist → locked, or public → sold) tip the threshold.
+**Important:** the auto-advance threshold counts allocations *out of the public pool*. Reserved institutional lots (GROH/Bairamis/Takken) do not count toward triggering advancement — they're already off-market. Only public-pool conversions (waitlist → locked, or public → sold) tip the threshold.
 
 The threshold is configurable per stage (default 80%) so Uwe can tune. There must also be a manual "Force advance to next stage" button in the admin panel that bypasses the auto rule, with a mandatory reason logged.
 

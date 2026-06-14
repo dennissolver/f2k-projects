@@ -387,7 +387,7 @@ export default function SeafieldsDwellingTypesPage() {
         <code>3BR-MOD</code>, <code>3BR-STU-MOD</code>, <code>4BR-MOD</code>,{" "}
         <code>4BR-THE-MOD</code>, <code>5BR-MOD</code>, <code>DUAL-OCC</code>{" "}
         (legacy seed) + <code>GROH-3B</code>, <code>GROH-4B</code>,{" "}
-        <code>BAU-3B</code>, <code>DISP-4B</code>, <code>PUB-3B</code>,{" "}
+        <code>BAI-3B</code>, <code>DISP-4B</code>, <code>PUB-3B</code>,{" "}
         <code>PUB-4B</code> (workbook). Tanveer & Uwe update via the workbook;
         admin CRUD here is for inline corrections.
       </p>

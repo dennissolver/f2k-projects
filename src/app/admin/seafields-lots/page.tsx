@@ -90,7 +90,7 @@ const BUCKET_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "All buckets" },
   { value: "public", label: "Public" },
   { value: "groh", label: "GROH" },
-  { value: "baurimus", label: "Baurimus" },
+  { value: "baurimus", label: "Bairamis" },
   { value: "takken", label: "Tarken" },
   { value: "wachs", label: "Wachs" },
   { value: "f2k_withheld", label: "F2K withheld" },
@@ -114,7 +114,7 @@ function effectiveBucket(r: {
   if (a.startsWith("wachs")) return "wachs";
   if (a.startsWith("groh")) return "groh";
   if (a.includes("takken") || a.includes("tarken")) return "takken";
-  if (a.includes("baurimus")) return "baurimus";
+  if (a.includes("baurimus") || a.includes("bairamis")) return "baurimus";
   if (a.includes("f2k")) return "f2k_withheld";
   if (a.includes("display") && a.includes("home")) return "display_home";
   if (a.includes("heritage")) return "heritage_retained";
@@ -123,7 +123,7 @@ function effectiveBucket(r: {
 
 /**
  * F2KSFLDS-21: a lot is "allocated / not available" if it has a named buyer,
- * OR a non-public allocation bucket (GROH, Baurimus, withheld, …), OR a status
+ * OR a non-public allocation bucket (GROH, Bairamis, withheld, …), OR a status
  * that isn't "available" (reserved/sold/withheld/backup_list_only). Keying the
  * summary + filter off `allocated_to` alone (the prior behaviour) made
  * bucket-only allocations like GROH read as available and vanish from the

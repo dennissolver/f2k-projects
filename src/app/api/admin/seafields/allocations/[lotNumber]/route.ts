@@ -212,6 +212,26 @@ export async function PATCH(
 
   const supabase = createSupabaseService();
 
+  // Keep the legacy free-text `dwelling_type` column in sync with the FK
+  // (`dwelling_type_id`). The admin lots list reads `dwelling_type` for its
+  // Type column, filter, sort and search, but the edit modal only writes
+  // `dwelling_type_id` — so a dwelling-type change never showed in the list,
+  // and an FK-cleared (land-only) lot kept a stale "2x2BR" text (Uwe
+  // 2026-06-14). When the caller already sets `dwelling_type` explicitly
+  // (e.g. the Clear-allocation path sends both as null) we leave it alone.
+  if ("dwelling_type_id" in updates && !("dwelling_type" in updates)) {
+    const fkId = updates.dwelling_type_id as string | null;
+    if (!fkId) {
+      updates.dwelling_type = null;
+    } else {
+      const { data: dt } = await (supabase.from("dwelling_types") as any)
+        .select("code")
+        .eq("id", fkId)
+        .maybeSingle();
+      updates.dwelling_type = (dt?.code as string | null) ?? null;
+    }
+  }
+
   const { data: priorRow } = await (
     supabase.from("seafields_lot_allocations") as any
   )

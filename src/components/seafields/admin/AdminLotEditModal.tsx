@@ -21,7 +21,10 @@ const BUCKET_LABELS: Record<AllocationBucket, string> = {
   groh: "GROH",
   wachs: "WACHS",
   takken: "Tarken",
-  baurimus: "Baurimus",
+  // Display label only — the internal enum value stays `baurimus` (used in DB
+  // CHECK constraints + back-fill matchers); the counterparty is Michael
+  // Bairamis, so the operator-facing label is "Bairamis" (Uwe 2026-06-14).
+  baurimus: "Bairamis",
   f2k_withheld: "F2K withheld",
   display_home: "Display home",
   heritage_retained: "Heritage retained",
@@ -508,7 +511,7 @@ export default function AdminLotEditModal({
                 ))}
               </select>
               <div className="text-[11px] text-slate-500 mt-1">
-                Pre-set pools (GROH, WACHS, Tarken, Baurimus, F2K withheld,
+                Pre-set pools (GROH, WACHS, Tarken, Bairamis, F2K withheld,
                 Display, Heritage) are self-labelling. Pick &ldquo;Public&rdquo; for any
                 open-market or named individual buyer.
               </div>

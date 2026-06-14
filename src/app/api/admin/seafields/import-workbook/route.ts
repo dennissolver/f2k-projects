@@ -192,7 +192,7 @@ function deriveAllocationBucket(allocatedTo: string | null): {
   if (lower.startsWith("wachs")) return { bucket: "wachs", allocated_to: allocatedTo, matched: true };
   if (lower.startsWith("groh")) return { bucket: "groh", allocated_to: allocatedTo, matched: true };
   if (lower.includes("takken") || lower.includes("tarken")) return { bucket: "takken", allocated_to: allocatedTo, matched: true };
-  if (lower.includes("baurimus")) return { bucket: "baurimus", allocated_to: allocatedTo, matched: true };
+  if (lower.includes("baurimus") || lower.includes("bairamis")) return { bucket: "baurimus", allocated_to: allocatedTo, matched: true };
   if (lower.includes("f2k")) return { bucket: "f2k_withheld", allocated_to: allocatedTo, matched: true };
   if (lower.includes("display") || lower.includes("home")) {
     return { bucket: "display_home", allocated_to: allocatedTo, matched: true };
