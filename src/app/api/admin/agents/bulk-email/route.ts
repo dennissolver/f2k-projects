@@ -236,6 +236,9 @@ export async function POST(request: Request) {
           process.env.RESEND_FROM_EMAIL ||
           "Seafields Estate <noreply@updates.corporateaisolutions.com>",
         to: agent.email,
+        // BCC the sending admin so the operator gets a copy of exactly what
+        // each agent received (personalised registrant list per agent).
+        bcc: admin.email ? [admin.email] : undefined,
         subject,
         html,
       });
