@@ -6,36 +6,31 @@ import {
   type Design,
 } from "@caistech/property-launch-kit/components";
 
+// Floor-plan images are de-branded crops (manufacturer marks removed, F2K/WABI
+// kept) — hero + plan both point at the cropped PNG so the "View plan" link
+// never serves a manufacturer-branded PDF (Uwe 2026-06-15 crop request).
 const SEAFIELDS_DESIGNS: Design[] = [
   {
     name: "Joey",
-    size: "≈100m² overall",
-    beds: "2 bed · 1 bath",
+    size: "≈61m² internal · ~100m² with verandah",
+    beds: "2 bed · 2 bath",
     tag: "ANCILLARY / DOWNSIZER",
     detail:
-      "Compact modular — bed × 2, single bath, carport + verandah. Ideal as a downsizer, holiday let, or second dwelling on a larger lot.",
-    hero: "/seafields/designs/joey-floor-plan.png",
-    plan: "/seafields/designs/joey-60-floor-plan.pdf",
-    secondary: {
-      label: "Elevations",
-      href: "/seafields/designs/joey-elevations.png",
-    },
+      "Compact 2-bedroom 2-bathroom ancillary dwelling — master with ensuite, second bedroom, open living/kitchen, optional carport + verandah. Ideal as a downsizer, holiday let, or second dwelling on a larger lot.",
+    hero: "/seafields/designs/joey.png",
+    plan: "/seafields/designs/joey.png",
     priceFrom: "$297,900",
     priceLabel: "House only — from",
   },
   {
     name: "Koala",
-    size: "≈110m² overall",
-    beds: "ADU configuration",
+    size: "≈72m² overall",
+    beds: "2 bed · 1 bath",
     tag: "ANCILLARY / DUAL-OCC",
     detail:
-      "Ancillary dwelling unit — slightly larger footprint than Joey, suitable for granny flat / dual-occupancy use on lots ≥600m² under R20.",
-    hero: "/seafields/designs/koala-floor-plan.png",
-    plan: "/seafields/designs/koala-floor-plan.pdf",
-    secondary: {
-      label: "Option 2",
-      href: "/seafields/designs/koala-option-2.pdf",
-    },
+      "Two-bedroom one-bathroom ancillary dwelling with carport + verandah — a slightly larger footprint suited to granny-flat / dual-occupancy use on lots ≥600m² under R20.",
+    hero: "/seafields/designs/koala.png",
+    plan: "/seafields/designs/koala.png",
     priceFrom: "$327,700",
     priceLabel: "House only — from",
   },
@@ -46,8 +41,8 @@ const SEAFIELDS_DESIGNS: Design[] = [
     tag: "GROH ELIGIBLE",
     detail:
       "GROH-approved 3-bedroom 2-bathroom modular home. Government Regional Officer Housing eligible. Suitable for first-home buyers and small families. House & land pricing on application.",
-    hero: "/seafields/designs/3x2-floor-plan.png",
-    plan: "/seafields/designs/3x2-floor-plan.pdf",
+    hero: "/seafields/designs/3x2.png",
+    plan: "/seafields/designs/3x2.png",
     priceFrom: "Price on application",
     priceLabel: "",
   },
@@ -58,8 +53,8 @@ const SEAFIELDS_DESIGNS: Design[] = [
     tag: "GROH ELIGIBLE",
     detail:
       "GROH-approved 4-bedroom 2-bathroom modular home. Larger family layout with the same modular delivery economics.",
-    hero: "/seafields/designs/4x2-floor-plan.png",
-    plan: "/seafields/designs/4x2-floor-plan.pdf",
+    hero: "/seafields/designs/4x2.png",
+    plan: "/seafields/designs/4x2.png",
     priceFrom: "$680,000",
   },
   {
@@ -69,13 +64,10 @@ const SEAFIELDS_DESIGNS: Design[] = [
     tag: "FAMILY HOME",
     detail:
       "Elevate-series 4-bedroom 2-bathroom family home with theatre, study and walk-in robe, plus upgraded elevations, claddings, windows and entry. Optional alfresco and carport. House & land pricing on application.",
-    // Plan image pending: crop the manufacturer branding from the Napier
-    // dimensioned drawings before publishing (no tooling yet — see handover note).
-    hero: null,
-    plan: null,
+    hero: "/seafields/designs/emu.png",
+    plan: "/seafields/designs/emu.png",
     priceFrom: "Pricing on application",
     priceLabel: "",
-    placeholder: true,
   },
   {
     name: "BigRoo",
@@ -84,8 +76,8 @@ const SEAFIELDS_DESIGNS: Design[] = [
     tag: "PREMIUM",
     detail:
       "Premium ≈310m² modular with dedicated theatre room and walk-in robes. Architect-designed kitchen feature. The flagship family home.",
-    hero: "/seafields/designs/murchison-floor-plan.png",
-    plan: "/seafields/designs/bigroo-floor-plan.pdf",
+    hero: "/seafields/designs/bigroo.png",
+    plan: "/seafields/designs/bigroo.png",
     priceFrom: "$829,700",
   },
 ];
