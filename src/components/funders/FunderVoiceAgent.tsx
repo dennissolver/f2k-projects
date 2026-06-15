@@ -6,6 +6,8 @@ import { funderVoiceConfig } from "@/voice.config";
 import {
   buildSterlingPrompt,
   buildSterlingFirstMessage,
+  STERLING_BASE_PROMPT,
+  STERLING_FIRST_MESSAGE,
 } from "@/lib/funder-voice-prompt.mjs";
 import type { ProjectFundingModel } from "@/data/funding";
 
@@ -44,7 +46,10 @@ export default function FunderVoiceAgent({
   const [error, setError] = useState<string | null>(null);
   const [thinking, setThinking] = useState(false);
 
-  // Per-project prompt + greeting override (live voice path). Generic on the overview.
+  // ALWAYS override the prompt+greeting to Sterling — per-project (real numbers) on a project
+  // page, generic on the overview. This is also what lets the funder pages safely share the
+  // provisioned Morgan agent (see funderVoiceConfig): without an override the shared agent would
+  // speak as Morgan. A dedicated Sterling agent honours these overrides identically.
   const overrides = useMemo(
     () =>
       project
@@ -54,7 +59,12 @@ export default function FunderVoiceAgent({
               firstMessage: buildSterlingFirstMessage(project),
             },
           }
-        : undefined,
+        : {
+            agent: {
+              prompt: { prompt: STERLING_BASE_PROMPT },
+              firstMessage: STERLING_FIRST_MESSAGE,
+            },
+          },
     [project],
   );
 

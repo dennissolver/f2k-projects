@@ -31,12 +31,18 @@ export const developerVoiceConfig: VoiceConfig = {
 // Until the agent is provisioned, set NEXT_PUBLIC_ELEVENLABS_FUNDER_AGENT_ID to its id. The text
 // fallback (/api/funders/voice) works regardless, so the pages stay functional without it.
 export const funderVoiceConfig: VoiceConfig = {
+  // Until a DEDICATED Sterling agent is provisioned (scripts/provision-funder-agent.mjs → set
+  // NEXT_PUBLIC_ELEVENLABS_FUNDER_AGENT_ID), fall back to the already-provisioned Morgan agent.
+  // FunderVoiceAgent ALWAYS passes a Sterling prompt+greeting via the widget `overrides`, so the
+  // shared agent speaks as Sterling (with this project's numbers), never as Morgan. Swapping to a
+  // real Sterling later is just setting the env var. (Caveat while sharing Morgan's agent: its
+  // post-call webhook logs transcripts into developer_voice_conversations — cosmetic mislabel;
+  // the form captures the authoritative transcript into funder_registrations. A dedicated Sterling
+  // binds no webhook, removing this.)
   agentId:
     process.env.NEXT_PUBLIC_ELEVENLABS_FUNDER_AGENT_ID ||
-    // Placeholder — replace via env (or paste the provisioned id here) after running
-    // scripts/provision-funder-agent.mjs. An unprovisioned id simply means the live voice
-    // path is unavailable and the widget shows the typed fallback instead.
-    "agent_funder_unprovisioned",
+    process.env.NEXT_PUBLIC_ELEVENLABS_DEVELOPER_AGENT_ID ||
+    "agent_5901ktzqy26zf9e9eyvxqfr28x47",
   placement: "inline",
   mode: "discovery",
   textFallback: true,
