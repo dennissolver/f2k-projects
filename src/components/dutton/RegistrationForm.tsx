@@ -1,7 +1,18 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SuburbAutocomplete from "@/components/SuburbAutocomplete";
+
+const REFERRER_TYPES = ["Real Estate Agent", "Mortgage Broker", "Friend or Family", "Other"] as const;
+
+// ?ref=<tag> partner attribution (same pattern as Seafields). The Harris Real Estate agents
+// marketing Dutton can share ?ref=zen-hartree etc.; the tag auto-fills the referrer.
+const REFERRAL_CAMPAIGNS: Record<string, { name: string; company: string }> = {
+  "zen-hartree": { name: "Zen Hartree", company: "Harris Real Estate" },
+  rachel: { name: "Rachel", company: "Harris Real Estate" },
+  corey: { name: "Corey", company: "Harris Real Estate" },
+  harris: { name: "", company: "Harris Real Estate" },
+};
 
 // Dutton Terrace register-of-interest (Archetype-C). Leaner than the lot-precise estates
 // (no interactive lot map yet — the land is unzoned), but it captures the demand-validation
@@ -66,6 +77,12 @@ export default function RegistrationForm() {
   const [purchaseTimeline, setPurchaseTimeline] = useState("");
   const [financeStatus, setFinanceStatus] = useState("");
   const [howHeard, setHowHeard] = useState("");
+  // Referrer / agent (same dropdown pattern as Seafields/Branscombe — agents from /api/public/agents).
+  const [referrerType, setReferrerType] = useState("");
+  const [referrerName, setReferrerName] = useState("");
+  const [referrerCompany, setReferrerCompany] = useState("");
+  const [referrerAgentId, setReferrerAgentId] = useState("");
+  const [agents, setAgents] = useState<{ id: string; name: string; agency: string | null }[]>([]);
   const [notes, setNotes] = useState("");
   const [consent, setConsent] = useState(false);
   const [honeypot, setHoneypot] = useState("");
@@ -74,6 +91,28 @@ export default function RegistrationForm() {
   const [error, setError] = useState<string | null>(null);
 
   const formLoadedAt = useRef<number>(Date.now());
+
+  // Load the agent list when "Real Estate Agent" is chosen (same source as Seafields/Branscombe).
+  useEffect(() => {
+    if (referrerType === "Real Estate Agent" && agents.length === 0) {
+      fetch("/api/public/agents")
+        .then((r) => r.json())
+        .then((d) => setAgents(d.agents || []))
+        .catch(() => {});
+    }
+  }, [referrerType, agents.length]);
+
+  // ?ref=<tag> partner attribution → auto-fill the referrer.
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref")?.toLowerCase().trim();
+    if (!ref) return;
+    const c = REFERRAL_CAMPAIGNS[ref];
+    if (c) {
+      setReferrerType("Real Estate Agent");
+      setReferrerName(c.name);
+      setReferrerCompany(c.company);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,6 +145,10 @@ export default function RegistrationForm() {
           purchase_timeline: purchaseTimeline || null,
           finance_status: financeStatus || null,
           how_heard: howHeard || null,
+          referrer_type: referrerType || null,
+          referrer_name: referrerName.trim() || null,
+          referrer_company: referrerCompany.trim() || null,
+          referrer_agent_id: referrerAgentId || null,
           notes: notes.trim() || null,
           consent,
         }),
@@ -211,6 +254,32 @@ export default function RegistrationForm() {
             <div><label htmlFor="howHeard" className={labelClass}>How did you hear about us?</label>
               <select id="howHeard" value={howHeard} onChange={(e) => setHowHeard(e.target.value)} className={inputClass}>
                 <option value="">— Select —</option>{HOW_HEARD.map((t) => <option key={t} value={t}>{t}</option>)}</select></div>
+          </div>
+        </div>
+
+        <div className="border border-black/5 bg-white p-5 space-y-4">
+          <p className="font-ibm-mono text-[0.6rem] tracking-[0.3em] uppercase text-slate/50">Optional</p>
+          <p className="font-archivo font-semibold text-deep-blue text-sm">Were you referred by an agent or other party?</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><label htmlFor="referrerType" className={labelClass}>Referrer type</label>
+              <select id="referrerType" value={referrerType} onChange={(e) => { setReferrerType(e.target.value); setReferrerAgentId(""); }} className={inputClass}>
+                <option value="">— None / not applicable —</option>{REFERRER_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}</select></div>
+            {referrerType === "Real Estate Agent" && (
+              <div><label htmlFor="referrerAgentId" className={labelClass}>Referring agent</label>
+                <select id="referrerAgentId" value={referrerAgentId} className={inputClass}
+                  onChange={(e) => {
+                    const a = agents.find((x) => x.id === e.target.value);
+                    setReferrerAgentId(e.target.value);
+                    if (a) { setReferrerName(a.name); setReferrerCompany(a.agency || ""); }
+                  }}>
+                  <option value="">{agents.length ? "— Select your agent —" : "Loading agents…"}</option>
+                  {agents.map((a) => <option key={a.id} value={a.id}>{a.name}{a.agency ? ` — ${a.agency}` : ""}</option>)}
+                </select></div>
+            )}
+            {referrerType && referrerType !== "Real Estate Agent" && (
+              <div><label htmlFor="referrerName" className={labelClass}>Referrer name</label>
+                <input id="referrerName" value={referrerName} onChange={(e) => setReferrerName(e.target.value)} className={inputClass} placeholder="Who referred you?" /></div>
+            )}
           </div>
         </div>
 
