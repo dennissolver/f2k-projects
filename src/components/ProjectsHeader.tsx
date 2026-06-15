@@ -62,20 +62,37 @@ function navItemsForPath(pathname: string | null): NavItem[] {
   return DEFAULT_NAV;
 }
 
+// Funder routes (/funders, /{estate}/funders) are a SEPARATE audience + legal footing from the
+// buyer pages (build brief §9): they get their own banner — directed to registered Australian
+// banks — NOT the purchaser "registration of interest only / no deposit" banner.
+function isFunderRoute(pathname: string | null): boolean {
+  return pathname === "/funders" || (pathname?.endsWith("/funders") ?? false);
+}
+
 export default function ProjectsHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const navItems = navItemsForPath(pathname);
   const developer = developerForPath(pathname);
+  const funderRoute = isFunderRoute(pathname);
 
   return (
     <header className="border-b border-slate-200 bg-white sticky top-0 z-50 backdrop-blur-xl bg-white/90">
-      {/* Purchaser disclaimer banner */}
-      <div className="bg-[#1A2744] text-white/80 text-xs font-archivo text-center py-2 px-4 leading-relaxed">
-        <strong className="text-white">REGISTRATION OF INTEREST ONLY</strong> —
-        No deposit is required or accepted. Registering does not create any
-        legal or financial obligation.
-      </div>
+      {funderRoute ? (
+        /* Funder disclaimer banner — registered Australian banks only (NOT the buyer banner) */
+        <div className="bg-[#142C44] text-white/80 text-xs font-archivo text-center py-2 px-4 leading-relaxed">
+          <strong className="text-white">FOR REGISTERED AUSTRALIAN BANKS (ADIs)</strong> —
+          Registration of interest only. Not an offer or invitation, and not
+          financial product advice. Figures are indicative and subject to formal terms.
+        </div>
+      ) : (
+        /* Purchaser disclaimer banner */
+        <div className="bg-[#1A2744] text-white/80 text-xs font-archivo text-center py-2 px-4 leading-relaxed">
+          <strong className="text-white">REGISTRATION OF INTEREST ONLY</strong> —
+          No deposit is required or accepted. Registering does not create any
+          legal or financial obligation.
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">

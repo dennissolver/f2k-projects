@@ -21,3 +21,23 @@ export const developerVoiceConfig: VoiceConfig = {
   mode: "discovery",
   textFallback: true,
 };
+
+// "Sterling" — the F2K funder-onboarding voice guide. A SEPARATE dedicated ElevenLabs ConvAI
+// agent (institutional persona) for the /funders pages, provisioned by
+// scripts/provision-funder-agent.mjs with the GENERIC base prompt + overrides enabled. On a
+// per-project funder page the component passes a per-project prompt via the widget's `overrides`
+// so Sterling speaks that project's real numbers; on the overview he runs generic.
+//
+// Until the agent is provisioned, set NEXT_PUBLIC_ELEVENLABS_FUNDER_AGENT_ID to its id. The text
+// fallback (/api/funders/voice) works regardless, so the pages stay functional without it.
+export const funderVoiceConfig: VoiceConfig = {
+  agentId:
+    process.env.NEXT_PUBLIC_ELEVENLABS_FUNDER_AGENT_ID ||
+    // Placeholder — replace via env (or paste the provisioned id here) after running
+    // scripts/provision-funder-agent.mjs. An unprovisioned id simply means the live voice
+    // path is unavailable and the widget shows the typed fallback instead.
+    "agent_funder_unprovisioned",
+  placement: "inline",
+  mode: "discovery",
+  textFallback: true,
+};
