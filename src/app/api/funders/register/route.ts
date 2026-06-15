@@ -244,7 +244,7 @@ export async function POST(request: Request) {
       ? d.voice_transcript
           .map(
             (m) =>
-              `<p style="margin:4px 0"><strong style="color:${m.role === "assistant" ? "#C77F3A" : "#142C44"}">${m.role === "assistant" ? "Sterling" : "Funder"}:</strong> ${escapeHtml(m.content)}</p>`,
+              `<p style="margin:4px 0"><strong style="color:${m.role === "assistant" ? "#C77F3A" : "#142C44"}">${m.role === "assistant" ? "Sloane" : "Funder"}:</strong> ${escapeHtml(m.content)}</p>`,
           )
           .join("")
       : "";
@@ -272,7 +272,7 @@ export async function POST(request: Request) {
             ${row("Document", uploadUrl ? `<a href="${uploadUrl}" style="color:#C77F3A">View attachment</a>` : "")}
           </table>
           ${e.preferred_structure ? `<h3 style="color:#142C44;font-size:14px;margin:20px 0 4px">Preferred structure / conditions</h3><p style="font-size:14px;color:#4A5568;line-height:1.6;white-space:pre-wrap">${e.preferred_structure}</p>` : ""}
-          ${transcript ? `<h3 style="color:#142C44;font-size:14px;margin:20px 0 4px">Voice discovery (Sterling)</h3><div style="font-size:13px;color:#4A5568;line-height:1.5;background:#F8FAFC;padding:12px 16px;border-radius:6px">${transcript}</div>` : ""}
+          ${transcript ? `<h3 style="color:#142C44;font-size:14px;margin:20px 0 4px">Voice discovery (Sloane)</h3><div style="font-size:13px;color:#4A5568;line-height:1.5;background:#F8FAFC;padding:12px 16px;border-radius:6px">${transcript}</div>` : ""}
         </div>
         <div style="background:#F5F3EE;padding:16px 32px;font-size:11px;color:#999">
           Registration of interest from a registered Australian bank via the Factory2Key funder pages. Not an offer; subject to formal terms + due diligence.${guard.rerouted ? ` [rerouted: ${guard.reason}; intended ${guard.original.join(", ")}]` : ""}

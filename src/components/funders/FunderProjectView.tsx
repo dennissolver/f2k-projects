@@ -15,7 +15,7 @@ import { seniorAmount, type ProjectFundingModel } from "@/data/funding";
 
 /**
  * Per-project funder page body — the overview design scoped to one project, with that project's
- * real numbers and the registration form + project-tuned Sterling. Server component (the form +
+ * real numbers and the registration form + project-tuned Sloane. Server component (the form +
  * voice are inside the FunderRegistration client wrapper).
  */
 export default function FunderProjectView({
@@ -152,7 +152,7 @@ export default function FunderProjectView({
         </div>
       </section>
 
-      {/* registration form + project-tuned Sterling */}
+      {/* registration form + project-tuned Sloane */}
       <section className="f2k-sec">
         <div className="f2k-wrap" style={{ maxWidth: 820 }}>
           <div className="f2k-eyebrow">Register your interest</div>

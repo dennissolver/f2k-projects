@@ -6,7 +6,7 @@ import FunderRegistrationForm from "./FunderRegistrationForm";
 import type { ProjectFundingModel } from "@/data/funding";
 
 /**
- * Client wrapper that owns the Sterling discovery transcript so it is shared between the voice
+ * Client wrapper that owns the Sloane discovery transcript so it is shared between the voice
  * agent and the registration form — the form submits the transcript with the funder's details.
  * The funder analog of DeveloperOnboarding: voice agent stacked above the form.
  */

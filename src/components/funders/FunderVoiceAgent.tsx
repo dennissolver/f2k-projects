@@ -4,23 +4,23 @@ import { useCallback, useMemo, useState } from "react";
 import { VoiceWidget } from "@caistech/elevenlabs-convai/react";
 import { funderVoiceConfig } from "@/voice.config";
 import {
-  buildSterlingPrompt,
-  buildSterlingFirstMessage,
-  STERLING_BASE_PROMPT,
-  STERLING_FIRST_MESSAGE,
+  buildSloanePrompt,
+  buildSloaneFirstMessage,
+  SLOANE_BASE_PROMPT,
+  SLOANE_FIRST_MESSAGE,
 } from "@/lib/funder-voice-prompt.mjs";
 import type { ProjectFundingModel } from "@/data/funding";
 
 export type VoiceMessage = { role: "user" | "assistant"; content: string };
 
 /**
- * Sterling — the F2K funder-onboarding voice guide. The funder analog of Morgan
+ * Sloane — the F2K funder-onboarding voice guide. The funder analog of Morgan
  * (DeveloperVoiceAgent): the SAME canonical portfolio voice stack
  * (@caistech/elevenlabs-convai's VoiceWidget + a dedicated ElevenLabs agent provisioned in
  * scripts/provision-funder-agent.mjs), the same avatar-on-top SayFix shape, the same
  * transcript-lifted-to-parent + typed-fallback wiring.
  *
- * Sterling does two jobs in one short conversation: explain the back-to-back funding model +
+ * Sloane does two jobs in one short conversation: explain the back-to-back funding model +
  * the senior/junior structure, then GUIDE the funder through the registration form field by
  * field. When `project` is supplied (a confirmed funder page), his prompt + greeting are
  * overridden per-project so he speaks that project's real numbers (the agent is provisioned
@@ -33,7 +33,7 @@ interface Props {
   onTranscriptChange: (messages: VoiceMessage[]) => void;
   /** The live ElevenLabs conversation id (from onConnect), lifted so the form can submit it. */
   onConversationId?: (conversationId: string) => void;
-  /** When set, Sterling speaks to this project's real figures. Omit on the overview page. */
+  /** When set, Sloane speaks to this project's real figures. Omit on the overview page. */
   project?: ProjectFundingModel;
 }
 
@@ -46,23 +46,23 @@ export default function FunderVoiceAgent({
   const [error, setError] = useState<string | null>(null);
   const [thinking, setThinking] = useState(false);
 
-  // ALWAYS override the prompt+greeting to Sterling — per-project (real numbers) on a project
+  // ALWAYS override the prompt+greeting to Sloane — per-project (real numbers) on a project
   // page, generic on the overview. This is also what lets the funder pages safely share the
   // provisioned Morgan agent (see funderVoiceConfig): without an override the shared agent would
-  // speak as Morgan. A dedicated Sterling agent honours these overrides identically.
+  // speak as Morgan. A dedicated Sloane agent honours these overrides identically.
   const overrides = useMemo(
     () =>
       project
         ? {
             agent: {
-              prompt: { prompt: buildSterlingPrompt(project) },
-              firstMessage: buildSterlingFirstMessage(project),
+              prompt: { prompt: buildSloanePrompt(project) },
+              firstMessage: buildSloaneFirstMessage(project),
             },
           }
         : {
             agent: {
-              prompt: { prompt: STERLING_BASE_PROMPT },
-              firstMessage: STERLING_FIRST_MESSAGE,
+              prompt: { prompt: SLOANE_BASE_PROMPT },
+              firstMessage: SLOANE_FIRST_MESSAGE,
             },
           },
     [project],
@@ -81,7 +81,7 @@ export default function FunderVoiceAgent({
     [transcript, onTranscriptChange],
   );
 
-  // Typed fallback (no mic): route through the same discovery brain so Sterling still guides.
+  // Typed fallback (no mic): route through the same discovery brain so Sloane still guides.
   const handleTextFallback = useCallback(
     async (text: string) => {
       const clean = text.trim();
@@ -103,7 +103,7 @@ export default function FunderVoiceAgent({
           }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Sterling is unavailable right now.");
+        if (!res.ok) throw new Error(data.error || "Sloane is unavailable right now.");
         onTranscriptChange([
           ...withUser,
           { role: "assistant", content: data.reply },
@@ -112,7 +112,7 @@ export default function FunderVoiceAgent({
         setError(
           err instanceof Error
             ? err.message
-            : "Sterling is unavailable right now — please carry on with the form below.",
+            : "Sloane is unavailable right now — please carry on with the form below.",
         );
       } finally {
         setThinking(false);
@@ -125,13 +125,13 @@ export default function FunderVoiceAgent({
     <div className="bg-[#142C44] text-white p-6 sm:p-8 rounded">
       <div className="mb-5">
         <p className="font-ibm-mono text-xs tracking-[0.4em] uppercase text-[#C77F3A] mb-2">
-          Talk to Sterling
+          Talk to Sloane
         </p>
         <h3 className="font-archivo text-2xl font-black leading-tight">
-          Senior or junior? Sterling will walk you through it
+          Senior or junior? Sloane will walk you through it
         </h3>
         <p className="text-white/60 font-archivo text-sm mt-2 max-w-md">
-          Sterling explains the funding model and the senior/junior structure
+          Sloane explains the funding model and the senior/junior structure
           {project ? ` for ${project.name}` : ""}, then helps you complete the
           registration below, field by field. It&apos;s optional — the form works
           on its own — and this is a registration of interest only, not advice or
@@ -143,11 +143,11 @@ export default function FunderVoiceAgent({
           unified transcript below it so voice turns AND typed-fallback turns show in one place. */}
       <VoiceWidget
         {...funderVoiceConfig}
-        coachName="Sterling"
+        coachName="Sloane"
         // TODO(avatar): reusing Morgan's avatar as a placeholder — provide a dedicated funder
         // avatar in /public (e.g. /sterling_avatar.jpeg) and point avatarUrl at it.
         avatarUrl="/female_avatar.jpeg"
-        title="Talk to Sterling — F2K's funder guide. He'll explain the structure and help you complete the registration below."
+        title="Talk to Sloane — F2K's funder guide, who explains the structure and helps you complete the registration below."
         overrides={overrides}
         onConnect={(conversationId) => onConversationId?.(conversationId)}
         onMessage={handleVoiceMessage}
@@ -162,7 +162,7 @@ export default function FunderVoiceAgent({
               <span
                 className={`font-semibold ${m.role === "assistant" ? "text-[#C77F3A]" : "text-white"}`}
               >
-                {m.role === "assistant" ? "Sterling" : "You"}:
+                {m.role === "assistant" ? "Sloane" : "You"}:
               </span>{" "}
               <span className="text-white/85">{m.content}</span>
             </div>
@@ -172,7 +172,7 @@ export default function FunderVoiceAgent({
 
       {thinking && (
         <p className="font-archivo text-sm text-white/60 mt-3" aria-live="polite">
-          Sterling is thinking…
+          Sloane is thinking…
         </p>
       )}
 

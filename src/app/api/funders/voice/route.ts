@@ -3,18 +3,18 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getClaudeClientConfig, resolveClaudeModel } from "@caistech/ai-client";
 import { z } from "zod";
 import {
-  STERLING_BASE_PROMPT,
-  buildSterlingPrompt,
+  SLOANE_BASE_PROMPT,
+  buildSloanePrompt,
 } from "@/lib/funder-voice-prompt.mjs";
 import { getFunding, isConfirmedFunding } from "@/data/funding";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Text fallback for "Sterling", the funder-onboarding guide. The primary experience is the
+ * Text fallback for "Sloane", the funder-onboarding guide. The primary experience is the
  * canonical ElevenLabs voice agent (see FunderVoiceAgent.tsx + voice.config.ts). This route is
  * the no-mic fallback brain: when voice can't run, the widget's typed box routes here and we
- * return Sterling's next line using the SAME prompt the voice agent uses — generic on the
+ * return Sloane's next line using the SAME prompt the voice agent uses — generic on the
  * overview, or the per-project prompt (real numbers) when a project_slug is supplied — so the
  * spoken and typed experiences never drift.
  */
@@ -28,7 +28,7 @@ const schema = z.object({
       }),
     )
     .max(60),
-  // When set to a confirmed project, Sterling speaks to that project's real figures.
+  // When set to a confirmed project, Sloane speaks to that project's real figures.
   project_slug: z.string().max(120).nullable().optional(),
 });
 
@@ -36,14 +36,14 @@ function systemPromptFor(slug?: string | null): string {
   if (slug) {
     const f = getFunding(slug);
     if (f && isConfirmedFunding(f)) {
-      return `${buildSterlingPrompt(f)}
+      return `${buildSloanePrompt(f)}
 
-Return ONLY Sterling's next line as plain text — no stage directions, no quotes, no markdown.`;
+Return ONLY Sloane's next line as plain text — no stage directions, no quotes, no markdown.`;
     }
   }
-  return `${STERLING_BASE_PROMPT}
+  return `${SLOANE_BASE_PROMPT}
 
-Return ONLY Sterling's next line as plain text — no stage directions, no quotes, no markdown.`;
+Return ONLY Sloane's next line as plain text — no stage directions, no quotes, no markdown.`;
 }
 
 export async function POST(request: Request) {

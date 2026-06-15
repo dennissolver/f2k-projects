@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS public.funder_registrations (
   notes                       TEXT,
   upload_url                  TEXT,
   consent                     BOOLEAN NOT NULL DEFAULT FALSE,
-  -- Sterling discovery transcript captured client-side + submitted with the form (matches the
+  -- Sloane discovery transcript captured client-side + submitted with the form (matches the
   -- developer_onboarding pattern). voice_conversation_id reserved for future server-side capture.
   voice_transcript            JSONB NOT NULL DEFAULT '[]'::jsonb,
   voice_conversation_id       TEXT,

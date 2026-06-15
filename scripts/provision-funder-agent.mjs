@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Provision/refresh the F2K funder-onboarding voice agent ("Sterling").
+ * Provision/refresh the F2K funder-onboarding voice agent ("Sloane").
  *
- * Dedicated, idempotent ElevenLabs ConvAI agent for the /funders pages. Sterling explains the
+ * Dedicated, idempotent ElevenLabs ConvAI agent for the /funders pages. Sloane explains the
  * back-to-back funding model + the senior/junior structure and GUIDES the funder through the
  * registration form (see the shared GENERIC base prompt in src/lib/funder-voice-prompt.mjs). On
  * a per-project funder page the page passes a per-project prompt via the widget's `overrides`
- * (the agent is provisioned with overrides ENABLED), so Sterling speaks that project's real
+ * (the agent is provisioned with overrides ENABLED), so Sloane speaks that project's real
  * numbers; on the overview he runs with this generic prompt.
  *
  * Idempotent: pass the stored agent id (NEXT_PUBLIC_ELEVENLABS_FUNDER_AGENT_ID) to update in
@@ -30,8 +30,8 @@ import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
-  STERLING_BASE_PROMPT,
-  STERLING_FIRST_MESSAGE,
+  SLOANE_BASE_PROMPT,
+  SLOANE_FIRST_MESSAGE,
 } from "../src/lib/funder-voice-prompt.mjs";
 
 // The ElevenLabs key lives in the portfolio's automated-setup env files, not in this repo.
@@ -49,7 +49,7 @@ const SHARED_ENVS = [
 const apiKey =
   process.env.ELEVENLABS_API_KEY ||
   SHARED_ENVS.map((p) => envFrom(p, "ELEVENLABS_API_KEY")).find(Boolean);
-// The canonical portfolio voice (Rachel) by default. Sterling is an institutional persona — set
+// The canonical portfolio voice (Rachel) by default. Sloane is an institutional persona — set
 // CANONICAL_VOICE_ID to a different, more measured voice if you want him to sound distinct.
 const voiceId =
   process.env.CANONICAL_VOICE_ID ||
@@ -63,7 +63,7 @@ const existingAgentId = process.env.NEXT_PUBLIC_ELEVENLABS_FUNDER_AGENT_ID || un
 
 // AGENT_LABEL lets us provision a SEPARATE agent per environment (e.g. " — Demo").
 const AGENT_LABEL = process.env.AGENT_LABEL || "";
-const AGENT_NAME = `F2K Funder Guide (Sterling)${AGENT_LABEL}`;
+const AGENT_NAME = `F2K Funder Guide (Sloane)${AGENT_LABEL}`;
 
 if (!apiKey) {
   console.error(
@@ -76,8 +76,8 @@ const host = new URL(baseUrl).host;
 const allowedOrigins = standardAllowlist(host);
 
 const updateOpts = {
-  systemPrompt: STERLING_BASE_PROMPT,
-  firstMessage: STERLING_FIRST_MESSAGE,
+  systemPrompt: SLOANE_BASE_PROMPT,
+  firstMessage: SLOANE_FIRST_MESSAGE,
   voiceId,
   name: AGENT_NAME,
 };
@@ -107,8 +107,8 @@ if (existingAgentId && existingAgentId !== "agent_funder_unprovisioned") {
   } else {
     const result = await createAgent(apiKey, {
       config: { agentName: AGENT_NAME, voiceId },
-      systemPrompt: STERLING_BASE_PROMPT,
-      firstMessage: STERLING_FIRST_MESSAGE,
+      systemPrompt: SLOANE_BASE_PROMPT,
+      firstMessage: SLOANE_FIRST_MESSAGE,
       enableOverrides: true,
     });
     agentId = result.agentId;

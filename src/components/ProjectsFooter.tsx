@@ -1,4 +1,18 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+
+// Funder routes (/funders, /{estate}/funders) are a separate audience + legal footing from the
+// buyer pages: they must NOT carry the buyer "real estate marketing only / no financial product"
+// disclaimer (it directly contradicts a page inviting a bank to fund a development). They get a
+// funder-appropriate line instead. Mirrors the path-aware banner in ProjectsHeader.
+function isFunderRoute(pathname: string | null): boolean {
+  return pathname === "/funders" || (pathname?.endsWith("/funders") ?? false);
+}
+
 export default function ProjectsFooter() {
+  const pathname = usePathname();
+  const funderRoute = isFunderRoute(pathname);
   return (
     <footer className="border-t border-slate-200 bg-white py-8 mt-auto text-slate-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -66,8 +80,9 @@ export default function ProjectsFooter() {
               reserved.
             </div>
             <div>
-              Real estate marketing only. No financial product is offered on
-              this site.
+              {funderRoute
+                ? "Directed to registered Australian banks (ADIs). Registration of interest only — not an offer or invitation, and not financial product advice."
+                : "Real estate marketing only. No financial product is offered on this site."}
             </div>
           </div>
         </div>

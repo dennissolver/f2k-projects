@@ -1,25 +1,25 @@
-// Single source of truth for Sterling, the F2K funder guide.
+// Single source of truth for Sloane, the F2K funder guide.
 //
 // Used in three places so the spoken agent, the per-project live override and the typed
 // fallback never drift:
 //   1. scripts/provision-funder-agent.mjs — the GENERIC base prompt is baked into the agent.
 //   2. src/components/funders/FunderVoiceAgent.tsx — on a project page, a per-project prompt
-//      (buildSterlingPrompt) is passed as a live `overrides.agent.prompt` so Sterling speaks
+//      (buildSloanePrompt) is passed as a live `overrides.agent.prompt` so Sloane speaks
 //      THIS project's real numbers (the agent is provisioned with overrides enabled).
 //   3. src/app/api/funders/voice/route.ts — the no-mic text fallback brain (same base + the
 //      injected per-project context line).
 //
-// Sterling speaks bank-to-bank with representatives of registered Australian banks (ADIs). He
+// Sloane speaks bank-to-bank with representatives of registered Australian banks (ADIs). He
 // explains the back-to-back funding model and the senior/junior structure, and guides the
 // funder through the registration form. He is NOT a financial adviser; nothing he says is an
 // offer, invitation or recommendation.
 
-export const STERLING_FIRST_MESSAGE =
-  "Hello, I'm Sterling, Factory2Key's funder guide. Just so we're clear, this is a registration of interest only — not advice, and not an offer. To point you the right way: are you thinking about the senior position, or a junior tranche — and which project?";
+export const SLOANE_FIRST_MESSAGE =
+  "Hello, I'm Sloane, Factory2Key's funder guide. Just so we're clear, this is a registration of interest only — not advice, and not an offer. To point you the right way: are you thinking about the senior position, or a junior tranche — and which project?";
 
-// The behavioural spine — what Sterling does, how he speaks, the guardrails. Shared by every
+// The behavioural spine — what Sloane does, how he speaks, the guardrails. Shared by every
 // variant; only the CONTEXT block above it changes per project.
-const STERLING_GUIDANCE = `WHAT TO DO:
+const SLOANE_GUIDANCE = `WHAT TO DO:
 1. Open: one sentence that this is a registration of interest only, not advice or an offer.
 2. Find out if they're thinking senior or junior, and roughly what size.
 3. Explain whichever path they pick, using the numbers in the context above (or, if you don't have this project's numbers, say so and offer to have Dennis follow up with the figures).
@@ -47,11 +47,11 @@ THE LENDER STRUCTURE (explain consistently):
 
 // The generic (overview / default) prompt — no project numbers. Baked into the agent at
 // provision time and used as-is on the /funders overview page.
-export const STERLING_BASE_PROMPT = `You are Sterling, Factory2Key's (F2K) funder guide. You speak out loud with representatives of registered Australian banks (CBA, ANZ, NAB, Westpac and other APRA-authorised ADIs) about how F2K-led developments are funded, and you help them register their interest.
+export const SLOANE_BASE_PROMPT = `You are Sloane, Factory2Key's (F2K) funder guide. You speak out loud with representatives of registered Australian banks (CBA, ANZ, NAB, Westpac and other APRA-authorised ADIs) about how F2K-led developments are funded, and you help them register their interest.
 
 CONTEXT: You are on F2K's funders overview page, speaking generically about the funding model — you do NOT have a specific project's figures here. If a representative wants project numbers (package size, GRV, cost stack, margin, current demand), tell them each live project has its own funder page with those figures, and offer to have Dennis follow up.
 
-${STERLING_GUIDANCE}`;
+${SLOANE_GUIDANCE}`;
 
 const fmtAud = (n) =>
   typeof n === "number" && isFinite(n)
@@ -60,9 +60,9 @@ const fmtAud = (n) =>
 
 /**
  * Per-project system prompt — injects this project's real numbers into the CONTEXT block so
- * Sterling speaks to the actual figures. Pass a confirmed ProjectFundingModel.
+ * Sloane speaks to the actual figures. Pass a confirmed ProjectFundingModel.
  */
-export function buildSterlingPrompt(p) {
+export function buildSloanePrompt(p) {
   const pkg = p.package_amount;
   const senior = pkg * 0.5;
   const juniorFloor = pkg * 0.1;
@@ -75,14 +75,14 @@ export function buildSterlingPrompt(p) {
 - Project economics (indicative, confirmed only at 3x cover): GRV ${fmtAud(p.grv)}, total development cost ${fmtAud(p.tdc)}, indicative margin ${p.margin_pct}% (GST-correct, on net realisation).
 - F2K is the end-to-end integrator: it sources the modular homes, runs approvals, coordinates site works, shipping, installation and completion — not just the sales platform.`;
 
-  return `You are Sterling, Factory2Key's (F2K) funder guide. You speak out loud with representatives of registered Australian banks (CBA, ANZ, NAB, Westpac and other APRA-authorised ADIs) about how F2K-led developments are funded, and you help them register their interest.
+  return `You are Sloane, Factory2Key's (F2K) funder guide. You speak out loud with representatives of registered Australian banks (CBA, ANZ, NAB, Westpac and other APRA-authorised ADIs) about how F2K-led developments are funded, and you help them register their interest.
 
 ${context}
 
-${STERLING_GUIDANCE}`;
+${SLOANE_GUIDANCE}`;
 }
 
 /** Per-project greeting that names the project. */
-export function buildSterlingFirstMessage(p) {
-  return `Hello, I'm Sterling, Factory2Key's funder guide for ${p.name}. Just so we're clear, this is a registration of interest only — not advice, and not an offer. Are you thinking about the senior position or a junior tranche, and roughly what size?`;
+export function buildSloaneFirstMessage(p) {
+  return `Hello, I'm Sloane, Factory2Key's funder guide for ${p.name}. Just so we're clear, this is a registration of interest only — not advice, and not an offer. Are you thinking about the senior position or a junior tranche, and roughly what size?`;
 }

@@ -54,7 +54,7 @@ export default function FundersOverview() {
     return { revenue, totalCost, surplus, margin, cats };
   }, [units, price, costUnit]);
 
-  // Generic Sterling (overview Q&A — no project numbers).
+  // Generic Sloane (overview Q&A — no project numbers).
   const [transcript, setTranscript] = useState<VoiceMessage[]>([]);
 
   const bransRevenue = branscombeFunding.grv;
@@ -393,19 +393,19 @@ export default function FundersOverview() {
         </div>
       </section>
 
-      {/* optional generic Q&A with Sterling */}
+      {/* optional generic Q&A with Sloane */}
       <section className="f2k-sec">
         <div className="f2k-wrap">
           <div className="f2k-eyebrow">Questions about the model</div>
           <h2 className="f2k-h2" style={{ marginTop: 10, marginBottom: 20 }}>
-            Talk it through with Sterling
+            Talk it through with Sloane
           </h2>
           <FunderVoiceAgent
             transcript={transcript}
             onTranscriptChange={setTranscript}
           />
           <p className="f2k-cardnote">
-            Sterling answers questions about the funding model generally. For a specific
+            Sloane answers questions about the funding model generally. For a specific
             project&apos;s numbers — and to register — open that project&apos;s funder page.
           </p>
         </div>
