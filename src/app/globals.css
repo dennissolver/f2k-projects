@@ -58,3 +58,15 @@ html {
     font-size: 0.875rem !important;
   }
 }
+
+/* Dutton Terrace (Archetype-C teaser) — lift sub-12px uppercase eyebrow/label/badge
+   text to the 12px floor on phones (Mobile naive-tester 2026-06-15). */
+@media (max-width: 640px) {
+  .dt-page [class*="text-[0.5rem]"],
+  .dt-page [class*="text-[0.55rem]"],
+  .dt-page [class*="text-[0.6rem]"],
+  .dt-page [class*="text-[0.65rem]"] {
+    font-size: 0.75rem !important;
+    line-height: 1.3;
+  }
+}

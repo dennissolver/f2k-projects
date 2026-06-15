@@ -44,7 +44,7 @@ const DETAILS: [string, string][] = [
 
 export default function DuttonTerraceEstatePage() {
   return (
-    <>
+    <div className="dt-page">
       {/* ===== HERO ===== */}
       <section className="relative bg-[#1A2744] text-white overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#1A2744] via-[#1A2744] to-[#00B5AD]/20" />
@@ -171,6 +171,6 @@ export default function DuttonTerraceEstatePage() {
           </p>
         </div>
       </section>
-    </>
+    </div>
   );
 }
