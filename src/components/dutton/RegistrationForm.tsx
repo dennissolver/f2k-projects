@@ -95,7 +95,7 @@ export default function RegistrationForm() {
   // Load the agent list when "Real Estate Agent" is chosen (same source as Seafields/Branscombe).
   useEffect(() => {
     if (referrerType === "Real Estate Agent" && agents.length === 0) {
-      fetch("/api/public/agents")
+      fetch("/api/public/agents?estate=dutton-terrace")
         .then((r) => r.json())
         .then((d) => setAgents(d.agents || []))
         .catch(() => {});
