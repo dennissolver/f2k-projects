@@ -30,3 +30,21 @@ html {
 .dev-voice-widget .convai-transcript {
   max-width: 100%;
 }
+
+/* Seafields public page — mobile readability (Uwe 2026-06-15).
+   Body paragraphs to >=16px on phones (mono eyebrow labels stay at their 12px
+   floor), and lift the shared DesignGallery's sub-12px tag/spec text so nothing
+   sits under the readability floor on a phone (Mobile Marcus naive-tester). */
+@media (max-width: 640px) {
+  .sf-page p:not(.font-ibm-mono) {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  .sf-designs [class*="0.55rem"],
+  .sf-designs [class*="[10px]"] {
+    font-size: 0.8125rem !important;
+  }
+  .sf-designs .text-xs {
+    font-size: 0.875rem !important;
+  }
+}
