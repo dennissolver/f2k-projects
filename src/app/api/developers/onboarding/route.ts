@@ -44,6 +44,28 @@ const detailsSchema = z.object({
   zoning_status: z.string().max(200).nullable().optional(),
   vision: z.string().max(8000).nullable().optional(),
   deal_preferences: z.string().max(4000).nullable().optional(),
+  // Deterministic intake — let the page + funder summary build with minimal LLM guessing.
+  archetype: z.string().max(60).nullable().optional(),
+  target_market: z.array(z.string().max(60)).max(20).optional(),
+  land_uses: z.array(z.string().max(60)).max(20).optional(),
+  lot_size_mix: z.string().max(500).nullable().optional(),
+  why_attractive: z.string().max(4000).nullable().optional(),
+  land_cost: z.number().nonnegative().max(1_000_000_000).nullable().optional(),
+  market_value_note: z.string().max(4000).nullable().optional(),
+  agents: z
+    .array(
+      z.object({
+        name: z.string().max(200).optional(),
+        agency: z.string().max(200).optional(),
+        mobile: z.string().max(60).optional(),
+        email: z.string().max(200).optional(),
+      }),
+    )
+    .max(12)
+    .optional(),
+  // Commercial gate: F2K-as-estate-manager acknowledgement + authority to agree.
+  terms_accepted: z.boolean().optional(),
+  authority_confirmed: z.boolean().optional(),
   // Who is enquiring (developer / land owner / agent / …) + the real green-light gate.
   submitter_role: z.string().max(120).nullable().optional(),
   site_control: z.string().max(200).nullable().optional(),
@@ -204,6 +226,16 @@ export async function POST(request: Request) {
       zoning_status: d.zoning_status ?? null,
       vision: d.vision ?? null,
       deal_preferences: d.deal_preferences ?? null,
+      archetype: d.archetype ?? null,
+      target_market: d.target_market ?? [],
+      land_uses: d.land_uses ?? [],
+      lot_size_mix: d.lot_size_mix ?? null,
+      why_attractive: d.why_attractive ?? null,
+      land_cost: d.land_cost ?? null,
+      market_value_note: d.market_value_note ?? null,
+      agents: d.agents ?? [],
+      terms_accepted_at: d.terms_accepted ? new Date().toISOString() : null,
+      authority_confirmed: d.authority_confirmed ?? false,
       submitter_role: d.submitter_role ?? null,
       site_control: d.site_control ?? null,
       landowner_details: d.landowner_details ?? {},

@@ -38,6 +38,24 @@ const DEAL_PREFERENCES = [
   "Open to options — let's talk",
 ] as const;
 
+// Deterministic intake — the developer self-classifies so the page + funder summary don't guess.
+const ARCHETYPES = [
+  { value: "subdivision", label: "Land subdivision — selling lots" },
+  { value: "house_and_land", label: "Set house & land — defined homes" },
+  { value: "mixed_use", label: "Mixed-use master-plan — homes + childcare / aged-care / commercial etc." },
+  { value: "unsure", label: "Not sure — help me work it out" },
+] as const;
+
+const TARGET_MARKETS = [
+  "First-home buyers", "Investors", "Downsizers", "Families / next-home buyers",
+  "Retirees", "Essential / government workers", "Owner-occupiers",
+] as const;
+
+const LAND_USES = [
+  "Residential lots", "Childcare centre", "Aged-care facility", "Commercial / town centre",
+  "School / education", "Recreation / parks", "Tourism / short-stay", "Community facility",
+] as const;
+
 interface Props {
   voiceTranscript: VoiceMessage[];
   voiceConversationId?: string | null;
@@ -77,6 +95,24 @@ export default function DeveloperOnboardingForm({
   const [titleFiles, setTitleFiles] = useState<File[]>([]);
   const [consent, setConsent] = useState(false);
   const [honeypot, setHoneypot] = useState("");
+  // Deterministic intake fields.
+  const [archetype, setArchetype] = useState("");
+  const [targetMarket, setTargetMarket] = useState<string[]>([]);
+  const [landUses, setLandUses] = useState<string[]>([]);
+  const [lotSizeMix, setLotSizeMix] = useState("");
+  const [whyAttractive, setWhyAttractive] = useState("");
+  const [landCost, setLandCost] = useState("");
+  const [marketValueNote, setMarketValueNote] = useState("");
+  const [agentRows, setAgentRows] = useState<{ name: string; agency: string; mobile: string; email: string }[]>([
+    { name: "", agency: "", mobile: "", email: "" },
+  ]);
+  const [estateManagerAck, setEstateManagerAck] = useState(false);
+  const [authorityAck, setAuthorityAck] = useState(false);
+
+  const toggleIn = (
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    v: string,
+  ) => setter((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
 
   // When the submitter IS the land owner, their own contact details are the owner's —
   // so we only ask for separate land-owner details otherwise.
@@ -140,6 +176,14 @@ export default function DeveloperOnboardingForm({
       setError("Please tick the consent box so we can contact you.");
       return;
     }
+    if (!estateManagerAck) {
+      setError("Please acknowledge that submitting appoints Factory2Key as estate manager.");
+      return;
+    }
+    if (!submitterIsOwner && !authorityAck) {
+      setError("Please confirm you have the landowner's authority to submit this estate.");
+      return;
+    }
 
     const dealPreferences = [dealPreference, dealNotes.trim()]
       .filter(Boolean)
@@ -181,6 +225,23 @@ export default function DeveloperOnboardingForm({
           site_control: siteControl || null,
           vision: vision.trim() || null,
           deal_preferences: dealPreferences || null,
+          archetype: archetype || null,
+          target_market: targetMarket,
+          land_uses: landUses,
+          lot_size_mix: lotSizeMix.trim() || null,
+          why_attractive: whyAttractive.trim() || null,
+          land_cost: landCost.trim() ? Number(landCost) : null,
+          market_value_note: marketValueNote.trim() || null,
+          agents: agentRows
+            .filter((a) => a.name.trim() || a.email.trim())
+            .map((a) => ({
+              name: a.name.trim(),
+              agency: a.agency.trim(),
+              mobile: a.mobile.trim(),
+              email: a.email.trim(),
+            })),
+          terms_accepted: estateManagerAck,
+          authority_confirmed: authorityAck,
           submitter_role: submitterRole || null,
           landowner_details: landowner,
           voice_transcript: voiceTranscript,
@@ -525,6 +586,74 @@ export default function DeveloperOnboardingForm({
         </div>
       </div>
 
+      {/* ---- Project shape (deterministic intake) ---- */}
+      <div className="border border-black/5 bg-white p-5">
+        <p className="font-ibm-mono text-[0.6rem] tracking-[0.3em] uppercase text-[#00B5AD] mb-1">Project shape</p>
+        <p className="text-xs text-slate/50 font-archivo mb-4">
+          The clearer this is, the faster and more accurately we can model your estate and a funder
+          feasibility — no guesswork.
+        </p>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="archetype" className={labelClass}>What kind of project is it?</label>
+            <select id="archetype" value={archetype} onChange={(e) => setArchetype(e.target.value)} className={inputClass}>
+              <option value="">— Select —</option>
+              {ARCHETYPES.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <span className={labelClass}>Who is it for? (target market)</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+              {TARGET_MARKETS.map((m) => (
+                <label key={m} className="flex items-center gap-2 text-sm font-archivo text-deep-blue cursor-pointer">
+                  <input type="checkbox" checked={targetMarket.includes(m)} onChange={() => toggleIn(setTargetMarket, m)} className="w-4 h-4 accent-[#00B5AD]" />
+                  {m}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <span className={labelClass}>Land uses in the plan</span>
+            <p className="text-xs text-slate/50 font-archivo mb-1">Tick all that apply — a mix beyond residential makes it a master-plan.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {LAND_USES.map((u) => (
+                <label key={u} className="flex items-center gap-2 text-sm font-archivo text-deep-blue cursor-pointer">
+                  <input type="checkbox" checked={landUses.includes(u)} onChange={() => toggleIn(setLandUses, u)} className="w-4 h-4 accent-[#00B5AD]" />
+                  {u}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label htmlFor="lotSizeMix" className={labelClass}>Lot-size mix (if known)</label>
+            <input id="lotSizeMix" value={lotSizeMix} onChange={(e) => setLotSizeMix(e.target.value)} className={inputClass} placeholder="e.g. mostly 450–700 m², some 1,000 m²+ lifestyle lots" />
+          </div>
+          <div>
+            <label htmlFor="whyAttractive" className={labelClass}>Why will it appeal to that market?</label>
+            <textarea id="whyAttractive" rows={3} value={whyAttractive} onChange={(e) => setWhyAttractive(e.target.value)} className={inputClass} placeholder="What makes this location / product right for those buyers — lifestyle, value, jobs, services…" />
+          </div>
+        </div>
+      </div>
+
+      {/* ---- Indicative commercials ---- */}
+      <div className="border border-black/5 bg-white p-5">
+        <p className="font-ibm-mono text-[0.6rem] tracking-[0.3em] uppercase text-[#00B5AD] mb-1">Indicative commercials</p>
+        <p className="text-xs text-slate/50 font-archivo mb-4">
+          Rough is fine. These anchor the funder feasibility to real numbers — the cost stack vs what
+          buyers will pay (a project needs a solid margin for finance to flow).
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="landCost" className={labelClass}>Indicative land / acquisition cost (AUD)</label>
+            <input id="landCost" type="number" min="0" inputMode="decimal" value={landCost} onChange={(e) => setLandCost(e.target.value)} className={inputClass} placeholder="e.g. 2500000" />
+          </div>
+          <div>
+            <label htmlFor="marketValueNote" className={labelClass}>Current market values nearby</label>
+            <input id="marketValueNote" value={marketValueNote} onChange={(e) => setMarketValueNote(e.target.value)} className={inputClass} placeholder="e.g. comparable lots ~$180k; homes ~$520k" />
+          </div>
+        </div>
+      </div>
+
       {/* ---- Land owner (only when the submitter isn't the owner) ---- */}
       {submitterRole && !submitterIsOwner && (
         <div className="border border-black/5 bg-white p-5">
@@ -595,6 +724,34 @@ export default function DeveloperOnboardingForm({
           </div>
         </div>
       )}
+
+      {/* ---- Your sales agents ---- */}
+      <div className="border border-black/5 bg-white p-5">
+        <p className="font-ibm-mono text-[0.6rem] tracking-[0.3em] uppercase text-[#00B5AD] mb-1">Your sales agents</p>
+        <p className="text-xs text-slate/50 font-archivo mb-4">
+          The agents who&apos;ll market this estate. Each gets their own Factory2Key portal to track
+          their own buyers — we invite them automatically once the estate is set up. Add as many as
+          you need.
+        </p>
+        <div className="space-y-4">
+          {agentRows.map((a, i) => (
+            <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-b border-black/5 pb-4 last:border-0 last:pb-0">
+              <input value={a.name} onChange={(e) => setAgentRows((r) => r.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} className={inputClass} placeholder="Agent name" />
+              <input value={a.agency} onChange={(e) => setAgentRows((r) => r.map((x, j) => (j === i ? { ...x, agency: e.target.value } : x)))} className={inputClass} placeholder="Agency" />
+              <input value={a.email} type="email" onChange={(e) => setAgentRows((r) => r.map((x, j) => (j === i ? { ...x, email: e.target.value } : x)))} className={inputClass} placeholder="Email" />
+              <div className="flex gap-2">
+                <input value={a.mobile} type="tel" onChange={(e) => setAgentRows((r) => r.map((x, j) => (j === i ? { ...x, mobile: e.target.value } : x)))} className={`${inputClass} flex-1`} placeholder="Mobile" />
+                {agentRows.length > 1 && (
+                  <button type="button" onClick={() => setAgentRows((r) => r.filter((_, j) => j !== i))} className="text-slate/50 hover:text-red-600 px-2 text-sm font-archivo shrink-0" aria-label="Remove agent">Remove</button>
+                )}
+              </div>
+            </div>
+          ))}
+          <button type="button" onClick={() => setAgentRows((r) => [...r, { name: "", agency: "", mobile: "", email: "" }])} className="text-[#00B5AD] hover:text-[#009E97] font-archivo text-sm font-semibold">
+            + Add another agent
+          </button>
+        </div>
+      </div>
 
       {/* ---- Land title / certificate of title ---- */}
       <div className="border border-black/5 bg-white p-5">
@@ -803,6 +960,40 @@ export default function DeveloperOnboardingForm({
         </span>
       </label>
 
+      {/* Commercial gate — F2K as estate manager + authority to agree */}
+      <label className="flex items-start gap-3 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={estateManagerAck}
+          onChange={(e) => setEstateManagerAck(e.target.checked)}
+          className="mt-1 w-5 h-5 accent-[#00B5AD]"
+        />
+        <span className="text-sm text-slate font-archivo leading-relaxed">
+          I understand that submitting this estate (which is free) is on the basis that{" "}
+          <strong>Factory2Key acts as estate manager</strong> — leading the project, lot allocations,
+          management and delivery of the homes — as set out in the{" "}
+          <a href="/developers/terms" target="_blank" className="underline hover:text-deep-blue">
+            estate submission terms
+          </a>
+          . *
+        </span>
+      </label>
+
+      {submitterRole && !submitterIsOwner && (
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={authorityAck}
+            onChange={(e) => setAuthorityAck(e.target.checked)}
+            className="mt-1 w-5 h-5 accent-[#00B5AD]"
+          />
+          <span className="text-sm text-slate font-archivo leading-relaxed">
+            I confirm I have the landowner&apos;s authority to submit this estate and to agree to the
+            above on their behalf — or I&apos;ll arrange the owner&apos;s confirmation. *
+          </span>
+        </label>
+      )}
+
       {error && (
         <div className="bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 font-archivo">
           {error}
@@ -819,7 +1010,7 @@ export default function DeveloperOnboardingForm({
 
       <button
         type="submit"
-        disabled={submitting || !consent}
+        disabled={submitting || !consent || !estateManagerAck}
         className="bg-[#00B5AD] hover:bg-[#009E97] text-white px-8 py-3 font-archivo font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
       >
         {submitting ? "Submitting…" : "Submit my project"}
