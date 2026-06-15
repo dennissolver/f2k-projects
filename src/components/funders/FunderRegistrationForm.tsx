@@ -123,7 +123,7 @@ export default function FunderRegistrationForm({
         source_page: sourcePage,
         voice_transcript: voiceTranscript,
         voice_conversation_id: voiceConversationId,
-        website_url: honeypot, // honeypot — server rejects if non-empty
+        hp_field: honeypot, // honeypot — server silently drops if filled (autofill-safe name)
       };
 
       const formData = new FormData();
@@ -418,9 +418,10 @@ export default function FunderRegistrationForm({
 
       {/* Honeypot — visually hidden, must stay empty */}
       <div className="absolute left-[-9999px]" aria-hidden>
-        <label htmlFor="website_url">Leave this field empty</label>
+        <label htmlFor="hp_field">Leave this field empty</label>
         <input
-          id="website_url"
+          id="hp_field"
+          name="hp_field"
           tabIndex={-1}
           autoComplete="off"
           value={honeypot}

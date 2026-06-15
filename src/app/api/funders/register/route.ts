@@ -50,7 +50,9 @@ const detailsSchema = z.object({
     .optional(),
   voice_conversation_id: z.string().max(200).nullable().optional(),
   // Honeypot — must be empty.
-  website_url: z.string().max(0).optional(),
+  // Honeypot — accept any value (don't 400 a real user whose browser autofilled it);
+  // a filled value is silently dropped below. The field name is autofill-neutral.
+  hp_field: z.string().optional(),
 });
 
 function extFromName(name: string): string {
@@ -90,7 +92,7 @@ export async function POST(request: Request) {
   const d = parsed.data;
 
   // Silently accept honeypot hits without persisting (bot trap).
-  if (d.website_url) {
+  if (d.hp_field) {
     return NextResponse.json({ success: true });
   }
 

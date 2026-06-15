@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { LOTS, CATEGORY_INFO } from "@/data/seafields";
 import buildableAreas from "@/data/seafields/buildable-areas.json";
@@ -343,11 +343,18 @@ export default function RegistrationForm() {
     });
   };
 
+  // When this form mounted — a time-trap (a human can't complete this form in <2.5s).
+  const formLoadedAt = useRef<number>(Date.now());
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (honeypot) {
+    // Bot trap. hp_field is named non-semantically so browser autofill can't drop a
+    // value into it and silently lose a real registration; we also reject implausibly
+    // fast submits. A normal human submission is never silently dropped.
+    const elapsedMs = Date.now() - formLoadedAt.current;
+    if (honeypot || elapsedMs < 2500) {
       setSuccess(true);
       return;
     }
@@ -958,7 +965,8 @@ export default function RegistrationForm() {
             tabIndex={-1}
             aria-hidden
             autoComplete="off"
-            name="website_url"
+            name="hp_field"
+            id="hp_field"
             value={honeypot}
             onChange={(e) => setHoneypot(e.target.value)}
             style={{ position: "absolute", left: "-9999px" }}
