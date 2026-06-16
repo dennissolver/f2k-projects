@@ -99,17 +99,21 @@ const REFERRAL_CAMPAIGNS: Record<
   string,
   { type: string; name: string; company: string; contact: string }
 > = {
+  // Ray White referrals attribute to the OFFICE, not an individual agent — per Henry
+  // (2026-06-16): showing one agent's name/number confuses clients working with Brett or
+  // others in the office. Name + contact left blank so the client can optionally add their
+  // own agent; the ?ref source tag still attributes the lead to the Ray White campaign.
   "raywhite-signage": {
     type: "Real Estate Agent",
-    name: "Henry Van Tiel",
+    name: "",
     company: "Ray White Geraldton",
-    contact: "0429 995 121 / henry.vantiel@raywhite.com",
+    contact: "",
   },
   raywhite: {
     type: "Real Estate Agent",
-    name: "Henry Van Tiel",
+    name: "",
     company: "Ray White Geraldton",
-    contact: "0429 995 121 / henry.vantiel@raywhite.com",
+    contact: "",
   },
 };
 
