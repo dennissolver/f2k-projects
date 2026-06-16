@@ -1,9 +1,22 @@
 import { Metadata } from "next";
 import { getStaticMapUrl } from "@caistech/mapbox";
 import RegistrationForm from "@/components/dutton/RegistrationForm";
+import { DUTTON_PARCEL } from "@/data/dutton-parcel";
+import { ringToSvgPoints, type StaticFrame } from "@/lib/static-map-overlay";
 
 // Dutton Terrace, Tumby Bay SA 5605 — geocoded (Eyre Peninsula coast, ~640 km W of Adelaide).
 const DUTTON = { lat: -34.380017, lng: 136.095408 };
+
+// The satellite frame the parcel outline is drawn over. zoom 16 frames a ~6.3 ha block (≈255 px)
+// inside a 640×380 image with surrounding context. The overlay SVG shares this width/height as its
+// viewBox, so the vector outline lines up with the raster. Keep zoom in sync with `parcelMap` below.
+const PARCEL_FRAME: StaticFrame = {
+  centerLng: DUTTON.lng,
+  centerLat: DUTTON.lat,
+  zoom: 16,
+  width: 640,
+  height: 380,
+};
 
 // Dutton Terrace — first Archetype-C (master-planned / mixed-use) worked build.
 // Early/concept stage: hero + stats + land-use mix + register-interest. No interactive lot map
@@ -48,7 +61,9 @@ const DETAILS: [string, string][] = [
 
 export default function DuttonTerraceEstatePage() {
   const regionMap = getStaticMapUrl(DUTTON.lat, DUTTON.lng, { width: 640, height: 380, zoom: 5, style: "streets-v12" });
-  const areaMap = getStaticMapUrl(DUTTON.lat, DUTTON.lng, { width: 640, height: 380, zoom: 13, style: "satellite-streets-v12" });
+  // Satellite map framed on the parcel (zoom must match PARCEL_FRAME so the outline aligns).
+  const parcelMap = getStaticMapUrl(DUTTON.lat, DUTTON.lng, { width: 640, height: 380, zoom: PARCEL_FRAME.zoom, style: "satellite-streets-v12" });
+  const parcelPoints = ringToSvgPoints(DUTTON_PARCEL.ring, PARCEL_FRAME);
   return (
     <div className="dt-page">
       {/* ===== HERO ===== */}
@@ -134,15 +149,16 @@ export default function DuttonTerraceEstatePage() {
       </section>
 
       {/* ===== LOCATION MAP ===== */}
-      {(regionMap || areaMap) && (
+      {(regionMap || parcelMap) && (
         <section className="py-16 px-4 bg-warm-grey">
           <div className="max-w-[1100px] mx-auto">
             <p className="font-ibm-mono text-[0.65rem] tracking-[0.4em] uppercase text-[#00B5AD] mb-4">Location</p>
             <h2 className="font-playfair text-[2rem] font-black text-deep-blue leading-tight mb-2">Tumby Bay, Eyre Peninsula</h2>
             <p className="text-slate font-archivo leading-relaxed mb-6 max-w-[760px]">
               Dutton Terrace sits at Tumby Bay — a coastal town on South Australia&apos;s Eyre Peninsula,
-              on the shores of Spencer Gulf. The marker shows the estate&apos;s position; lot boundaries
-              follow once the subdivision plan is approved.
+              on the shores of Spencer Gulf. The dashed outline shows the <strong>indicative ~6.3 ha site
+              extent</strong>; the exact lot boundaries follow once the deposited plan is confirmed and the
+              subdivision is approved.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {regionMap && (
@@ -155,18 +171,39 @@ export default function DuttonTerraceEstatePage() {
                   <figcaption className="font-ibm-mono text-[0.6rem] tracking-[0.2em] uppercase text-slate/60 mt-2 text-center">Where in South Australia</figcaption>
                 </figure>
               )}
-              {areaMap && (
+              {parcelMap && (
                 <figure className="bg-white p-2 border border-black/5">
                   <div className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={areaMap} alt="Dutton Terrace, Tumby Bay — local area" className="w-full h-auto" />
-                    <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-[#00B5AD] ring-2 ring-white" aria-hidden />
+                    <img src={parcelMap} alt="Dutton Terrace, Tumby Bay — indicative site extent on satellite imagery" className="w-full h-auto" />
+                    {/* Parcel outline overlay. viewBox matches PARCEL_FRAME so the vector outline
+                        lines up with the raster; preserveAspectRatio="none" keeps it locked to the
+                        responsively-scaled image. Dashed + labelled because it is indicative, not surveyed. */}
+                    <svg
+                      className="absolute inset-0 w-full h-full"
+                      viewBox={`0 0 ${PARCEL_FRAME.width} ${PARCEL_FRAME.height}`}
+                      preserveAspectRatio="none"
+                      aria-hidden
+                    >
+                      <polygon
+                        points={parcelPoints}
+                        fill="#00B5AD"
+                        fillOpacity={0.18}
+                        stroke="#00B5AD"
+                        strokeWidth={2.5}
+                        strokeDasharray="8 5"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span className="absolute top-2 left-2 bg-[#1A2744]/85 text-white font-ibm-mono text-[0.55rem] tracking-[0.15em] uppercase px-2 py-1 rounded">
+                      Indicative extent
+                    </span>
                   </div>
-                  <figcaption className="font-ibm-mono text-[0.6rem] tracking-[0.2em] uppercase text-slate/60 mt-2 text-center">The estate&apos;s area · Tumby Bay</figcaption>
+                  <figcaption className="font-ibm-mono text-[0.6rem] tracking-[0.2em] uppercase text-slate/60 mt-2 text-center">Indicative site extent · Tumby Bay</figcaption>
                 </figure>
               )}
             </div>
-            <p className="font-archivo text-xs text-slate/50 mt-3">Maps © Mapbox © OpenStreetMap. Location indicative at concept stage; the exact subdivision layout follows planning approval.</p>
+            <p className="font-archivo text-xs text-slate/50 mt-3">Maps © Mapbox © OpenStreetMap. The outline is an indicative ~6.3 ha extent centred on the site, not a surveyed boundary; the exact parcel (Allotment 50, Deposited Plan 90582) and subdivision layout follow planning confirmation.</p>
           </div>
         </section>
       )}

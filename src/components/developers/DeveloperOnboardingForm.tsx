@@ -756,12 +756,19 @@ export default function DeveloperOnboardingForm({
       {/* ---- Land title / certificate of title ---- */}
       <div className="border border-black/5 bg-white p-5">
         <p className="font-ibm-mono text-[0.6rem] tracking-[0.3em] uppercase text-[#00B5AD] mb-1">
-          Land title / certificate of title
+          Land title &amp; deposited (survey) plan
         </p>
-        <p className="text-xs text-slate/50 font-archivo mb-4">
-          If you have the certificate of title, upload it here. It confirms
-          ownership and carries the accurate lot details (legal description, area,
-          easements and covenants) we&apos;d need anyway. Optional.
+        <p className="text-xs text-slate/50 font-archivo mb-2">
+          If you have the certificate of title and/or the <strong>deposited (survey)
+          plan</strong> — the document that shows your exact parcel boundaries —
+          upload them here. The title also carries the legal description, area,
+          easements and covenants we&apos;d need anyway. Optional.
+        </p>
+        <p className="text-xs font-archivo mb-4 bg-amber-50 border-l-4 border-amber-400 text-amber-900 px-3 py-2 leading-relaxed">
+          Worth knowing: without the deposited plan we can only show an{" "}
+          <strong>estimated, indicative boundary</strong> on your estate&apos;s map
+          (sized to the site area, not surveyed). Provide it and we can draw the{" "}
+          <strong>exact parcel outline</strong>.
         </p>
 
         <label
@@ -782,7 +789,7 @@ export default function DeveloperOnboardingForm({
             />
           </svg>
           <span className="font-archivo text-sm text-deep-blue font-semibold">
-            Upload land title (optional)
+            Upload title and/or deposited plan (optional)
           </span>
           <span className="font-archivo text-xs text-slate/50 mt-1">
             PDF or image
