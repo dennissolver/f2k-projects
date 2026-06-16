@@ -258,6 +258,55 @@ build."*
 - **Intent lock:** an admin-set soft hold (`intent_locked_to_registration_id`) — a commitment
   *proxy*, explicitly **not** a paid deposit.
 
+---
+
+# Addendum (2026-06-17b): Morgan as the discovery consultant (the interface)
+
+The voice/LLM layer is **not a request translator** — it is a **discovery consultant** that interviews
+the admin to a *precise, unambiguous query spec before anything runs*, captures the **why** (not just
+the what), and **reframes** the request when the data affords a better answer. This is the whole point
+of the LLM interface (operator, 2026-06-17): never pre-guess-and-hand-build a report after the ask,
+and never be blind to gaps at request time. The consultant delivers both.
+
+## The discovery loop (mandatory before any query executes)
+1. **Resolve every slot to an exact value — no vagueness reaches the engine.** Required slots:
+   - **estate** (one of the reportable estates), **window** (explicit dates, not "recent"),
+   - **stage** (which pipeline stage the figure counts at — *especially the cover stage*),
+   - **grain** (per-lot / per-tier / per-buyer-segment), **dedup** (by person vs raw rows),
+   - **cut/segment** (e.g. OO-vs-investor, FHB, finance-ready), **format** (screen / CSV / PDF).
+   She does not proceed on an unresolved slot — she asks.
+2. **Capture the WHY.** Elicit the underlying intent ("what's this for?"). The why licenses a
+   **reframe**: e.g. ask = "registration count," why = "size settlement risk on the mortgage book" →
+   she proposes *cover-by-price-tier at the registered-interest stage*, because a raw count doesn't
+   answer the real question. The reframe is offered, not imposed — the operator confirms.
+3. **Surface gaps live, mid-conversation.** She reads `FUNDER_REPORT_CAPABILITIES` (the manifest in
+   `funder-demand-report.ts`) and knows in-the-moment what is real / self-declared / proxy / gap. If a
+   slot needs un-instrumented data ("borrowing-capacity bands"), she says so *during discovery*,
+   offers the closest proxy (self-declared finance status), and logs the gap to the "data to
+   instrument" roadmap — rather than accepting the request and failing later.
+4. **Confirm the spec back, then run.** She restates the fully-resolved spec ("Seafields · last 8
+   weeks · cover by price tier · registered-interest stage · deduped · PDF — correct?"). Only the
+   **operator-confirmed, Zod-validated structured spec** reaches the engine. This confirm-gate **is**
+   the security spine: a human-confirmed structured spec is exactly what guarantees *zero
+   LLM-authored SQL reaches prod* — the LLM composes primitives + params, never SQL.
+
+## Why this shape
+- **Primitives are her vocabulary.** She composes the confirmed spec from the engine primitives
+  (funnel / coverage / tiering / buyer-mix / trend) + params. New ask → assembly, not new code.
+- **The manifest is her map.** Without it she'd promise vapor and fail at query time; with it she
+  steers within the real data and turns every gap into a roadmap line.
+- **It mirrors the methodology North Star:** the consultant does the precise workup (discovery →
+  unambiguous spec → flag the unknowns), the operator opines and says "go." Morgan is that room,
+  pointed at a report request.
+
+## Build note
+The consultant is the **next phase** over the shipped engine. It needs: (a) a discovery prompt that
+enforces the slot-resolution + WHY-capture + confirm-back loop; (b) the capability manifest passed in
+as context so gaps surface live; (c) a Zod `ReportQuerySpec` the confirmed conversation emits, which
+the existing seam executes. Reuse Morgan with a per-surface override (as developer/funder/employer do)
+— likely no new ElevenLabs agent. The proof surface (`/admin/reports`) is the engine validation; the
+consultant adds the door.
+
 ## What I noticed about how you think
 - You gave five real, named asks the moment I pushed for them — "registrations for Branscombe within
   a date range," "a download of Seafields registrations between these dates." Most people answer
