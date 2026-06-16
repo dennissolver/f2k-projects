@@ -291,7 +291,8 @@ export default function RegistrationForm() {
           <span className="text-sm text-slate font-archivo leading-relaxed">
             I understand this is a Registration of Interest only — no deposit or commitment is required
             or implied, and all details are indicative and subject to planning approval. I agree to be
-            added to the Factory2Key database to receive Dutton Terrace updates.
+            added to the Factory2Key database to receive Dutton Terrace updates. Factory2Key may email
+            me an acknowledgement and further information about this offer, and I can unsubscribe at any time.
           </span>
         </label>
 

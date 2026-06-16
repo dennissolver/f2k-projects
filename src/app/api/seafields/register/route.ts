@@ -154,6 +154,7 @@ export async function POST(request: Request) {
       agent_id: d.referrer_agent_id ?? null,
       notes: d.notes ?? null,
       consent: true,
+      consent_at: new Date().toISOString(),
       source: d.source ?? "web-roi",
     } as never)
     .select("id")
@@ -386,6 +387,7 @@ export async function POST(request: Request) {
       slug: "registration_confirmation",
       to: d.email,
       triggeredByEmail: d.email,
+      appendComplianceFooterFor: d.email,
       variables: {
         first_name: d.first_name,
         lot_list: lotListPlain,

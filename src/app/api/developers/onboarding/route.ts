@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseService } from "@/lib/supabase-service";
 import { escapeHtml } from "@/lib/html-escape";
 import { runPropertyCheck, propertyCheckEmailBlock } from "@/lib/property-check";
+import { registrantAckFooterHtml } from "@/lib/email/unsubscribe";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -447,6 +448,7 @@ export async function POST(request: Request) {
               Warm regards,<br><strong>The Factory2Key Team</strong>
             </p>
           </div>
+          ${registrantAckFooterHtml(d.email)}
         </div>`,
     });
   } catch (err) {

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createSupabaseService } from "@/lib/supabase-service";
 import { escapeHtml } from "@/lib/html-escape";
+import { guardRecipients } from "@/lib/email/recipient-guard";
+import { registrantAckFooterHtml } from "@/lib/email/unsubscribe";
 import { z } from "zod";
 
 const schema = z.object({
@@ -67,6 +69,8 @@ export async function POST(request: Request) {
     referrer_company: d.referrer_company,
     referrer_contact: d.referrer_contact,
     notes: d.notes,
+    consent: d.consent,
+    consent_at: new Date().toISOString(),
     source: "web-roi",
     created_at: new Date().toISOString(),
   });
@@ -79,6 +83,40 @@ export async function POST(request: Request) {
       email: d.email,
       interest_type: d.interest_type,
     });
+  }
+
+  // Confirmation to the registrant (approved opt-in acknowledgement). Best-effort.
+  try {
+    const { Resend } = await import("resend");
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const from = process.env.RESEND_FROM_EMAIL || "Factory2Key <onboarding@resend.dev>";
+    const confirmGuard = guardRecipients([d.email], { triggeredByEmail: d.email });
+    await resend.emails.send({
+      from,
+      to: confirmGuard.to,
+      subject: "Factory2Key — your Wavecrest registration is received",
+      html: `
+        <div style="max-width:600px;font-family:sans-serif">
+          <div style="background:#142C44;padding:24px 32px">
+            <h1 style="color:#fff;margin:0;font-size:22px">Factory2Key · Wavecrest</h1>
+          </div>
+          <div style="padding:32px;background:#fff">
+            <p style="font-size:16px;color:#142C44">Hi ${escapeHtml(d.first_name)},</p>
+            <p style="font-size:14px;color:#4A5568;line-height:1.6">
+              Thanks — we&apos;ve received your registration of interest in Wavecrest. We&apos;ll be in touch with updates and further information about the offer as the estate progresses.
+            </p>
+            <p style="font-size:14px;color:#4A5568;line-height:1.6">
+              This is a registration of interest only — no deposit or commitment is required, and you&apos;re under no obligation.
+            </p>
+            <p style="font-size:14px;color:#142C44;margin-top:24px">
+              Kind regards,<br><strong>The Factory2Key Team</strong>
+            </p>
+          </div>
+          ${registrantAckFooterHtml(d.email)}
+        </div>`,
+    });
+  } catch (err) {
+    console.error("Wavecrest confirmation email failed:", err);
   }
 
   return NextResponse.json({ success: true });

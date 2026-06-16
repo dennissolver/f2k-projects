@@ -1398,7 +1398,8 @@ export default function RegistrationForm() {
                 differ from what is shown on this page.
               </strong>{" "}
               Final figures will be confirmed with me in writing prior to any
-              contract of sale.
+              contract of sale. Factory2Key may email me an acknowledgement and
+              further information about this offer, and I can unsubscribe at any time.
             </span>
           </label>
 

@@ -963,7 +963,9 @@ export default function DeveloperOnboardingForm({
         <span className="text-sm text-slate font-archivo leading-relaxed">
           I&apos;m happy for Factory2Key to contact me about my project and to
           store the details and files I&apos;ve provided. I understand this is an
-          enquiry only and creates no obligation on either side.
+          enquiry only and creates no obligation on either side. Factory2Key may
+          email me an acknowledgement and further information, and I can unsubscribe
+          at any time.
         </span>
       </label>
 

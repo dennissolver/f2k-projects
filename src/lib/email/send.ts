@@ -53,6 +53,12 @@ export type SendTemplatedArgs = {
    * guard catch production test-traffic even when `to` is a real recipient.
    */
   triggeredByEmail?: string | null;
+  /**
+   * When set, append the Spam-Act compliance footer (Factory2Key ID + ABN + a signed
+   * one-click unsubscribe for this address) to the rendered html + text. Use for any
+   * registrant-facing commercial/acknowledgement template.
+   */
+  appendComplianceFooterFor?: string;
 };
 
 export type SendTemplatedResult = {
@@ -108,8 +114,18 @@ export async function sendTemplated(
 
   const vars = args.variables ?? {};
   const subject = interpolate(tpl.subject, vars, false);
-  const html = interpolate(tpl.html_body, vars, true);
-  const text = tpl.text_body ? interpolate(tpl.text_body, vars, false) : undefined;
+  let html = interpolate(tpl.html_body, vars, true);
+  let text = tpl.text_body ? interpolate(tpl.text_body, vars, false) : undefined;
+
+  // Spam-Act compliance footer (identification + ABN + signed unsubscribe), appended after
+  // interpolation so the footer HTML isn't escaped by the template's variable-escaping.
+  if (args.appendComplianceFooterFor) {
+    const { registrantAckFooterHtml, registrantAckFooterText } = await import(
+      "@/lib/email/unsubscribe"
+    );
+    html = `${html}\n${registrantAckFooterHtml(args.appendComplianceFooterFor)}`;
+    text = `${text ?? ""}\n\n${registrantAckFooterText(args.appendComplianceFooterFor)}`;
+  }
 
   // Keep test-tester + non-production traffic out of real recipients' inboxes.
   const guard = guardRecipients(args.to, { triggeredByEmail: args.triggeredByEmail });

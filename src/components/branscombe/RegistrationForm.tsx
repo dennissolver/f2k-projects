@@ -1111,7 +1111,9 @@ export default function RegistrationForm() {
               Final figures will be confirmed with me in writing prior to any
               contract of sale. I agree to have my details added to the
               Factory2Key database and to receive project updates, news, and
-              development progress communications.
+              development progress communications. Factory2Key may email me an
+              acknowledgement and further information about this offer, and I can
+              unsubscribe at any time.
             </span>
           </label>
 

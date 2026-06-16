@@ -3,6 +3,7 @@ import { createSupabaseService } from "@/lib/supabase-service";
 import { escapeHtml } from "@/lib/html-escape";
 import { guardRecipients } from "@/lib/email/recipient-guard";
 import { getActiveFunderRecipients } from "@/lib/funder/notify";
+import { registrantAckFooterHtml } from "@/lib/email/unsubscribe";
 import { z } from "zod";
 
 export const dynamic = "force-dynamic";
@@ -171,6 +172,7 @@ export async function POST(request: Request) {
       preferred_structure: d.preferred_structure ?? null,
       upload_url: uploadUrl,
       consent: d.consent,
+      consent_at: d.consent ? new Date().toISOString() : null,
       voice_transcript: d.voice_transcript ?? [],
       voice_conversation_id: d.voice_conversation_id ?? null,
       source_page: d.source_page ?? null,
@@ -311,6 +313,7 @@ export async function POST(request: Request) {
               Kind regards,<br><strong>The Factory2Key Team</strong>
             </p>
           </div>
+          ${registrantAckFooterHtml(d.email)}
         </div>`,
     });
   } catch (err) {

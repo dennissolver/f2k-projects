@@ -7,6 +7,7 @@ import {
   renderBrandedEmail,
 } from "@/lib/branscombe/notify";
 import { guardRecipients } from "@/lib/email/recipient-guard";
+import { registrantAckFooterHtml } from "@/lib/email/unsubscribe";
 import { z } from "zod";
 
 const schema = z.object({
@@ -79,6 +80,7 @@ export async function POST(request: Request) {
     agent_id: d.referrer_agent_id ?? null,
     notes: d.notes ?? null,
     consent: true,
+    consent_at: new Date().toISOString(),
     source: "web-roi",
   } as never);
 
@@ -285,11 +287,7 @@ export async function POST(request: Request) {
               <strong>The Factory2Key Team</strong>
             </p>
           </div>
-          <div style="background:#F5F3EE;padding:16px 32px;font-size:11px;color:#999;line-height:1.6">
-            Branscombe Estate — 37 homes at 122–124 Branscombe Road, Claremont TAS 7011<br>
-            You're receiving this email because you registered your interest via the Factory2Key website.<br>
-            Factory2Key Pty Ltd &middot; <a href="https://factory2key.com.au" style="color:#999">factory2key.com.au</a>
-          </div>
+          ${registrantAckFooterHtml(d.email)}
         </div>
       `,
     });

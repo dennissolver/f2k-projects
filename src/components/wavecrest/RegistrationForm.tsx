@@ -649,7 +649,9 @@ export default function RegistrationForm() {
             or commitment is required or implied. All information shown is
             indicative and subject to final confirmation against the contract
             documentation. I agree to have my details added to the Factory2Key
-            database and to receive project updates and communications.
+            database and to receive project updates and communications. Factory2Key
+            may email me an acknowledgement and further information about this offer,
+            and I can unsubscribe at any time.
           </span>
         </label>
 

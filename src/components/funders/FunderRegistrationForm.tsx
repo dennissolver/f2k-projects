@@ -412,7 +412,8 @@ export default function FunderRegistrationForm({
           <a href="/funders/terms" className="text-[#1B3A5B] underline">
             funder terms
           </a>
-          . *
+          . Factory2Key may email me an acknowledgement and further information about
+          this offer, and I can unsubscribe at any time. *
         </span>
       </label>
 
