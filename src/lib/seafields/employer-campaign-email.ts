@@ -2,8 +2,14 @@
 // Used by the campaign send route for BOTH the test send and the live send, so the
 // email the operator reviews is byte-identical to what prospects receive.
 //
-// Dennis-signed; From the verified Resend sender, Reply-To Dennis. Spam-Act compliant:
-// clear sender identification + a working one-click unsubscribe link.
+// Dennis-signed; From the verified Resend sender, Reply-To Dennis. Spam-Act compliant via the
+// shared compliance footer (Factory2Key + ABN + postal + a prominent unsubscribe; inferred-consent
+// basis since prospects are conspicuously-published local businesses).
+
+import {
+  complianceFooterHtml,
+  complianceFooterText,
+} from "@/lib/email/compliance";
 
 function escapeHtml(s: string): string {
   return s
@@ -53,8 +59,7 @@ Dennis McMahon
 Factory2Key
 +61 402 612 471 | dennis@factory2key.com.au
 
-Factory2Key · PO Box 1390, Upwey VIC 3158
-You received this because your business is publicly listed in the Geraldton/Midwest trades. To opt out: ${unsubscribeUrl}`;
+${complianceFooterText({ unsubscribeUrl, reason: "You received this because your business is publicly listed in the Geraldton/Midwest trades and this offer relates to housing your workers." })}`;
 
   const html = `<div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:600px;margin:0 auto;color:#1f2a37;">
   <div style="background:#142C44;padding:22px 28px;">
@@ -79,10 +84,7 @@ You received this because your business is publicly listed in the Geraldton/Midw
       <a href="mailto:dennis@factory2key.com.au" style="color:#1B3A5B;">dennis@factory2key.com.au</a>
     </p>
   </div>
-  <div style="background:#F5F3EE;padding:16px 28px;font-size:11px;color:#8a8a8a;line-height:1.5;">
-    Factory2Key · PO Box 1390, Upwey VIC 3158. You received this because your business is publicly listed in the Geraldton/Midwest trades and this offer relates to housing your workers.
-    <a href="${unsubscribeUrl}" style="color:#8a8a8a;text-decoration:underline;">Unsubscribe</a> and we won't email you again.
-  </div>
+  ${complianceFooterHtml({ unsubscribeUrl, reason: "You received this because your business is publicly listed in the Geraldton/Midwest trades and this offer relates to housing your workers." })}
 </div>`;
 
   return { subject: CAMPAIGN_SUBJECT, html, text };

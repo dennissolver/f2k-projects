@@ -15,6 +15,7 @@
     "@caistech/ai-client": "^0.1.0",
     "@caistech/corporate-components": "^0.3.3",
     "@caistech/elevenlabs-convai": "^0.4.9",
+    "@caistech/email-compliance": "^0.2.0",
     "@caistech/ghl-client": "^0.1.2",
     "@caistech/mapbox": "^0.2.0",
     "@caistech/property-launch-kit": "^0.3.2",
