@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { ESTATES } from "@/data/estates";
 
 type NavItem = { href: string; label: string; external?: boolean };
 
@@ -12,15 +13,33 @@ const ABOUT_F2K: NavItem = {
   external: true,
 };
 
+// The default/hub nav now leads with an "Estates" menu (registry-driven, below) instead of
+// hardcoded per-estate links, so a newly-onboarded estate appears automatically. The estate-scoped
+// nav (navItemsForPath) is unchanged — a buyer on one estate still sees only that estate's pages.
 const DEFAULT_NAV: NavItem[] = [
   { href: "/", label: "Projects" },
-  { href: "/seafields-estate", label: "Seafields" },
-  { href: "/branscombe-estate", label: "Branscombe" },
-  { href: "/hemp-homes-for-eco-communities", label: "Hemp Homes" },
   { href: "/developers", label: "For Developers" },
   { href: "/blog", label: "Blog" },
   ABOUT_F2K,
 ];
+
+// Estates grouped State → Estate for the hub mega-menu, read from the registry. Location is shown
+// as each estate's subtitle (so the place is visible without a third nav level — matches the
+// admin switcher's two-step shape).
+const ESTATE_MENU: { state: string; estates: { href: string; name: string; location: string }[] }[] =
+  (() => {
+    const order: string[] = [];
+    const map = new Map<string, { href: string; name: string; location: string }[]>();
+    for (const e of ESTATES) {
+      const state = e.stateAbbr === "MULTI" ? "Multi-state" : e.stateName;
+      if (!map.has(state)) {
+        map.set(state, []);
+        order.push(state);
+      }
+      map.get(state)!.push({ href: e.href, name: e.shortName, location: e.location });
+    }
+    return order.map((state) => ({ state, estates: map.get(state)! }));
+  })();
 
 // Developer credited in the header differs per project (Dennis, 2026-06-12):
 // Seafields + Wavecrest are developed by Dual Focus; Branscombe + Hemp Homes by
@@ -71,10 +90,14 @@ function isFunderRoute(pathname: string | null): boolean {
 
 export default function ProjectsHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [estatesOpen, setEstatesOpen] = useState(false);
   const pathname = usePathname();
   const navItems = navItemsForPath(pathname);
   const developer = developerForPath(pathname);
   const funderRoute = isFunderRoute(pathname);
+  // The Estates mega-menu shows only on the hub/default nav — never on an estate-scoped page (a
+  // buyer on one estate must not see cross-links to the others; Uwe, 2026-05-26).
+  const showEstatesMenu = navItems === DEFAULT_NAV;
 
   return (
     <header className="border-b border-slate-200 bg-white sticky top-0 z-50 backdrop-blur-xl bg-white/90">
@@ -113,27 +136,64 @@ export default function ProjectsHeader() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) =>
-              item.external ? (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 rounded-lg text-sm transition-colors duration-200 text-slate-500 hover:text-slate-900 no-underline"
-                >
-                  {item.label} ↗
-                </a>
-              ) : (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="px-4 py-2 rounded-lg text-sm transition-colors duration-200 text-slate-500 hover:text-slate-900 no-underline"
-                >
-                  {item.label}
-                </Link>
-              ),
-            )}
+            {navItems.map((item) => (
+              <Fragment key={item.href}>
+                {item.external ? (
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 rounded-lg text-sm transition-colors duration-200 text-slate-500 hover:text-slate-900 no-underline"
+                  >
+                    {item.label} ↗
+                  </a>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className="px-4 py-2 rounded-lg text-sm transition-colors duration-200 text-slate-500 hover:text-slate-900 no-underline"
+                  >
+                    {item.label}
+                  </Link>
+                )}
+                {showEstatesMenu && item.href === "/" && (
+                  <div
+                    className="relative"
+                    onMouseLeave={() => setEstatesOpen(false)}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setEstatesOpen((v) => !v)}
+                      aria-expanded={estatesOpen}
+                      className="px-4 py-2 rounded-lg text-sm text-slate-500 hover:text-slate-900"
+                    >
+                      Estates ▾
+                    </button>
+                    {estatesOpen && (
+                      <div className="absolute left-0 top-full z-50 mt-1 w-64 rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+                        {ESTATE_MENU.map((grp) => (
+                          <div key={grp.state} className="py-1">
+                            <p className="px-3 py-1 text-[0.6rem] uppercase tracking-wide text-slate-400">
+                              {grp.state}
+                            </p>
+                            {grp.estates.map((e) => (
+                              <Link
+                                key={e.href}
+                                href={e.href}
+                                onClick={() => setEstatesOpen(false)}
+                                className="block rounded px-3 py-2 no-underline hover:bg-slate-100"
+                              >
+                                <span className="block text-sm text-slate-900">{e.name}</span>
+                                <span className="block text-xs text-slate-500">{e.location}</span>
+                              </Link>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Fragment>
+            ))}
           </nav>
 
           <button
@@ -162,29 +222,50 @@ export default function ProjectsHeader() {
 
         {menuOpen && (
           <nav className="md:hidden border-t border-slate-200 py-2">
-            {navItems.map((item) =>
-              item.external ? (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-3 text-base no-underline transition-colors text-slate-700 hover:text-slate-900 hover:bg-slate-100"
-                >
-                  {item.label} ↗
-                </a>
-              ) : (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-3 text-base no-underline transition-colors text-slate-700 hover:text-slate-900 hover:bg-slate-100"
-                >
-                  {item.label}
-                </Link>
-              ),
-            )}
+            {navItems.map((item) => (
+              <Fragment key={item.href}>
+                {item.external ? (
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-3 text-base no-underline transition-colors text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+                  >
+                    {item.label} ↗
+                  </a>
+                ) : (
+                  <Link
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-3 text-base no-underline transition-colors text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+                  >
+                    {item.label}
+                  </Link>
+                )}
+                {showEstatesMenu && item.href === "/" && (
+                  <div className="my-1 border-y border-slate-100 py-1">
+                    {ESTATE_MENU.map((grp) => (
+                      <div key={grp.state}>
+                        <p className="px-4 pt-2 text-[0.6rem] uppercase tracking-wide text-slate-400">
+                          {grp.state}
+                        </p>
+                        {grp.estates.map((e) => (
+                          <Link
+                            key={e.href}
+                            href={e.href}
+                            onClick={() => setMenuOpen(false)}
+                            className="block px-6 py-3 text-base no-underline text-slate-700 hover:bg-slate-100"
+                          >
+                            {e.name}
+                          </Link>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Fragment>
+            ))}
           </nav>
         )}
       </div>
