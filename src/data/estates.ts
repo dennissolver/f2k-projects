@@ -34,6 +34,10 @@ export interface Estate {
   // Include this estate in the analytics dashboard. Traffic (from Umami, filtered by `href`)
   // is tracked for every estate; conversion only where `registrationsTable` is set.
   trackAnalytics?: boolean;
+  // Parked: hidden from ALL public surfaces (nav menu, landing cards, map pin, state page) and
+  // shown greyed/disabled in the admin switcher. The estate page still exists at its href (direct
+  // URL works) — it's just unlinked publicly. Use while an estate isn't ready to be marketed.
+  parked?: boolean;
 }
 
 export const ESTATES: Estate[] = [
@@ -76,6 +80,7 @@ export const ESTATES: Estate[] = [
     cta: "Register interest",
     registrationsTable: "wavecrest_registrations",
     trackAnalytics: true,
+    parked: true, // hidden from public surfaces + greyed in admin until ready to market
   },
   {
     slug: "dutton-terrace",
@@ -165,14 +170,19 @@ export const STATE_NAMES: Record<StateAbbr, string> = {
 
 export const ALL_STATE_ABBRS: StateAbbr[] = ["WA", "NT", "SA", "QLD", "NSW", "VIC", "TAS", "ACT"];
 
-/** Estates physically located in a given state (excludes MULTI-state programmes). */
-export function estatesInState(abbr: StateAbbr): Estate[] {
-  return ESTATES.filter((e) => e.stateAbbr === abbr);
+/** Estates shown on PUBLIC surfaces (excludes parked estates). */
+export function publicEstates(): Estate[] {
+  return ESTATES.filter((e) => !e.parked);
 }
 
-/** Estates with a map pin (have coords). */
+/** Estates physically located in a given state (excludes MULTI-state programmes + parked). */
+export function estatesInState(abbr: StateAbbr): Estate[] {
+  return ESTATES.filter((e) => e.stateAbbr === abbr && !e.parked);
+}
+
+/** Estates with a map pin (have coords) — excludes parked estates. */
 export function pinnedEstates(): Estate[] {
-  return ESTATES.filter((e) => e.coords !== null);
+  return ESTATES.filter((e) => e.coords !== null && !e.parked);
 }
 
 /** Multi-state / unpinned programmes. */

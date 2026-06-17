@@ -22,25 +22,45 @@ const GLOBAL_NAV: NavItem[] = [
   { href: "/admin/audit-log", label: "Audit Log", group: "Compliance" },
 ];
 
-// Estates that have at least one admin section, grouped State → Estate for the switcher.
+// An estate appears in the switcher if it has any admin sections (parked estates are shown greyed).
 const SWITCHER_ESTATES = ESTATES.filter((e) => sectionsForEstate(e.slug).length > 0);
 
+// State display order — WA, TAS, SA first (the states we have estates in), the rest as they come,
+// Multi-state programmes last. New states appear automatically once they have an estate.
+const STATE_ORDER = ["WA", "TAS", "SA", "NT", "QLD", "NSW", "VIC", "ACT", "MULTI"];
+
+interface EstateNode {
+  slug: string;
+  name: string;
+  parked: boolean;
+}
 interface StateGroup {
   stateAbbr: string;
   stateName: string;
-  estates: { slug: string; name: string }[];
+  estates: EstateNode[];
 }
+
 function groupByState(): StateGroup[] {
   const map = new Map<string, StateGroup>();
   for (const e of SWITCHER_ESTATES) {
-    const key = e.stateAbbr;
-    if (!map.has(key)) map.set(key, { stateAbbr: key, stateName: e.stateName, estates: [] });
-    map.get(key)!.estates.push({ slug: e.slug, name: e.shortName });
+    if (!map.has(e.stateAbbr)) {
+      map.set(e.stateAbbr, {
+        stateAbbr: e.stateAbbr,
+        stateName: e.stateAbbr === "MULTI" ? "Multi-state" : e.stateName,
+        estates: [],
+      });
+    }
+    map.get(e.stateAbbr)!.estates.push({
+      slug: e.slug,
+      name: e.shortName,
+      parked: Boolean(e.parked),
+    });
   }
-  return Array.from(map.values());
+  return Array.from(map.values()).sort(
+    (a, b) => STATE_ORDER.indexOf(a.stateAbbr) - STATE_ORDER.indexOf(b.stateAbbr),
+  );
 }
 
-const LAST_STATE_KEY = "f2k.admin.lastState";
 const LAST_ESTATE_KEY = "f2k.admin.lastEstate";
 
 export function AdminSidebar({ email }: { email?: string | null }) {
@@ -48,33 +68,33 @@ export function AdminSidebar({ email }: { email?: string | null }) {
   const [signingOut, setSigningOut] = useState(false);
 
   const groups = useMemo(groupByState, []);
-  const [stateAbbr, setStateAbbr] = useState<string>(groups[0]?.stateAbbr ?? "");
-  const [estateSlug, setEstateSlug] = useState<string>(groups[0]?.estates[0]?.slug ?? "");
 
-  // Remember the last-used state + estate (the two-click cost is paid once per context switch).
+  // The first non-parked estate is the sensible default selection.
+  const firstSelectable = useMemo(() => {
+    for (const g of groups) {
+      const e = g.estates.find((x) => !x.parked);
+      if (e) return { state: g.stateAbbr, slug: e.slug };
+    }
+    return { state: groups[0]?.stateAbbr ?? "", slug: groups[0]?.estates[0]?.slug ?? "" };
+  }, [groups]);
+
+  const [activeEstate, setActiveEstate] = useState<string>(firstSelectable.slug);
+  const [expandedState, setExpandedState] = useState<string>(firstSelectable.state);
+
+  // Restore the last-used estate (and expand its state).
   useEffect(() => {
-    const s = localStorage.getItem(LAST_STATE_KEY);
-    const e = localStorage.getItem(LAST_ESTATE_KEY);
-    if (s && groups.some((g) => g.stateAbbr === s)) {
-      setStateAbbr(s);
-      const grp = groups.find((g) => g.stateAbbr === s)!;
-      setEstateSlug(e && grp.estates.some((x) => x.slug === e) ? e : grp.estates[0]?.slug ?? "");
+    const saved = localStorage.getItem(LAST_ESTATE_KEY);
+    if (!saved) return;
+    const grp = groups.find((g) => g.estates.some((e) => e.slug === saved && !e.parked));
+    if (grp) {
+      setActiveEstate(saved);
+      setExpandedState(grp.stateAbbr);
     }
   }, [groups]);
 
-  const estatesInState = groups.find((g) => g.stateAbbr === stateAbbr)?.estates ?? [];
-  const sections = sectionsForEstate(estateSlug);
-
-  function onStateChange(next: string) {
-    setStateAbbr(next);
-    const firstEstate = groups.find((g) => g.stateAbbr === next)?.estates[0]?.slug ?? "";
-    setEstateSlug(firstEstate);
-    localStorage.setItem(LAST_STATE_KEY, next);
-    localStorage.setItem(LAST_ESTATE_KEY, firstEstate);
-  }
-  function onEstateChange(next: string) {
-    setEstateSlug(next);
-    localStorage.setItem(LAST_ESTATE_KEY, next);
+  function selectEstate(slug: string) {
+    setActiveEstate(slug);
+    localStorage.setItem(LAST_ESTATE_KEY, slug);
   }
 
   const isActive = (href: string) =>
@@ -119,7 +139,7 @@ export function AdminSidebar({ email }: { email?: string | null }) {
         </div>
       </a>
 
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 space-y-1 overflow-y-auto">
         {/* GLOBAL */}
         {GLOBAL_NAV.map((item, i) => {
           const showGroup = item.group && (i === 0 || GLOBAL_NAV[i - 1]?.group !== item.group);
@@ -135,46 +155,66 @@ export function AdminSidebar({ email }: { email?: string | null }) {
           );
         })}
 
-        {/* ESTATE SWITCHER — two-step State → Estate */}
+        {/* ESTATES — states at the top level; click a state to reveal its estates */}
         {groups.length > 0 && (
           <div className="mt-5 border-t border-white/10 pt-4">
-            <p className="mb-2 px-3 text-[0.6rem] uppercase tracking-[0.25em] text-slate-500">
-              Estate
+            <p className="mb-1 px-3 text-[0.6rem] uppercase tracking-[0.25em] text-slate-500">
+              Estates
             </p>
-            <div className="space-y-2 px-1">
-              <select
-                aria-label="State"
-                value={stateAbbr}
-                onChange={(e) => onStateChange(e.target.value)}
-                className="w-full rounded bg-slate-800 px-2 py-2 text-sm text-white"
-              >
-                {groups.map((g) => (
-                  <option key={g.stateAbbr} value={g.stateAbbr}>
-                    {g.stateName}
-                  </option>
-                ))}
-              </select>
-              <select
-                aria-label="Estate"
-                value={estateSlug}
-                onChange={(e) => onEstateChange(e.target.value)}
-                className="w-full rounded bg-slate-800 px-2 py-2 text-sm text-white"
-              >
-                {estatesInState.map((e) => (
-                  <option key={e.slug} value={e.slug}>
-                    {e.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {groups.map((g) => {
+              const open = expandedState === g.stateAbbr;
+              return (
+                <div key={g.stateAbbr}>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedState(open ? "" : g.stateAbbr)}
+                    aria-expanded={open}
+                    className="flex w-full items-center justify-between rounded px-3 py-2 text-left text-sm font-medium hover:bg-white/10"
+                  >
+                    <span>{g.stateName}</span>
+                    <span className="text-xs text-slate-400">{open ? "▾" : "▸"}</span>
+                  </button>
 
-            <div className="mt-2 space-y-1">
-              {sections.length === 0 ? (
-                <p className="px-3 py-2 text-xs text-slate-500">No admin sections yet.</p>
-              ) : (
-                sections.map((s) => link(s.href, s.label, `${estateSlug}:${s.href}`))
-              )}
-            </div>
+                  {open && (
+                    <div className="ml-2 border-l border-white/10 pl-2">
+                      {g.estates.map((e) =>
+                        e.parked ? (
+                          <div
+                            key={e.slug}
+                            className="flex cursor-not-allowed items-center justify-between rounded px-3 py-2 text-sm text-slate-500"
+                            title="Parked — not active yet"
+                          >
+                            <span>{e.name}</span>
+                            <span className="text-[0.55rem] uppercase tracking-wide">parked</span>
+                          </div>
+                        ) : (
+                          <div key={e.slug}>
+                            <button
+                              type="button"
+                              onClick={() => selectEstate(e.slug)}
+                              className={`block w-full rounded px-3 py-2 text-left text-sm transition-colors ${
+                                activeEstate === e.slug
+                                  ? "bg-white/10 font-medium text-white"
+                                  : "hover:bg-white/10"
+                              }`}
+                            >
+                              {e.name}
+                            </button>
+                            {activeEstate === e.slug && (
+                              <div className="ml-2 border-l border-white/10 pl-2">
+                                {sectionsForEstate(e.slug).map((s) =>
+                                  link(s.href, s.label, `${e.slug}:${s.href}`),
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </nav>

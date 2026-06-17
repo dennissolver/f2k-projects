@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ESTATES,
+  publicEstates,
   STATE_COLORS,
   STATE_NAMES,
   ALL_STATE_ABBRS,
@@ -205,7 +205,7 @@ export default function AustraliaMap() {
               <Link href={stateHref(abbr)}>{STATE_NAMES[abbr]}</Link>
             </li>
           ))}
-          {ESTATES.map((e) => (
+          {publicEstates().map((e) => (
             <li key={e.slug}>
               <Link href={e.href}>
                 {e.name} — {e.location}

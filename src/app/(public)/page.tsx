@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import AustraliaMap from "@/components/AustraliaMap";
 import EstateCard from "@/components/EstateCard";
-import { ESTATES } from "@/data/estates";
+import { publicEstates } from "@/data/estates";
 
 const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
@@ -82,7 +82,7 @@ export default function HomePage({
             Every Factory2Key development
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {ESTATES.map((e) => (
+            {publicEstates().map((e) => (
               <EstateCard key={e.slug} estate={e} />
             ))}
           </div>

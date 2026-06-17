@@ -3,7 +3,7 @@
 import { useState, Fragment } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { ESTATES } from "@/data/estates";
+import { publicEstates } from "@/data/estates";
 
 type NavItem = { href: string; label: string; external?: boolean };
 
@@ -30,7 +30,7 @@ const ESTATE_MENU: { state: string; estates: { href: string; name: string; locat
   (() => {
     const order: string[] = [];
     const map = new Map<string, { href: string; name: string; location: string }[]>();
-    for (const e of ESTATES) {
+    for (const e of publicEstates()) {
       const state = e.stateAbbr === "MULTI" ? "Multi-state" : e.stateName;
       if (!map.has(state)) {
         map.set(state, []);
