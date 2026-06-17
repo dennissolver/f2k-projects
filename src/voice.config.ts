@@ -64,3 +64,17 @@ export const employerVoiceConfig: VoiceConfig = {
   mode: "discovery",
   textFallback: true,
 };
+
+// Morgan (admin REPORTS consultant) — reuses the provisioned Morgan agent with per-surface prompt
+// overrides (same mechanism as Sloane/employer), so no separate agent is provisioned. The
+// ReportsVoiceAgent ALWAYS passes the reports prompt+greeting as overrides, and the typed fallback
+// routes through /api/admin/reports/voice so spoken + typed never drift. Admin-only surface.
+export const reportsVoiceConfig: VoiceConfig = {
+  agentId:
+    process.env.NEXT_PUBLIC_ELEVENLABS_REPORTS_AGENT_ID ||
+    process.env.NEXT_PUBLIC_ELEVENLABS_DEVELOPER_AGENT_ID ||
+    "agent_5901ktzqy26zf9e9eyvxqfr28x47",
+  placement: "inline",
+  mode: "discovery",
+  textFallback: true,
+};
