@@ -4,7 +4,7 @@ import { createSupabaseService } from "@/lib/supabase-service";
 
 export const dynamic = "force-dynamic";
 
-type ProjectFilter = "all" | "seafields" | "branscombe" | "hemp";
+type ProjectFilter = "all" | "seafields" | "branscombe" | "dutton" | "hemp";
 
 // Unified, fixed column order so every row aligns regardless of source project.
 const HEADERS = [
@@ -128,6 +128,36 @@ export async function GET(request: Request) {
         Referrer: "",
         "Registered At": formatDate(r.created_at),
       });
+    }
+  }
+
+  if (filter === "all" || filter === "dutton") {
+    try {
+      const { data } = await (service.from("dutton_registrations") as any)
+        .select("*")
+        .order("created_at", { ascending: false });
+      for (const r of (data as any[]) || []) {
+        rows.push({
+          Project: "Dutton Terrace",
+          "Registration ID": r.id,
+          Name: `${r.first_name ?? ""} ${r.last_name ?? ""}`.trim(),
+          Email: r.email ?? "",
+          Phone: r.phone ?? "",
+          Location: [r.suburb, r.postcode].filter(Boolean).join(" "),
+          Items: [r.interest_type, r.lot_size_preference, r.budget_band].filter(Boolean).join(", "),
+          "Buyer Type": r.buyer_type ?? "",
+          "Purchase Timeline": r.purchase_timeline ?? "",
+          "Finance Status": r.finance_status ?? "",
+          Stage: "",
+          Status: "",
+          "Assigned Agent": agentMap.get(r.referrer_agent_id) ?? "",
+          "Build Preference": "",
+          Referrer: [r.referrer_name, r.referrer_company].filter(Boolean).join(" — "),
+          "Registered At": formatDate(r.created_at),
+        });
+      }
+    } catch {
+      // table may not exist yet — skip silently
     }
   }
 

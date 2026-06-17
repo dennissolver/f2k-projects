@@ -4,11 +4,11 @@ import { RegistrationActions } from "./RegistrationActions";
 
 export const dynamic = "force-dynamic";
 
-type ProjectFilter = "all" | "seafields" | "branscombe" | "hemp";
+type ProjectFilter = "all" | "seafields" | "branscombe" | "dutton" | "hemp";
 
 interface UnifiedRegistration {
   id: string;
-  project: "seafields" | "branscombe" | "hemp";
+  project: "seafields" | "branscombe" | "dutton" | "hemp";
   created_at: string;
   name: string;
   email: string;
@@ -84,6 +84,34 @@ async function loadRegistrations(filter: ProjectFilter, search: string): Promise
     }
   }
 
+  if (filter === "all" || filter === "dutton") {
+    try {
+      const { data } = await (supabase.from("dutton_registrations") as any)
+        .select("*")
+        .order("created_at", { ascending: false });
+      for (const r of (data as any[]) || []) {
+        out.push({
+          id: r.id,
+          project: "dutton",
+          created_at: r.created_at,
+          name: `${r.first_name} ${r.last_name}`.trim(),
+          email: r.email,
+          phone: r.phone,
+          // Dutton is concept-stage (no lot selection yet) — surface the demand signal instead.
+          items: [r.interest_type, r.budget_band].filter(Boolean) as string[],
+          buyer_type: r.buyer_type,
+          purchase_timeline: r.purchase_timeline,
+          finance_status: r.finance_status,
+          agent_name: getAgentName(r.referrer_agent_id ?? null),
+          ownership: null,
+          agent_id: r.referrer_agent_id ?? null,
+        });
+      }
+    } catch {
+      // table may not exist yet — skip silently
+    }
+  }
+
   if (filter === "all" || filter === "hemp") {
     try {
       const { data } = await (supabase.from("hemp_homes_waitlist") as any)
@@ -128,12 +156,14 @@ async function loadRegistrations(filter: ProjectFilter, search: string): Promise
 const PROJECT_LABEL: Record<UnifiedRegistration["project"], string> = {
   seafields: "Seafields",
   branscombe: "Branscombe",
+  dutton: "Dutton Terrace",
   hemp: "Hemp Homes",
 };
 
 const PROJECT_COLOR: Record<UnifiedRegistration["project"], string> = {
   seafields: "bg-cyan-100 text-cyan-800",
   branscombe: "bg-amber-100 text-amber-800",
+  dutton: "bg-teal-100 text-teal-800",
   hemp: "bg-emerald-100 text-emerald-800",
 };
 
@@ -157,6 +187,7 @@ export default async function RegistrationsPage({
     { label: "All", value: "all" },
     { label: "Seafields", value: "seafields" },
     { label: "Branscombe", value: "branscombe" },
+    { label: "Dutton Terrace", value: "dutton" },
     { label: "Hemp Homes", value: "hemp" },
   ];
 
@@ -329,7 +360,7 @@ export default async function RegistrationsPage({
                     )}
                   </td>
                   <td className="px-4 py-2">
-                    {r.project !== "hemp" && (
+                    {(r.project === "seafields" || r.project === "branscombe") && (
                       <RegistrationActions
                         registrationId={r.id}
                         project={r.project}
