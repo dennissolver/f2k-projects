@@ -255,7 +255,7 @@ export default function ProjectsHeader() {
                             key={e.href}
                             href={e.href}
                             onClick={() => setMenuOpen(false)}
-                            className="block px-6 py-3 text-base no-underline text-slate-700 hover:bg-slate-100"
+                            className="flex min-h-[44px] items-center px-6 text-base no-underline text-slate-700 hover:bg-slate-100"
                           >
                             {e.name}
                           </Link>
