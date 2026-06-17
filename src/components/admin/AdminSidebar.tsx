@@ -12,6 +12,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/agents", label: "Agents" },
+  { href: "/admin/reports", label: "Reports" },
   { href: "/admin/registrations", label: "All Registrations", group: "Inbox" },
   // Seafields
   { href: "/admin/estates/seafields/posts", label: "Blog", group: "Seafields" },

@@ -267,6 +267,7 @@ export default function FundersOverview() {
                   className="f2k-rrow"
                   style={{ alignItems: "center", paddingTop: 14 }}
                 >
+                  <span className="k">Indicative margin · generic, pre-GST</span>
                   <span
                     className="f2k-bigmargin"
                     style={{

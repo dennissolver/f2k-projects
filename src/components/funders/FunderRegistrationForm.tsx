@@ -314,7 +314,7 @@ export default function FunderRegistrationForm({
           className="mt-1 accent-[#1B3A5B] h-4 w-4 shrink-0"
         />
         <span className="font-archivo text-sm text-[#5b4a2a] leading-relaxed">
-          I confirm <strong>{orgName.trim() || "[institution]"}</strong> is a registered
+          I confirm <strong>{orgName.trim() || "your institution"}</strong> is a registered
           Australian bank / APRA-authorised ADI, and I am authorised to register this
           interest on its behalf. *
         </span>
