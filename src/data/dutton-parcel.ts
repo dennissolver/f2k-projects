@@ -40,11 +40,11 @@ export interface ParcelOutline {
 // → NE-top → NW → close. Re-rendered over the satellite tile to confirm (S on Dutton Tce, N below
 // Church St, W ~Thuruna Rd, E at the Trezise St road).
 //
-// ⚠ AREA TENSION (flagged for Dennis/Uwe, 2026-06-17): drawing to Rachel's visible extent makes the
-// outline ≈7.9 ha — LARGER than the stated title area (Allotment 50, DP 90582 ≈ 6.306 ha, shown in
-// the page's stats/details). Her aerial outline likely includes more than the titled lot (adjacent
-// land / road reserve) or the 6.306 ha figure needs revisiting. The outline stays INDICATIVE; the
-// stated area is unchanged pending reconciliation — do NOT silently "fix" one to match the other.
+// NOTE on area (Dennis, 2026-06-17): the drawn outline ≈7.9 ha vs the 6.306 ha title figure is NOT
+// worth chasing — F2K sells LOTS (house-and-land), not the parcel en bloc, so the total site area is
+// orientation context, not the product. This outline is an INDICATIVE site boundary only; the real
+// product detail is the LOT LAYOUT (count + indicative lot boundaries), which can only come from the
+// submitter's master plan (requested from Zen/Rachel 2026-06-17). Don't reconcile the two areas.
 export const DUTTON_PARCEL: ParcelOutline = {
   indicative: true,
   areaHa: 6.31, // title-area figure (Allotment 50, DP 90582). NB: the drawn outline ≈7.9 ha — see note.
