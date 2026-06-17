@@ -16,6 +16,7 @@ const GLOBAL_NAV: NavItem[] = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/analytics", label: "Analytics" },
   { href: "/admin/reports", label: "Reports" },
+  { href: "/admin/site-check", label: "Site Check" },
   { href: "/admin/registrations", label: "All Registrations" },
   { href: "/admin/agents", label: "Agents" },
   { href: "/admin/email-templates", label: "Email Templates", group: "Compliance" },
