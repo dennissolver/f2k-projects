@@ -24,6 +24,7 @@
     "@elevenlabs/react": "^1.6.7",
     "@supabase/ssr": "0.5.2",
     "@supabase/supabase-js": "2.47.0",
+    "@umami/api-client": "^0.80.0",
     "googleapis": "^172.0.0",
     "lucide-react": "^1.17.0",
     "mapbox-gl": "^3.23.1",

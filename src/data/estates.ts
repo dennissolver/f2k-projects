@@ -26,6 +26,14 @@ export interface Estate {
   accent: string; // estate brand accent (pin + card hover)
   image: string;
   cta: string;
+  // --- analytics (FTK analytics Phase 1) ---
+  // Supabase table holding this estate's lot/home enquiries — the conversion numerator.
+  // Absent = this estate has no lot-enquiry funnel (e.g. a journey/waitlist model), so the
+  // dashboard renders conversion as N/A rather than a misleading 0%.
+  registrationsTable?: string;
+  // Include this estate in the analytics dashboard. Traffic (from Umami, filtered by `href`)
+  // is tracked for every estate; conversion only where `registrationsTable` is set.
+  trackAnalytics?: boolean;
 }
 
 export const ESTATES: Estate[] = [
@@ -46,6 +54,8 @@ export const ESTATES: Estate[] = [
     accent: "#C77F3A",
     image: "/seafields/masterplan.jpg",
     cta: "Select your lot",
+    registrationsTable: "seafields_registrations",
+    trackAnalytics: true,
   },
   {
     slug: "wavecrest",
@@ -64,6 +74,8 @@ export const ESTATES: Estate[] = [
     accent: "#2B7FB8",
     image: "/wavecrest/site-photo-01.jpg",
     cta: "Register interest",
+    registrationsTable: "wavecrest_registrations",
+    trackAnalytics: true,
   },
   {
     slug: "dutton-terrace",
@@ -82,6 +94,8 @@ export const ESTATES: Estate[] = [
     accent: "#00B5AD",
     image: "", // no render yet (concept stage) — card shows an accent placeholder
     cta: "Register interest",
+    registrationsTable: "dutton_registrations",
+    trackAnalytics: true,
   },
   {
     slug: "branscombe",
@@ -100,6 +114,8 @@ export const ESTATES: Estate[] = [
     accent: "#3E6B48",
     image: "/branscombe/home-exterior-1.jpg",
     cta: "Select your home",
+    registrationsTable: "branscombe_registrations",
+    trackAnalytics: true,
   },
   {
     slug: "hemp-homes",
@@ -118,6 +134,8 @@ export const ESTATES: Estate[] = [
     accent: "#1B4332",
     image: "/hemp-homes/koala70-placeholder-exterior.png",
     cta: "Walk the journey",
+    // No lot-enquiry funnel (journey/waitlist model) → conversion renders N/A.
+    trackAnalytics: true,
   },
 ];
 
@@ -164,6 +182,11 @@ export function multiStateEstates(): Estate[] {
 
 export function estateBySlug(slug: string): Estate | undefined {
   return ESTATES.find((e) => e.slug === slug);
+}
+
+/** Estates included in the analytics dashboard (traffic tracked for all of these). */
+export function trackedEstates(): Estate[] {
+  return ESTATES.filter((e) => e.trackAnalytics);
 }
 
 /** State abbrs that currently have at least one estate (for the map's "active" styling). */
