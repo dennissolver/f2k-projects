@@ -1,6 +1,7 @@
 // @explanatory-header-exempt — nested workflow page; entry-point header lives on the parent surface
 import { createSupabaseService } from "@/lib/supabase-service";
 import { RegistrationActions } from "./RegistrationActions";
+import { interestShortLabel, interestBadgeClass } from "@/lib/seafields/interest";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,10 @@ interface UnifiedRegistration {
   buyer_type: string | null;
   purchase_timeline: string | null;
   finance_status: string | null;
+  // Seafields "Land vs House & Land" selection — decides whether the agent
+  // (land) and Factory2Key (build) need to coordinate. Null for projects
+  // that don't capture it.
+  interest_type: string | null;
   agent_name: string | null;
   ownership: "agent" | "house" | "unassigned" | null;
   agent_id: string | null;
@@ -54,6 +59,7 @@ async function loadRegistrations(filter: ProjectFilter, search: string): Promise
         buyer_type: r.buyer_type,
         purchase_timeline: r.purchase_timeline,
         finance_status: r.finance_status,
+        interest_type: r.interest_type ?? null,
         agent_name: getAgentName(r.agent_id),
         ownership: r.ownership,
         agent_id: r.agent_id,
@@ -77,6 +83,7 @@ async function loadRegistrations(filter: ProjectFilter, search: string): Promise
         buyer_type: r.buyer_type,
         purchase_timeline: r.purchase_timeline,
         finance_status: r.finance_status,
+        interest_type: null,
         agent_name: getAgentName(r.agent_id),
         ownership: r.ownership,
         agent_id: r.agent_id,
@@ -102,6 +109,9 @@ async function loadRegistrations(filter: ProjectFilter, search: string): Promise
           buyer_type: r.buyer_type,
           purchase_timeline: r.purchase_timeline,
           finance_status: r.finance_status,
+          // Dutton's interest_type is a concept-stage demand signal (already
+          // surfaced in `items`), not the Seafields land/house split.
+          interest_type: null,
           agent_name: getAgentName(r.referrer_agent_id ?? null),
           ownership: null,
           agent_id: r.referrer_agent_id ?? null,
@@ -129,6 +139,7 @@ async function loadRegistrations(filter: ProjectFilter, search: string): Promise
           buyer_type: r.i_am_a,
           purchase_timeline: r.timeframe,
           finance_status: r.finance_status,
+          interest_type: null,
           agent_name: null,
           ownership: null,
           agent_id: null,
@@ -277,6 +288,7 @@ export default async function RegistrationsPage({
               <th className="px-4 py-2 font-semibold">Name</th>
               <th className="px-4 py-2 font-semibold">Email</th>
               <th className="px-4 py-2 font-semibold">Items</th>
+              <th className="px-4 py-2 font-semibold">Land / H&amp;L</th>
               <th className="px-4 py-2 font-semibold">Buyer</th>
               <th className="px-4 py-2 font-semibold">Timeline</th>
               <th className="px-4 py-2 font-semibold">Agent</th>
@@ -287,7 +299,7 @@ export default async function RegistrationsPage({
           <tbody className="divide-y divide-slate-100">
             {registrations.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-center text-slate-500" colSpan={10}>
+                  <td className="px-4 py-8 text-center text-slate-500" colSpan={11}>
                     No registrations match these filters.
                   </td>
                 </tr>
@@ -333,6 +345,19 @@ export default async function RegistrationsPage({
                         {r.items.slice(0, 4).join(", ")}
                         {r.items.length > 4 ? "…" : ""}
                       </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2 text-xs">
+                    {r.interest_type ? (
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded text-[0.65rem] font-semibold whitespace-nowrap ${interestBadgeClass(
+                          r.interest_type,
+                        )}`}
+                      >
+                        {interestShortLabel(r.interest_type)}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">—</span>
                     )}
                   </td>
                   <td className="px-4 py-2 text-xs text-slate-600">

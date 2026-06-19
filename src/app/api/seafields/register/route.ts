@@ -7,6 +7,10 @@ import {
   getActiveRecipients,
   renderBrandedEmail,
 } from "@/lib/seafields/notify";
+import {
+  interestEmailTag,
+  interestCoordinationNote,
+} from "@/lib/seafields/interest";
 import { guardRecipients } from "@/lib/email/recipient-guard";
 import { z } from "zod";
 
@@ -284,6 +288,13 @@ export async function POST(request: Request) {
         ? d.lots_selected[0].replace("L", "Lot ")
         : `${d.lots_selected.length} lots (${lotsPlain})`;
 
+    // Land vs House & Land — lead the subject + heading with this so Uwe and
+    // the agent see at a glance which side leads the sale (agent = land,
+    // Factory2Key = build) and whether they need to coordinate.
+    const interestTag = interestEmailTag(d.interest_type);
+    const interestNote = interestCoordinationNote(d.interest_type);
+    const subjectPrefix = interestTag ? `[${interestTag}] ` : "";
+
     const adminRows: Array<{ label: string; value: string }> = [
       { label: "Registrant", value: `<strong>${e.first_name} ${e.last_name}</strong>` },
       {
@@ -343,15 +354,17 @@ export async function POST(request: Request) {
     }
 
     const html = renderBrandedEmail({
-      preheader: `${fullName} registered for ${lotsPlain}`,
+      preheader: `${interestTag ? `${interestTag} — ` : ""}${fullName} registered for ${lotsPlain}`,
       heading:
-        d.lots_selected.length === 1
-          ? `Another registration for ${subjectLotPhrase} by ${fullName}`
-          : `New registration by ${fullName}`,
+        (interestTag ? `${interestTag} — ` : "") +
+        (d.lots_selected.length === 1
+          ? `${interestTag ? "Registration" : "Another registration"} for ${subjectLotPhrase} by ${fullName}`
+          : `New registration by ${fullName}`),
       intro:
-        d.lots_selected.length === 1
+        (d.lots_selected.length === 1
           ? `${escapeHtml(fullName)} just registered interest in <strong>${escapeHtml(subjectLotPhrase)}</strong>.`
-          : `${escapeHtml(fullName)} just registered interest in ${d.lots_selected.length} lots: <strong>${escapeHtml(lotsPlain)}</strong>.`,
+          : `${escapeHtml(fullName)} just registered interest in ${d.lots_selected.length} lots: <strong>${escapeHtml(lotsPlain)}</strong>.`) +
+        (interestNote ? ` <strong>${interestNote}</strong>` : ""),
       rows: adminRows,
       ctaLabel: "Open in admin",
       ctaHref:
@@ -368,7 +381,7 @@ export async function POST(request: Request) {
         process.env.RESEND_FROM_EMAIL ||
         "Seafields Estate <onboarding@resend.dev>",
       to: guard.to,
-      subject: `Another registration for ${subjectLotPhrase} by ${fullName}`,
+      subject: `${subjectPrefix}Another registration for ${subjectLotPhrase} by ${fullName}`,
       html,
     });
 

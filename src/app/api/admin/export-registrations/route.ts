@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminUser, hasPermission } from "@/lib/admin-auth";
 import { createSupabaseService } from "@/lib/supabase-service";
+import { interestShortLabel } from "@/lib/seafields/interest";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ const HEADERS = [
   "Phone",
   "Location",
   "Items",
+  "Land / House & Land",
   "Buyer Type",
   "Purchase Timeline",
   "Finance Status",
@@ -90,6 +92,9 @@ export async function GET(request: Request) {
         Phone: r.phone ?? "",
         Location: "",
         Items: Array.isArray(r.lots_selected) ? r.lots_selected.join(", ") : "",
+        "Land / House & Land": r.interest_type
+          ? interestShortLabel(r.interest_type)
+          : "",
         "Buyer Type": r.buyer_type ?? "",
         "Purchase Timeline": r.purchase_timeline ?? "",
         "Finance Status": r.finance_status ?? "",
@@ -118,6 +123,7 @@ export async function GET(request: Request) {
         Items: Array.isArray(r.units_selected)
           ? r.units_selected.join(", ")
           : "",
+        "Land / House & Land": "",
         "Buyer Type": r.buyer_type ?? "",
         "Purchase Timeline": r.purchase_timeline ?? "",
         "Finance Status": r.finance_status ?? "",
@@ -145,6 +151,7 @@ export async function GET(request: Request) {
           Phone: r.phone ?? "",
           Location: [r.suburb, r.postcode].filter(Boolean).join(" "),
           Items: [r.interest_type, r.lot_size_preference, r.budget_band].filter(Boolean).join(", "),
+          "Land / House & Land": "",
           "Buyer Type": r.buyer_type ?? "",
           "Purchase Timeline": r.purchase_timeline ?? "",
           "Finance Status": r.finance_status ?? "",
@@ -180,6 +187,7 @@ export async function GET(request: Request) {
           Items: Array.isArray(r.regions_of_interest)
             ? r.regions_of_interest.join(", ")
             : "",
+          "Land / House & Land": "",
           "Buyer Type": r.i_am_a ?? "",
           "Purchase Timeline": r.timeframe ?? "",
           "Finance Status": r.finance_status ?? "",

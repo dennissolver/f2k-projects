@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { NotifyRecipientsCard } from "@caistech/property-launch-kit/components";
+import { interestShortLabel, interestBadgeClass } from "@/lib/seafields/interest";
 
 type Status =
   | "active"
@@ -420,6 +421,7 @@ export default function SeafieldsRegistrationsPage() {
                 <th className="px-3 py-2 text-left">Type</th>
                 <th className="px-3 py-2 text-right">Pos</th>
                 <th className="px-3 py-2 text-left">Status</th>
+                <th className="px-3 py-2 text-left">Land / H&amp;L</th>
                 <th className="px-3 py-2 text-left">Registrant</th>
                 <th className="px-3 py-2 text-left">Email</th>
                 <th className="px-3 py-2 text-left">Agent</th>
@@ -471,6 +473,19 @@ export default function SeafieldsRegistrationsPage() {
                         </option>
                       ))}
                     </select>
+                  </td>
+                  <td className="px-3 py-2 whitespace-nowrap">
+                    {r.registration?.interest_type ? (
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded text-[0.65rem] font-semibold ${interestBadgeClass(
+                          r.registration.interest_type,
+                        )}`}
+                      >
+                        {interestShortLabel(r.registration.interest_type)}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
                   </td>
                   <td className="px-3 py-2">
                     <div className="font-semibold text-slate-900">
