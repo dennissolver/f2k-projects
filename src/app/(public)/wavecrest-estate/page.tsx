@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import RegistrationForm from "@/components/wavecrest/RegistrationForm";
 import SiteMap from "@/components/wavecrest/SiteMap";
+import LotList from "@/components/wavecrest/LotList";
 
 export const metadata: Metadata = {
   title: "Wavecrest Estate — Register Your Interest | F2K",
@@ -267,13 +268,38 @@ export default function WavecrestEstatePage() {
             ))}
           </div>
 
-          <div className="bg-amber-50 border-l-4 border-amber-400 px-4 py-3">
-            <p className="font-archivo text-sm text-amber-900 leading-relaxed">
-              <strong>Lot selection coming soon:</strong> Detailed lot plans and
-              pricing will be available once stage approvals are confirmed.
-              Register your interest below and we&apos;ll notify you when lot
-              selection opens.
-            </p>
+          <p className="font-archivo text-xs text-slate/50 leading-relaxed">
+            Stage labelling is being reconciled across the subdivision and sales
+            documentation — the lots below are the currently released grid
+            (Brownlie Street frontage).
+          </p>
+        </div>
+      </section>
+
+      {/* ===== LOT AVAILABILITY ===== */}
+      <section id="lots" className="py-16 px-4 bg-white">
+        <div className="max-w-[1100px] mx-auto">
+          <p className="font-ibm-mono text-[0.65rem] tracking-[0.4em] uppercase text-[#00B5AD] mb-4">
+            Lot Availability
+          </p>
+          <h2 className="font-playfair text-[2rem] font-black text-deep-blue leading-tight mb-3">
+            Browse the Lots
+          </h2>
+          <p className="text-slate font-archivo leading-relaxed mb-8 max-w-[700px]">
+            The current Brownlie Street grid (Lots 83–115). Tap any lot for its
+            size, status and indicative pricing where available. Areas are shown
+            as exact (surveyed), approximate (from the approved plan) or
+            &ldquo;TBC&rdquo; where survey confirmation is pending — we don&apos;t
+            publish a figure we can&apos;t stand behind.
+          </p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div>
+              <SiteMap />
+            </div>
+            <div>
+              <LotList />
+            </div>
           </div>
         </div>
       </section>
