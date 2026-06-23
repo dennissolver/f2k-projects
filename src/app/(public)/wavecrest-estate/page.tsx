@@ -293,6 +293,34 @@ export default function WavecrestEstatePage() {
             publish a figure we can&apos;t stand behind.
           </p>
 
+          <div className="bg-amber-50 border-l-4 border-amber-400 px-4 py-3 mb-6 flex items-start gap-3">
+            <svg
+              className="w-5 h-5 text-amber-600 shrink-0 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 9v2m0 4h.01M4.06 19h15.88a2 2 0 001.79-2.89L13.79 4.11a2 2 0 00-3.58 0L2.27 16.11A2 2 0 004.06 19z"
+              />
+            </svg>
+            <div>
+              <p className="font-archivo font-semibold text-amber-900 text-sm leading-snug">
+                All lot information shown is indicative and subject to final
+                confirmation
+              </p>
+              <p className="text-amber-900/85 font-archivo text-xs leading-relaxed mt-1">
+                Every lot&apos;s size, shape, boundary, area and final lot
+                numbering remains subject to confirmation against the approved
+                deposited plan and final title survey. Registering interest does
+                not guarantee allocation or final dimensions.
+              </p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             <div>
               <SiteMap />
