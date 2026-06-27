@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAdminUser, hasPermission } from "@/lib/admin-auth";
 import { createSupabaseService } from "@/lib/supabase-service";
 import { generateInvite } from "@/lib/agents/invite";
+import { generateAttributionToken } from "@/lib/agents/attribution-token";
 import { renderBrandedEmail } from "@/lib/seafields/notify";
 import { escapeHtml } from "@/lib/html-escape";
 import { guardRecipients } from "@/lib/email/recipient-guard";
@@ -65,6 +66,8 @@ export async function POST(request: Request) {
       estate_access: d.estate_access,
       status: "pending",
       active: true,
+      // ROI portal: every agent gets a tokenised attribution link at create (spec §4).
+      attribution_token: generateAttributionToken(),
       invite_token_hash: invite.tokenHash,
       invite_code_hash: invite.codeHash,
       invite_expires_at: invite.expiresAt,

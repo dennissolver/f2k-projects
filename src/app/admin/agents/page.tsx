@@ -44,6 +44,7 @@ export default function AdminAgentsPage() {
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
   const [viewingAgent, setViewingAgent] = useState<Agent | null>(null);
   const [viewingAsAgent, setViewingAsAgent] = useState<Agent | null>(null);
+  const [sharingAgent, setSharingAgent] = useState<Agent | null>(null);
   const [selectedAgents, setSelectedAgents] = useState<Set<string>>(new Set());
   const [showBulkEmail, setShowBulkEmail] = useState(false);
 
@@ -241,6 +242,12 @@ export default function AdminAgentsPage() {
                         View as
                       </button>
                       <button
+                        onClick={() => setSharingAgent(a)}
+                        className="text-xs px-2 py-1 min-h-[32px] rounded border border-slate-300 hover:bg-slate-50"
+                      >
+                        Share links
+                      </button>
+                      <button
                         onClick={() => setEditingAgent(a)}
                         className="text-xs px-2 py-1 min-h-[32px] rounded border border-slate-300 hover:bg-slate-50"
                       >
@@ -293,6 +300,10 @@ export default function AdminAgentsPage() {
 
       {viewingAsAgent && (
         <ViewAsAgentModal agent={viewingAsAgent} onClose={() => setViewingAsAgent(null)} />
+      )}
+
+      {sharingAgent && (
+        <ShareLinksModal agent={sharingAgent} onClose={() => setSharingAgent(null)} />
       )}
 
       {showBulkEmail && (
@@ -514,6 +525,112 @@ function EditAgentModal({
             {saving ? "Saving…" : "Save changes"}
           </button>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function ShareLinksModal({ agent, onClose }: { agent: Agent; onClose: () => void }) {
+  const [links, setLinks] = useState<{ estate: string; label: string; url: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`/api/admin/agents/${agent.id}/attribution-link`, {
+          method: "POST",
+        });
+        const data = await res.json();
+        if (cancelled) return;
+        if (!res.ok) {
+          setError(data.error || "Failed to load links");
+        } else {
+          setLinks(data.links || []);
+        }
+      } catch {
+        if (!cancelled) setError("Network error");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [agent.id]);
+
+  function copy(url: string) {
+    navigator.clipboard?.writeText(url);
+    setCopied(url);
+    setTimeout(() => setCopied((c) => (c === url ? null : c)), 1500);
+  }
+
+  const inputClass =
+    "w-full border border-slate-300 rounded px-3 py-2.5 text-sm focus:outline-none focus:border-slate-900";
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white w-full sm:max-w-md sm:rounded-lg shadow-2xl max-h-[92vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 bg-white border-b px-5 py-4 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-slate-900">Share links — {agent.name}</h3>
+          <button onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-700 text-2xl leading-none">
+            &times;
+          </button>
+        </div>
+        <div className="px-5 py-5 space-y-4">
+          <p className="text-sm text-slate-600">
+            The agent shares one of these links. Anyone who registers after arriving through it
+            is attributed to {agent.name} at first touch — the attribution is locked and can&apos;t
+            be re-claimed by another agent.
+          </p>
+
+          {loading ? (
+            <div className="text-slate-500 text-sm">Generating links…</div>
+          ) : error ? (
+            <div className="bg-red-50 border border-red-200 rounded px-3 py-2 text-sm text-red-700">{error}</div>
+          ) : links.length === 0 ? (
+            <div className="text-slate-400 text-sm border border-dashed rounded p-6 text-center">
+              This agent has no projects assigned. Add a project on the agent first.
+            </div>
+          ) : (
+            links.map((l) => (
+              <div key={l.estate}>
+                <div className="text-xs uppercase tracking-wider text-slate-500 mb-1">{l.label}</div>
+                <div className="flex gap-2">
+                  <input
+                    readOnly
+                    value={l.url}
+                    className={inputClass}
+                    onFocus={(e) => e.target.select()}
+                  />
+                  <button
+                    onClick={() => copy(l.url)}
+                    className="shrink-0 px-3 py-2.5 min-h-[44px] rounded border border-slate-300 text-sm"
+                  >
+                    {copied === l.url ? "Copied" : "Copy"}
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+
+          <button onClick={onClose} className="w-full bg-slate-900 hover:bg-slate-700 text-white px-5 py-2.5 min-h-[44px] rounded text-sm font-semibold">
+            Done
+          </button>
+        </div>
       </div>
     </div>
   );
