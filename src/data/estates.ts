@@ -115,7 +115,7 @@ export const ESTATES: Estate[] = [
     type: "Residential Homes",
     dwellings: "37 homes",
     blurb:
-      "37 architecturally designed, single-storey 3-bed, 2-bath homes on an approved subdivision 8km from Hobart CBD. 7-Star Energy rated.",
+      "37 architecturally designed, single-storey homes on an approved subdivision 8km from Hobart CBD — 36 are 3-bed, 2-bath, plus Unit 31 (currently approved as 2-bed). 7-Star Energy rated.",
     accent: "#3E6B48",
     image: "/branscombe/home-exterior-1.jpg",
     cta: "Select your home",

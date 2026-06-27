@@ -403,7 +403,7 @@ export default function RegistrationForm() {
             ))}
           </div>
           <p className="text-[0.65rem] text-slate/40 font-archivo mt-3">
-            All homes: 3 bed &middot; 2 bath &middot; 24m² deck &middot; 7 Star Energy rated
+            36 homes: 3 bed &middot; 2 bath &middot; 24m² deck &middot; 7 Star Energy rated. Unit 31 is currently approved as 2&nbsp;bed (a 3-bedroom amendment is being prepared, subject to Council approval).
           </p>
         </div>
 

@@ -8,7 +8,7 @@ import { HOUSE_TYPES, HOUSE_TYPE_INFO, ESTATE_PARKING } from "@/data/branscombe"
 export const metadata: Metadata = {
   title: "Branscombe Estate — Register Your Interest | F2K",
   description:
-    "37 architecturally designed, single-storey 3-bedroom, 2-bathroom homes in Claremont, Tasmania. 7 Star Energy rated. Register your interest — no deposit required.",
+    "37 architecturally designed, single-storey homes in Claremont, Tasmania — 36 are 3-bedroom, 2-bathroom, plus Unit 31 (currently approved as 2-bedroom). 7 Star Energy rated. Register your interest — no deposit required.",
   openGraph: {
     title: "Branscombe Estate — Claremont, Tasmania",
     description:
@@ -50,7 +50,9 @@ export default function BranscombeEstatePage() {
                 Branscombe Estate
               </h1>
               <p className="text-xl text-white/70 font-archivo leading-relaxed mb-2">
-                37 architecturally designed, single-storey 3-bedroom, 2-bathroom homes.
+                37 architecturally designed, single-storey homes — 36 are
+                3-bedroom, 2-bathroom; Unit 31 is currently approved as
+                2-bedroom.
               </p>
               <p className="text-lg text-white/50 font-archivo mb-8">
                 Claremont, Tasmania — 8km from Hobart CBD
@@ -104,7 +106,7 @@ export default function BranscombeEstatePage() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
             {[
               { value: "37", label: "Homes" },
-              { value: "3 Bed / 2 Bath", label: "Per home" },
+              { value: "3 Bed / 2 Bath", label: "36 of 37 homes" },
               { value: "104–114m²", label: "Home area" },
               { value: "350–550m²", label: "Land size" },
               { value: "2026–2028", label: "Construction" },
@@ -140,10 +142,12 @@ export default function BranscombeEstatePage() {
                 Land sizes range from approximately 350m² to 550m² per lot.
               </p>
               <p>
-                All homes are single-storey, 3-bedroom, 2-bathroom, designed by
-                Unison with high-quality finishes and 7 Star Energy rated.
-                The development has full planning approval (Permit PLN-21-408.02,
-                Glenorchy City Council).
+                Thirty-six of the 37 homes are single-storey, 3-bedroom,
+                2-bathroom, designed by Unison with high-quality finishes and
+                7 Star Energy rated. Unit 31 is currently approved as 2-bedroom
+                due to a lot-size constraint; a 3-bedroom amendment is being
+                prepared, subject to Council approval. The development has full
+                planning approval (Permit PLN-21-408.02, Glenorchy City Council).
               </p>
             </div>
             <div className="space-y-3">
@@ -151,7 +155,7 @@ export default function BranscombeEstatePage() {
                 { label: "Developer", value: "Factory2Key Pty Ltd" },
                 { label: "Location", value: "122–124 Branscombe Rd, Claremont TAS 7011" },
                 { label: "Permit", value: "PLN-21-408.02 (Glenorchy City Council)" },
-                { label: "Dwellings", value: "37 single-storey, 3-bed / 2-bath" },
+                { label: "Dwellings", value: "37 single-storey (36 × 3-bed, Unit 31 × 2-bed)" },
                 { label: "House Types", value: "Types 1A, 1B, 2A, 2B, 2C" },
                 { label: "Land Sizes", value: "~350m² – 550m² per lot" },
                 { label: "Site Area", value: "19,981 m²" },
@@ -220,9 +224,10 @@ export default function BranscombeEstatePage() {
             Five Architectural Layouts
           </h2>
           <p className="text-slate font-archivo leading-relaxed mb-4">
-            All homes are 3-bedroom, 2-bathroom, single-storey with 7 Star
-            Energy rating, designed by Unison. Click any floor plan to view
-            full size.
+            Thirty-six of the 37 homes are 3-bedroom, 2-bathroom, single-storey
+            with 7 Star Energy rating, designed by Unison; Unit 31 (a Type 2C
+            home) is currently approved as 2-bedroom. Click any floor plan to
+            view full size.
           </p>
 
           {/* Type summary cards */}
@@ -247,7 +252,7 @@ export default function BranscombeEstatePage() {
                   {h.size} + {h.deck} DECK
                 </div>
                 <div className="font-archivo text-xs text-slate mt-1">
-                  3 bed &middot; 2 bath
+                  {h.type === "2C" ? <>3 bed&#42; &middot; 2 bath</> : <>3 bed &middot; 2 bath</>}
                 </div>
                 <div className="font-archivo text-[0.6rem] text-[#00B5AD] mt-2 leading-snug">
                   {h.units}
@@ -255,6 +260,12 @@ export default function BranscombeEstatePage() {
               </div>
             ))}
           </div>
+
+          <p className="text-[0.65rem] text-slate/50 font-archivo mb-6">
+            &#42; Unit 31 (Type 2C) is currently approved as 2-bedroom due to a
+            lot-size constraint; a 3-bedroom amendment is being prepared, subject
+            to Council approval.
+          </p>
 
           <FloorPlanGallery />
         </div>
