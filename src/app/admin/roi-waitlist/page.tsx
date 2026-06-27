@@ -13,21 +13,53 @@ interface WaitlistRow {
   nudged_at: string | null;
   submitted_at: string;
   agent_name: string | null;
+  introducing_agent_id: string | null;
+}
+
+interface AgentLite {
+  id: string;
+  name: string;
+  estate_access: string[];
+}
+
+interface Metrics {
+  waitlist_total: number;
+  qualification_total: number;
+  attributed: number;
+  unassigned: number;
+  nudged: number;
+  finance_ready: number;
+  by_status: Record<string, number>;
+  by_agent: { agent: string; waitlist: number; qualifications: number }[];
 }
 
 export default function AdminRoiWaitlistPage() {
   const [rows, setRows] = useState<WaitlistRow[]>([]);
+  const [agents, setAgents] = useState<AgentLite[]>([]);
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState<string | null>(null);
+  const [assigning, setAssigning] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/roi/waitlist?estate=branscombe");
-      const data = await res.json();
-      if (res.ok) setRows(data.waitlist || []);
-      else setMsg({ type: "error", text: data.error || "Failed to load" });
+      const [wlRes, agRes, mRes] = await Promise.all([
+        fetch("/api/admin/roi/waitlist?estate=branscombe"),
+        fetch("/api/admin/agents"),
+        fetch("/api/admin/roi/metrics?estate=branscombe"),
+      ]);
+      const wl = await wlRes.json();
+      if (wlRes.ok) setRows(wl.waitlist || []);
+      else setMsg({ type: "error", text: wl.error || "Failed to load" });
+      if (agRes.ok) {
+        const ag = await agRes.json();
+        setAgents(
+          (ag.agents || []).filter((a: AgentLite) => a.estate_access?.includes("branscombe")),
+        );
+      }
+      if (mRes.ok) setMetrics(await mRes.json());
     } catch {
       setMsg({ type: "error", text: "Network error" });
     } finally {
@@ -38,6 +70,37 @@ export default function AdminRoiWaitlistPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function assign(row: WaitlistRow, agentId: string | null) {
+    let reason: string | undefined;
+    if (row.introducing_agent_id) {
+      const r = prompt(
+        `Re-assign ${row.name} from their current agent? Enter a reason (logged):`,
+      );
+      if (r == null) return; // cancelled
+      reason = r;
+    }
+    setAssigning(row.id);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/admin/roi/assign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ waitlist_id: row.id, agent_id: agentId, reason }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMsg({ type: "success", text: `${row.name} ${agentId ? "assigned" : "unassigned"}` });
+        load();
+      } else {
+        setMsg({ type: "error", text: data.error || "Assign failed" });
+      }
+    } catch {
+      setMsg({ type: "error", text: "Network error" });
+    } finally {
+      setAssigning(null);
+    }
+  }
 
   async function sendQualification(row: WaitlistRow) {
     if (!confirm(`Email the qualification form link to ${row.name} (${row.email})?`)) return;
@@ -85,6 +148,34 @@ export default function AdminRoiWaitlistPage() {
         </div>
       )}
 
+      {/* Funnel metrics */}
+      {metrics && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+          {[
+            { label: "Waitlist", value: metrics.waitlist_total },
+            { label: "Qualified (EOI)", value: metrics.qualification_total },
+            { label: "Attributed", value: metrics.attributed },
+            { label: "Unassigned", value: metrics.unassigned },
+            { label: "Nudged", value: metrics.nudged },
+            { label: "Finance-ready", value: metrics.finance_ready },
+          ].map((m) => (
+            <div key={m.label} className="border border-slate-200 rounded-lg p-3 bg-white">
+              <div className="text-2xl font-bold text-slate-900">{m.value}</div>
+              <div className="text-xs text-slate-500">{m.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex justify-end mb-3">
+        <a
+          href="/api/admin/roi/export?estate=branscombe"
+          className="text-xs px-3 py-2 min-h-[36px] inline-flex items-center rounded border border-slate-300 hover:bg-slate-50 font-semibold"
+        >
+          Export CSV
+        </a>
+      </div>
+
       {loading ? (
         <div className="text-slate-500">Loading…</div>
       ) : rows.length === 0 ? (
@@ -111,8 +202,20 @@ export default function AdminRoiWaitlistPage() {
                     <div className="font-medium text-slate-900">{r.name}</div>
                     <div className="text-xs text-slate-500">{r.email}</div>
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {r.agent_name || <span className="text-amber-700">Unassigned</span>}
+                  <td className="px-4 py-3">
+                    <select
+                      value={r.introducing_agent_id ?? ""}
+                      disabled={assigning === r.id}
+                      onChange={(e) => assign(r, e.target.value || null)}
+                      className={`text-xs border rounded px-2 py-1.5 min-h-[36px] max-w-[160px] ${
+                        r.introducing_agent_id ? "border-slate-300 text-slate-700" : "border-amber-300 text-amber-700"
+                      }`}
+                    >
+                      <option value="">Unassigned</option>
+                      {agents.map((a) => (
+                        <option key={a.id} value={a.id}>{a.name}</option>
+                      ))}
+                    </select>
                   </td>
                   <td className="px-4 py-3 text-slate-600">{r.buyer_category || "—"}</td>
                   <td className="px-4 py-3">

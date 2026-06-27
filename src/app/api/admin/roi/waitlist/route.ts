@@ -61,6 +61,7 @@ export async function GET(request: Request) {
     consent_contact: r.consent_contact,
     nudged_at: r.nudged_at,
     submitted_at: r.submitted_at,
+    introducing_agent_id: r.introducing_agent_id ?? null,
     agent_name: r.introducing_agent_id ? agentNames[r.introducing_agent_id] ?? "Unknown" : null,
   }));
 

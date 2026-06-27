@@ -7,8 +7,7 @@ import {
   CONTACT_METHODS,
   DEPOSIT_OPTIONS,
 } from "@/lib/roi/estate-config";
-
-export type UnitOption = { number: number; label: string };
+import type { UnitOption } from "@/lib/roi/units";
 
 /**
  * ROI portal — artefact 2: the qualification (EOI) form, sections A–F (spec §7).

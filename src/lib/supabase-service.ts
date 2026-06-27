@@ -41,3 +41,31 @@ export function createSupabaseServiceWithActor(
     { global: { headers } },
   );
 }
+
+/**
+ * Service-role client that, in addition to actor/reason, sends
+ *   x-allow-attribution-override: true
+ * so the ROI portal's first-touch immutability trigger (migration 0063) PERMITS a change
+ * to an already-set introducing_agent/agency — and logs it as `attribution_override`.
+ *
+ * Use ONLY for a deliberate admin re-assignment of an attributed lead. A first assignment
+ * (NULL → agent) does not need this — the trigger allows the first touch.
+ */
+export function createSupabaseServiceWithAttributionOverride(
+  actorEmail: string,
+  reason: string,
+) {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      global: {
+        headers: {
+          "x-actor-email": actorEmail,
+          "x-audit-reason": reason,
+          "x-allow-attribution-override": "true",
+        },
+      },
+    },
+  );
+}

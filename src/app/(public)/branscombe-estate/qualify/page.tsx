@@ -1,8 +1,9 @@
 import { Metadata } from "next";
-import QualificationForm, { type UnitOption } from "@/components/roi/QualificationForm";
+import QualificationForm from "@/components/roi/QualificationForm";
 import { parseQualifyToken } from "@/lib/roi/qualify-link";
 import { createSupabaseService } from "@/lib/supabase-service";
 import { colourSchemesForEstate } from "@/lib/roi/estate-config";
+import { buildUnitOptions } from "@/lib/roi/units";
 
 export const metadata: Metadata = {
   title: "Complete your registration — Branscombe Estate | F2K",
@@ -53,21 +54,8 @@ export default async function BranscombeQualifyPage({
     .eq("status", "available")
     .order("unit_number", { ascending: true });
 
-  const unitOptions: UnitOption[] = (units ?? []).map((u: any) => {
-    if (u.authorised_for_display) {
-      const bits = [
-        u.bedrooms != null ? `${u.bedrooms} bed` : null,
-        u.bathrooms != null ? `${u.bathrooms} bath` : null,
-        u.internal_area_m2 != null ? `${u.internal_area_m2}m²` : null,
-      ].filter(Boolean);
-      return {
-        number: u.unit_number,
-        label: `Home ${u.unit_number}${bits.length ? ` — ${bits.join(" / ")}` : ""}`,
-      };
-    }
-    // Unauthorised: selectable by number only — no type/area detail rendered.
-    return { number: u.unit_number, label: `Home ${u.unit_number}` };
-  });
+  // Representation guardrail (spec §8) — single shared implementation, tested in units.test.ts.
+  const unitOptions = buildUnitOptions(units ?? []);
 
   return (
     <main className="min-h-screen bg-off-white">
