@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import RegistrationForm from "@/components/branscombe/RegistrationForm";
+import WaitlistForm from "@/components/roi/WaitlistForm";
 import FloorPlanGallery from "@/components/branscombe/FloorPlanGallery";
 import ElevationGallery from "@/components/branscombe/ElevationGallery";
 import HeroSitePlan from "@/components/branscombe/HeroSitePlan";
@@ -360,10 +360,10 @@ export default function BranscombeEstatePage() {
         </div>
       </section>
 
-      {/* ===== INTERACTIVE MAP + REGISTRATION FORM ===== */}
-      <section className="py-20 px-4 bg-off-white">
-        <div className="max-w-[1100px] mx-auto">
-          <RegistrationForm />
+      {/* ===== REGISTRATION (light waitlist — the ROI portal front door) ===== */}
+      <section id="register" className="py-20 px-4 bg-off-white">
+        <div className="max-w-[640px] mx-auto">
+          <WaitlistForm estate="branscombe" estateName="Branscombe Estate" />
         </div>
       </section>
 
