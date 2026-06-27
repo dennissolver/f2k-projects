@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseService } from "@/lib/supabase-service";
-import { estatePublicPath } from "@/lib/agents/attribution-token";
+import { estateRegisterPath } from "@/lib/agents/attribution-token";
 import {
   firstTouchCookieName,
   signFirstTouch,
@@ -14,8 +14,8 @@ import {
  *   /r/<estate>?ref=TOKEN
  *
  * Looks up the agent behind TOKEN, stamps a signed first-touch cookie (the evidence of who
- * introduced this buyer), and lands them on the estate page. Phase 2's waitlist form reads
- * the cookie and writes the attribution onto the registration row.
+ * introduced this buyer), and lands them on the estate's waitlist page. The waitlist form reads
+ * the cookie (server-side) and writes the attribution onto the registration row.
  *
  * Rules enforced here:
  *  - First-touch wins: a valid existing cookie for this estate is never overwritten.
@@ -46,7 +46,7 @@ export async function GET(
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  const dest = new URL(estatePublicPath(estate), request.url);
+  const dest = new URL(estateRegisterPath(estate), request.url);
   const response = NextResponse.redirect(dest);
 
   if (!ref) {

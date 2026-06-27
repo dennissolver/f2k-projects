@@ -24,6 +24,14 @@ export function estatePublicPath(estateSlug: string): string {
   return `/${estateSlug}-estate`;
 }
 
+/**
+ * The estate's waitlist registration page — where the resolver lands agent-referred
+ * buyers so the first-touch attribution is captured on submit (ROI portal artefact 1).
+ */
+export function estateRegisterPath(estateSlug: string): string {
+  return `/${estateSlug}-estate/register`;
+}
+
 /** The agent's shareable attribution link for a given estate. */
 export function buildAgentLink(
   siteUrl: string,
