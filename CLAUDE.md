@@ -15,7 +15,8 @@ powershell -File scripts/supabase-query.ps1 "SELECT * FROM table LIMIT 10"
 ```
 
 ### Project Ref
-- `earqebbwhklxadqawtex` (f2k-projects)
+- `zzajvnhsesqrrepflrrx` (f2k-projects — **Sydney `ap-southeast-2`**, live since 2026-06-27)
+- `earqebbwhklxadqawtex` — OLD Seoul project, decommissioned after the residency cutover; do NOT target.
 
 ### Key Tables
 - `seafields_lot_allocations` - Seafields lots with pricing

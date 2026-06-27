@@ -12,7 +12,7 @@ $ErrorActionPreference = "Stop"
 # supabase/.temp/project-ref is linked to (or $env:SUPABASE_DB_URL), NOT this
 # constant — so we print the REAL target and warn on drift. (A linked-to-demo
 # CLI silently ran live-intended queries against the demo on 2026-06-06.)
-$IntendedLiveRef = "earqebbwhklxadqawtex"
+$IntendedLiveRef = "zzajvnhsesqrrepflrrx"
 $DbUrl = $env:SUPABASE_DB_URL
 
 if ($DbUrl) {

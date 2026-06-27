@@ -4,7 +4,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$ProjectRef = "earqebbwhklxadqawtex"
+$ProjectRef = "zzajvnhsesqrrepflrrx"
 $DbUrl = $env:SUPABASE_DB_URL
 
 if (-not $DbUrl) {
