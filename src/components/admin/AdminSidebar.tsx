@@ -18,6 +18,7 @@ const GLOBAL_NAV: NavItem[] = [
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/site-check", label: "Site Check" },
   { href: "/admin/registrations", label: "All Registrations" },
+  { href: "/admin/roi-waitlist", label: "ROI Waitlist" },
   { href: "/admin/agents", label: "Agents" },
   { href: "/admin/email-templates", label: "Email Templates", group: "Compliance" },
   { href: "/admin/audit-log", label: "Audit Log", group: "Compliance" },
