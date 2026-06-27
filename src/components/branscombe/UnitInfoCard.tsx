@@ -46,6 +46,11 @@ export default function UnitInfoCard({
 
   const info = HOUSE_TYPE_INFO[unit.type];
   const land = NOTIONAL_LAND_M2[unit.unitNumber];
+  // Unit 31 is approved as 2-bedroom (lot-size constraint) despite its Type 2C
+  // (3-bedroom) layout; a 3-bedroom amendment is in preparation. See estate
+  // representation_statement (spec section 8).
+  const isUnit31 = unit.unitNumber === 31;
+  const beds = isUnit31 ? 2 : info.beds;
 
   const statusText = isReserved
     ? "Reserved"
@@ -87,7 +92,7 @@ export default function UnitInfoCard({
 
           <dl className="space-y-2 text-sm font-archivo">
             <Row label="Home size" value={`${info.size} + ${info.deck}`} />
-            <Row label="Beds / baths" value={`${info.beds} bed / ${info.baths} bath`} />
+            <Row label="Beds / baths" value={`${beds} bed / ${info.baths} bath`} />
             {land != null && <Row label="Notional land" value={`${land} m²`} />}
             <Row
               label="Parking"
@@ -95,6 +100,14 @@ export default function UnitInfoCard({
             />
             <Row label="Status" value={statusText} />
           </dl>
+
+          {isUnit31 && (
+            <p className="mt-2 text-[10px] text-white/55 leading-snug">
+              Unit 31 is currently approved as 2-bedroom due to a lot-size
+              constraint; a 3-bedroom amendment is being prepared, subject to
+              Council approval.
+            </p>
+          )}
 
           {/* Suggested price */}
           {retailPrice != null && retailPrice > 0 && (

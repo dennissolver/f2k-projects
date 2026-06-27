@@ -357,6 +357,12 @@ export default function SiteMap({ selectedUnits, onToggleUnit }: SiteMapProps) {
                           {info.size} home + {info.deck} · {info.beds} bed /{" "}
                           {info.baths} bath
                         </p>
+                        {type === "2C" && (
+                          <p className="font-archivo text-[0.6rem] text-slate/50 mt-0.5 leading-snug">
+                            Unit 31 is approved as 2-bedroom (3-bedroom amendment
+                            in preparation).
+                          </p>
+                        )}
                       </div>
                       <span className="font-archivo text-xs text-slate/70">
                         {homes.length} home{homes.length === 1 ? "" : "s"}
@@ -419,7 +425,8 @@ export default function SiteMap({ selectedUnits, onToggleUnit }: SiteMapProps) {
           <strong className="text-deep-blue">{hoveredData.id}</strong>
           {" — "}
           Type {hoveredData.type} | {hoveredInfo.size} + {hoveredInfo.deck} |{" "}
-          {hoveredInfo.beds} bed / {hoveredInfo.baths} bath | {hoveredData.zone} |{" "}
+          {hoveredData.unitNumber === 31 ? 2 : hoveredInfo.beds} bed /{" "}
+          {hoveredInfo.baths} bath | {hoveredData.zone} |{" "}
           <span className="font-semibold">
             {counts[hoveredData.id] || 0} registration
             {(counts[hoveredData.id] || 0) !== 1 ? "s" : ""}
