@@ -233,7 +233,7 @@ export async function GET(req: Request) {
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);
       const guard = guardRecipients(recipients);
-      await resend.emails.send({
+      const { error: sendErr } = await resend.emails.send({
         from:
           process.env.RESEND_FROM_EMAIL ||
           "Seafields Estate <onboarding@resend.dev>",
@@ -241,6 +241,7 @@ export async function GET(req: Request) {
         subject: `Seafields digest — ${regList.length} new, ${soldToday.length} sold`,
         html,
       });
+      if (sendErr) console.error("seafields daily digest: Resend send error:", sendErr);
     }
   } catch (err) {
     console.error("Daily digest send failed:", err);

@@ -117,7 +117,7 @@ export async function POST(request: Request) {
     const guard = guardRecipients(ADMIN_RECIPIENTS, { triggeredByEmail: d.email });
     const row = (l: string, v: string | null | undefined) =>
       v ? `<tr><td style="padding:4px 12px;color:#666">${l}</td><td style="padding:4px 12px;color:#142C44">${escapeHtml(v)}</td></tr>` : "";
-    await resend.emails.send({
+    const { error: adminErr } = await resend.emails.send({
       from,
       to: guard.to,
       subject: `New Dutton Terrace registration — ${d.first_name} ${d.last_name}`,
@@ -133,10 +133,11 @@ export async function POST(request: Request) {
           ${row("From suburb", [d.suburb, d.postcode].filter(Boolean).join(" "))}
         </table>${d.notes ? `<p style="font-size:13px;color:#4A5568;margin-top:12px"><strong>Notes:</strong> ${escapeHtml(d.notes)}</p>` : ""}</div></div>`,
     });
+    if (adminErr) console.error("dutton admin notification: Resend send error:", adminErr);
 
     // Confirmation to the registrant (approved opt-in acknowledgement).
     const confirmGuard = guardRecipients([d.email], { triggeredByEmail: d.email });
-    await resend.emails.send({
+    const { error: confirmErr } = await resend.emails.send({
       from,
       to: confirmGuard.to,
       subject: "Factory2Key — your Dutton Terrace registration is received",
@@ -160,6 +161,7 @@ export async function POST(request: Request) {
           ${registrantAckFooterHtml(d.email)}
         </div>`,
     });
+    if (confirmErr) console.error("dutton applicant confirmation: Resend send error:", confirmErr);
   } catch (err) {
     console.error("Dutton registration email failed:", err);
   }

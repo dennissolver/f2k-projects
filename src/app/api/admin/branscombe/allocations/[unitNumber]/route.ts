@@ -256,7 +256,7 @@ export async function PATCH(
           "Sent because you are on the Branscombe admin-notification list. Manage at /admin/branscombe-pipeline.",
       });
       const guard = guardRecipients(recipients, { triggeredByEmail: admin.email });
-      await resend.emails.send({
+      const { error: sendErr } = await resend.emails.send({
         from:
           process.env.RESEND_FROM_EMAIL ||
           "Branscombe Estate <onboarding@resend.dev>",
@@ -264,6 +264,7 @@ export async function PATCH(
         subject: `U${unitNumber} ${verb} (by ${admin.email})`,
         html,
       });
+      if (sendErr) console.error("branscombe admin unit-change notification: Resend send error:", sendErr);
     }
   } catch (err) {
     console.error("Branscombe admin unit-change notify failed:", err);

@@ -513,7 +513,7 @@ export async function PATCH(
           "Sent because you are on the Seafields admin-notification list. Manage at /admin/seafields-registrations.",
       });
       const guard = guardRecipients(recipients, { triggeredByEmail: admin.email });
-      await resend.emails.send({
+      const { error: sendErr } = await resend.emails.send({
         from:
           process.env.RESEND_FROM_EMAIL ||
           "Seafields Estate <onboarding@resend.dev>",
@@ -521,6 +521,7 @@ export async function PATCH(
         subject: `Lot ${lotNumber} ${verb} (by ${admin.email})`,
         html,
       });
+      if (sendErr) console.error("seafields admin lot-change notification: Resend send error:", sendErr);
     }
   } catch (err) {
     console.error("Seafields admin lot-change notify failed:", err);

@@ -397,7 +397,7 @@ export async function POST(request: Request) {
     // Keep test/non-production submissions out of real recipients' inboxes.
     const guard = guardRecipients(recipients, { triggeredByEmail: d.email });
 
-    await resend.emails.send({
+    const { error: adminErr } = await resend.emails.send({
       from:
         process.env.RESEND_FROM_EMAIL ||
         "Seafields Estate <onboarding@resend.dev>",
@@ -405,6 +405,7 @@ export async function POST(request: Request) {
       subject: `${subjectPrefix}Another registration for ${subjectLotPhrase} by ${fullName}`,
       html,
     });
+    if (adminErr) console.error("seafields ROI admin notification: Resend send error:", adminErr);
 
   } catch (err) {
     console.error("Failed to send Seafields ROI admin notification:", err);

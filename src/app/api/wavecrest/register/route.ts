@@ -111,7 +111,7 @@ export async function POST(request: Request) {
     const resend = new Resend(process.env.RESEND_API_KEY);
     const from = process.env.RESEND_FROM_EMAIL || "Factory2Key <onboarding@resend.dev>";
     const confirmGuard = guardRecipients([d.email], { triggeredByEmail: d.email });
-    await resend.emails.send({
+    const { error: confirmErr } = await resend.emails.send({
       from,
       to: confirmGuard.to,
       subject: "Factory2Key — your Wavecrest registration is received",
@@ -135,6 +135,7 @@ export async function POST(request: Request) {
           ${registrantAckFooterHtml(d.email)}
         </div>`,
     });
+    if (confirmErr) console.error("wavecrest applicant confirmation: Resend send error:", confirmErr);
   } catch (err) {
     console.error("Wavecrest confirmation email failed:", err);
   }

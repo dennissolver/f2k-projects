@@ -305,15 +305,16 @@ export async function POST(request: Request) {
     const adminGuard = guardRecipients(recipients, { triggeredByEmail: d.email });
     const confirmGuard = guardRecipients(d.email, { triggeredByEmail: d.email });
 
-    await resend.emails.send({
+    const { error: adminErr } = await resend.emails.send({
       from: fromAddress,
       to: adminGuard.to,
       subject: `Another waitlist signup by ${d.full_name}`,
       html: adminHtml,
     });
+    if (adminErr) console.error("hemp-homes waitlist admin notification: Resend send error:", adminErr);
 
     // Applicant confirmation — forest accent (#1B4332) per DESIGN.md §11.
-    await resend.emails.send({
+    const { error: confirmErr } = await resend.emails.send({
       from: fromAddress,
       to: confirmGuard.to,
       subject: "Hemp Homes — You're on the waitlist",
@@ -353,6 +354,7 @@ export async function POST(request: Request) {
         </div>
       `,
     });
+    if (confirmErr) console.error("hemp-homes applicant confirmation: Resend send error:", confirmErr);
 
     if (rowId) {
       await (supabase.from("hemp_homes_waitlist") as any)

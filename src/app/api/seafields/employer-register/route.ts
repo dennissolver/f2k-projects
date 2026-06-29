@@ -219,18 +219,19 @@ export async function POST(request: Request) {
         </div>
       </div>`;
 
-    await resend.emails.send({
+    const { error: adminErr } = await resend.emails.send({
       from,
       to: guard.to,
       subject: `New take-or-pay registration — ${d.business_name} (Seafields)`,
       html: adminHtml,
     });
+    if (adminErr) console.error("seafields employer admin notification: Resend send error:", adminErr);
 
     // Confirmation to the employer.
     const confirmGuard = guardRecipients([d.contact_email], {
       triggeredByEmail: d.contact_email,
     });
-    await resend.emails.send({
+    const { error: confirmErr } = await resend.emails.send({
       from,
       to: confirmGuard.to,
       subject: "Factory2Key — your staff accommodation interest is registered",
@@ -254,6 +255,7 @@ export async function POST(request: Request) {
           ${registrantAckFooterHtml(d.contact_email)}
         </div>`,
     });
+    if (confirmErr) console.error("seafields employer confirmation: Resend send error:", confirmErr);
   } catch (err) {
     console.error("Failed to send employer registration emails:", err);
   }

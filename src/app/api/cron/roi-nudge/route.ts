@@ -112,7 +112,8 @@ export async function GET(request: Request) {
         isNudge: true,
       });
 
-      await resend.emails.send({ to: row.email, from, subject, html });
+      const { error: sendErr } = await resend.emails.send({ to: row.email, from, subject, html });
+      if (sendErr) console.error("roi nudge: Resend send error:", sendErr);
 
       // Mark nudged so it never fires twice (even if the send is retried).
       await (supabase.from("waitlist_registrations") as any)

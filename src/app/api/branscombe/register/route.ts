@@ -246,7 +246,7 @@ export async function POST(request: Request) {
     const adminGuard = guardRecipients(recipients, { triggeredByEmail: d.email });
     const confirmGuard = guardRecipients(d.email, { triggeredByEmail: d.email });
 
-    await resend.emails.send({
+    const { error: adminErr } = await resend.emails.send({
       from:
         process.env.RESEND_FROM_EMAIL ||
         "Branscombe Estate <onboarding@resend.dev>",
@@ -254,9 +254,10 @@ export async function POST(request: Request) {
       subject: `Another registration for ${subjectUnitPhrase} by ${fullName}`,
       html: adminHtml,
     });
+    if (adminErr) console.error("branscombe ROI admin notification: Resend send error:", adminErr);
 
     // Registrant confirmation
-    await resend.emails.send({
+    const { error: confirmErr } = await resend.emails.send({
       from:
         process.env.RESEND_FROM_EMAIL ||
         "Branscombe Estate <onboarding@resend.dev>",
@@ -311,6 +312,7 @@ export async function POST(request: Request) {
         </div>
       `,
     });
+    if (confirmErr) console.error("branscombe applicant confirmation: Resend send error:", confirmErr);
   } catch (err) {
     console.error("Failed to send Branscombe ROI emails:", err);
   }

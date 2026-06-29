@@ -435,15 +435,16 @@ export async function POST(request: Request) {
         </div>
       </div>`;
 
-    await resend.emails.send({
+    const { error: adminErr } = await resend.emails.send({
       from,
       to: notifyTo,
       subject: `New developer onboarding — ${d.developer_name} (${d.estate_name})`,
       html: adminHtml,
     });
+    if (adminErr) console.error("developer onboarding admin notification: Resend send error:", adminErr);
 
     // Confirmation to the developer.
-    await resend.emails.send({
+    const { error: confirmErr } = await resend.emails.send({
       from,
       to: d.email,
       subject: "Factory2Key — thanks for telling us about your project",
@@ -467,6 +468,7 @@ export async function POST(request: Request) {
           ${registrantAckFooterHtml(d.email)}
         </div>`,
     });
+    if (confirmErr) console.error("developer onboarding confirmation: Resend send error:", confirmErr);
   } catch (err) {
     console.error("Failed to send developer onboarding emails:", err);
   }

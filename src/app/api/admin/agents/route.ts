@@ -112,7 +112,7 @@ export async function POST(request: Request) {
         `<br><br><strong>For future logins:</strong> Go to <a href="${SITE_URL}/agent/login">${SITE_URL}/agent/login</a> and sign in with your email and password.`,
     });
     const guard = guardRecipients([d.email.trim()], { triggeredByEmail: d.email });
-    await resend.emails.send({
+    const { error: sendErr } = await resend.emails.send({
       from:
         process.env.RESEND_FROM_EMAIL ||
         "Seafields Estate <noreply@updates.corporateaisolutions.com>",
@@ -120,6 +120,7 @@ export async function POST(request: Request) {
       subject: "Your Seafields agent portal invite",
       html,
     });
+    if (sendErr) console.error("agent invite email: Resend send error:", sendErr);
     emailSent = true;
   } catch (err) {
     console.error("agent invite email failed:", err);

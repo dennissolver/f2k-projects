@@ -255,16 +255,17 @@ export async function POST(request: Request) {
         "Expression of interest only — non-binding, no deposit. Attribution travels with this record.",
     });
     const adminGuard = guardRecipients(adminTo, { triggeredByEmail: payload.email });
-    await resend.emails.send({
+    const { error: adminErr } = await resend.emails.send({
       to: adminGuard.to,
       from,
       subject: `EOI from ${payload.full_name} — ${unitList}`,
       html: adminHtml,
     });
+    if (adminErr) console.error("roi qualification admin notification: Resend send error:", adminErr);
 
     // Applicant confirmation (restates non-binding).
     const confirmGuard = guardRecipients(payload.email, { triggeredByEmail: payload.email });
-    await resend.emails.send({
+    const { error: confirmErr } = await resend.emails.send({
       to: confirmGuard.to,
       from,
       subject: "Branscombe Estate — your registration is received",
@@ -291,6 +292,7 @@ export async function POST(request: Request) {
         </div>
       `,
     });
+    if (confirmErr) console.error("roi qualification applicant confirmation: Resend send error:", confirmErr);
   } catch (err) {
     console.error("roi qualification email failed:", err);
   }

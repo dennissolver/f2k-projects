@@ -191,16 +191,17 @@ export async function POST(request: Request) {
         "Waitlist registration (top of funnel) — no deposit taken. Qualify the buyer, then send them the full registration form.",
     });
     const adminGuard = guardRecipients(recipients, { triggeredByEmail: d.email });
-    await resend.emails.send({
+    const { error: adminErr } = await resend.emails.send({
       to: adminGuard.to,
       from,
       subject: `New ${estate.name} waitlist registration — ${d.name}`,
       html: adminHtml,
     });
+    if (adminErr) console.error("roi waitlist admin notification: Resend send error:", adminErr);
 
     // Applicant confirmation.
     const confirmGuard = guardRecipients(d.email, { triggeredByEmail: d.email });
-    await resend.emails.send({
+    const { error: confirmErr } = await resend.emails.send({
       to: confirmGuard.to,
       from,
       subject: `${estate.name} — you're on the waitlist`,
@@ -229,6 +230,7 @@ export async function POST(request: Request) {
         </div>
       `,
     });
+    if (confirmErr) console.error("roi waitlist applicant confirmation: Resend send error:", confirmErr);
   } catch (err) {
     console.error("roi waitlist email failed:", err);
   }

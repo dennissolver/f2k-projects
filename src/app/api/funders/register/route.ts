@@ -287,16 +287,17 @@ export async function POST(request: Request) {
         </div>
       </div>`;
 
-    await resend.emails.send({
+    const { error: adminErr } = await resend.emails.send({
       from,
       to: guard.to,
       subject: `New funder registration — ${d.org_name} (${lenderLabel})`,
       html: adminHtml,
     });
+    if (adminErr) console.error("funder admin notification: Resend send error:", adminErr);
 
     // Confirmation to the funder.
     const confirmGuard = guardRecipients([d.email], { triggeredByEmail: d.email });
-    await resend.emails.send({
+    const { error: confirmErr } = await resend.emails.send({
       from,
       to: confirmGuard.to,
       subject: "Factory2Key — your funding interest is registered",
@@ -320,6 +321,7 @@ export async function POST(request: Request) {
           ${registrantAckFooterHtml(d.email)}
         </div>`,
     });
+    if (confirmErr) console.error("funder confirmation: Resend send error:", confirmErr);
   } catch (err) {
     console.error("Failed to send funder registration emails:", err);
   }
