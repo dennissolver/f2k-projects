@@ -72,7 +72,9 @@ export async function POST(request: Request) {
   try {
     const { Resend } = await import("resend");
     const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({
+    // The Resend SDK does NOT throw on API errors (unverified domain, sandbox, bad recipient) —
+    // it returns them in `error`. Check it, or a rejected send looks like success.
+    const { data, error: sendErr } = await resend.emails.send({
       to: waitlist.email,
       from:
         process.env.RESEND_FROM_EMAIL ||
@@ -80,6 +82,14 @@ export async function POST(request: Request) {
       subject,
       html,
     });
+    if (sendErr) {
+      console.error("send-qualification Resend error:", sendErr);
+      return NextResponse.json(
+        { error: `Email provider rejected the send: ${sendErr.message || "unknown error"}` },
+        { status: 502 },
+      );
+    }
+    console.log("send-qualification sent:", { id: data?.id, to: waitlist.email });
   } catch (err) {
     console.error("send-qualification email failed:", err);
     return NextResponse.json({ error: "Failed to send the email" }, { status: 500 });
