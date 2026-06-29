@@ -141,18 +141,20 @@ export async function POST(request: Request) {
 
   const d = parsed.data;
 
-  // Silently accept honeypot hits without persisting (bot trap).
+  // Anti-bot (server-side). The TIME-TRAP is the only HARD block (false-positive-free). BOTH
+  // honeypots (the legacy autofill-prone `website_url` and `hp_field`) are NON-BLOCKING + logged —
+  // password managers autofill hidden fields, so a filled honeypot must never drop a real lead
+  // (PRODUCT_STANDARDS; observed live: a real submit had the honeypot autofilled).
   if (d.website_url) {
-    return NextResponse.json({ success: true });
+    console.warn("developers onboarding: legacy website_url honeypot filled (non-blocking, likely autofill)");
   }
-
-  // Anti-bot (server-side): honeypot filled OR implausibly fast => accept the request shape
-  // but do NOT record it. Never a client-side fake-success that silently loses a real lead.
-  // honeypot accepts ANY value (never a 400) and the time-trap is the primary signal.
   const hp = String(formData.get("hp_field") || "");
   const elapsed = Number(formData.get("elapsed_ms") || 0);
-  if (hp.trim() !== "" || (elapsed && elapsed < 2500)) {
-    console.warn("developers onboarding bot trap:", { hp: !!hp.trim(), elapsed });
+  if (hp.trim() !== "") {
+    console.warn("developers onboarding: honeypot filled (non-blocking, likely autofill)");
+  }
+  if (elapsed && elapsed < 2500) {
+    console.warn("developers onboarding bot trap (time):", { elapsed });
     return NextResponse.json({ success: true });
   }
 

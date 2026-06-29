@@ -87,16 +87,15 @@ export async function POST(request: Request) {
 
   const d = parsed.data;
 
-  // Anti-bot (server-side): honeypot filled OR implausibly fast => accept the request shape
-  // but do NOT record it. Never a client-side fake-success that silently loses a real lead.
-  if (
-    (typeof d.hp_field === "string" && d.hp_field.trim() !== "") ||
-    (typeof d.elapsed_ms === "number" && d.elapsed_ms < 2500)
-  ) {
-    console.warn("seafields register bot trap:", {
-      hp: !!d.hp_field?.trim(),
-      elapsed: d.elapsed_ms,
-    });
+  // Anti-bot (server-side). The TIME-TRAP is the primary, false-positive-free signal and is the
+  // only HARD block. The honeypot is NON-BLOCKING + logged: browser password managers autofill
+  // even off-screen hidden fields, so a filled honeypot must never drop a real lead
+  // (PRODUCT_STANDARDS — observed live: a real 54s submit had hp=true via autofill).
+  if (typeof d.hp_field === "string" && d.hp_field.trim() !== "") {
+    console.warn("seafields register: honeypot filled (non-blocking, likely autofill)");
+  }
+  if (typeof d.elapsed_ms === "number" && d.elapsed_ms < 2500) {
+    console.warn("seafields register bot trap (time):", { elapsed: d.elapsed_ms });
     return NextResponse.json({ success: true });
   }
 
