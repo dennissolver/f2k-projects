@@ -485,7 +485,7 @@ export default function RegistrationForm() {
   }
 
   const inputClass =
-    "w-full border border-black/10 px-4 py-2.5 font-archivo text-sm text-deep-blue focus:outline-none focus:border-[#00B5AD] transition-colors bg-white";
+    "w-full border border-black/10 px-4 py-3 min-h-[44px] font-archivo text-base text-deep-blue focus:outline-none focus:border-[#00B5AD] transition-colors bg-white";
   const labelClass =
     "block text-deep-blue font-semibold font-archivo text-sm mb-1";
   const selectClass = inputClass;
@@ -1043,7 +1043,7 @@ export default function RegistrationForm() {
                                   e.target.value,
                                 )
                               }
-                              className="w-full border border-black/10 px-3 py-2 font-archivo text-sm text-deep-blue focus:outline-none focus:border-[#00B5AD] transition-colors bg-white"
+                              className="w-full border border-black/10 px-3 py-3 min-h-[44px] font-archivo text-base text-deep-blue focus:outline-none focus:border-[#00B5AD] transition-colors bg-white"
                             >
                               <option value="">— Select —</option>
                               {DWELLING_TYPES.map((t) => (
@@ -1074,7 +1074,7 @@ export default function RegistrationForm() {
                                     e.target.value,
                                   )
                                 }
-                                className="w-full border border-black/10 px-3 py-2 font-archivo text-sm text-deep-blue focus:outline-none focus:border-[#00B5AD] transition-colors bg-white"
+                                className="w-full border border-black/10 px-3 py-3 min-h-[44px] font-archivo text-base text-deep-blue focus:outline-none focus:border-[#00B5AD] transition-colors bg-white"
                               >
                                 <option value="">— None / single home —</option>
                                 {DWELLING_TYPES.map((t) => (

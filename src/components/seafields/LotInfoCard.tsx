@@ -133,10 +133,14 @@ export default function LotInfoCard({
                    </div>
                  )}
 
-               {publicRow?.land_total != null &&
-                 publicRow.land_total > 0 &&
-                 (publicRow.land_only ||
-                   (publicRow.total_price != null && publicRow.total_price > 0)) && (
+               {/* Serviced-land-only price ONLY for lots that are actually land-only. For an
+                  H&L / dual-occ lot (land_only=false), retail_price is the PACKAGE total, not a
+                  land price — showing it here labelled "Serviced Land Only" mis-stated the
+                  package as raw land (e.g. Lot 238 dual-occ showed land-only at the $933,400
+                  package price). Gating on land_only fixes that without changing any figure. */}
+              {publicRow?.land_only &&
+                 publicRow.land_total != null &&
+                 publicRow.land_total > 0 && (
                    <div className="bg-gradient-to-r from-white/5 to-white/0 border border-white/20 rounded px-3 py-2.5">
                      <div className="flex items-baseline justify-between gap-2">
                        <span className="text-white/70 text-xs font-semibold uppercase tracking-wide">
