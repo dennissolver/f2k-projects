@@ -13,31 +13,40 @@ html {
    /seafields/employers 2026-06-15). Let the rows wrap and the panel/input shrink so
    nothing overflows (no clipping). Shared by every embedded mount via a containment class. */
 .dev-voice-widget,
-.emp-voice-widget {
+.emp-voice-widget,
+.estate-voice-widget {
   overflow-x: clip;
 }
 .dev-voice-widget .convai-launch--inline,
 .dev-voice-widget .convai-panel--embedded,
 .emp-voice-widget .convai-launch--inline,
-.emp-voice-widget .convai-panel--embedded {
+.emp-voice-widget .convai-panel--embedded,
+.estate-voice-widget .convai-launch--inline,
+.estate-voice-widget .convai-panel--embedded,
+.estate-voice-widget .convai-panel {
   max-width: 100%;
   min-width: 0;
 }
 .dev-voice-widget .convai-row,
 .dev-voice-widget .convai-fallback,
 .emp-voice-widget .convai-row,
-.emp-voice-widget .convai-fallback {
+.emp-voice-widget .convai-fallback,
+.estate-voice-widget .convai-row,
+.estate-voice-widget .convai-fallback {
   flex-wrap: wrap;
 }
 .dev-voice-widget .convai-fallback input,
-.emp-voice-widget .convai-fallback input {
+.emp-voice-widget .convai-fallback input,
+.estate-voice-widget .convai-fallback input {
   min-width: 0;
   flex: 1 1 8rem;
 }
 .dev-voice-widget .convai-btn,
 .dev-voice-widget .convai-transcript,
 .emp-voice-widget .convai-btn,
-.emp-voice-widget .convai-transcript {
+.emp-voice-widget .convai-transcript,
+.estate-voice-widget .convai-btn,
+.estate-voice-widget .convai-transcript {
   max-width: 100%;
 }
 

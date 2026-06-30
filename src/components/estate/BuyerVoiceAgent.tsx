@@ -93,7 +93,7 @@ export default function BuyerVoiceAgent({ estate }: { estate: EstateVoiceContext
   );
 
   return (
-    <div className="bg-[#1A2744] text-white p-6 sm:p-8 rounded">
+    <div className="estate-voice-widget bg-[#1A2744] text-white p-6 sm:p-8 rounded">
       <div className="mb-5">
         <p className="font-ibm-mono text-xs tracking-[0.4em] uppercase text-[#00B5AD] mb-2">
           Talk to {CONCIERGE_NAME}
