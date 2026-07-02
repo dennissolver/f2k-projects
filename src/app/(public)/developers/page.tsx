@@ -40,9 +40,180 @@ export default function DevelopersPage() {
         </div>
       </section>
 
-      {/* ===== HOW IT WORKS ===== */}
+      {/* ===== THE F2K ESTATE PROCESS (end-to-end offer) ===== */}
       <section className="bg-white border-b border-black/5">
-        <div className="max-w-[1100px] mx-auto px-4 py-10">
+        <div className="max-w-[1100px] mx-auto px-4 py-16">
+          <p className="font-ibm-mono text-[0.65rem] tracking-[0.4em] uppercase text-[#00B5AD] mb-4">
+            How it works, end to end
+          </p>
+          <h2 className="font-playfair text-[clamp(1.75rem,3.5vw,2.5rem)] font-black text-deep-blue leading-tight mb-4 max-w-3xl">
+            We prove your estate up before anyone spends big.
+          </h2>
+          <p className="font-archivo text-slate leading-relaxed mb-12 max-w-2xl">
+            Factory2Key doesn&apos;t just build homes — we de-risk the whole
+            estate. We validate real demand with real buyers first, so the
+            project you take to market is one the market has already told us it
+            wants. Here&apos;s the journey, start to finish.
+          </p>
+
+          <ol className="space-y-8">
+            {[
+              {
+                step: "1",
+                title: "List your estate — and we prove up the plan",
+                body: "You tell us about your estate on this page. If you don't have a master plan yet, we develop one for you. If you do, we cross-check it against the site — confirming it's feasible and actually allowed on the property (zoning, planning rules, and site constraints) before anyone commits.",
+              },
+              {
+                step: "2",
+                title: "We build your estate page",
+                body: "We create a dedicated, professionally-presented page for your estate — the homes, the vision and the opportunity, ready to put in front of the market.",
+              },
+              {
+                step: "3",
+                title: "We engage local agents to promote it",
+                body: "We bring trusted local real-estate agents on board to take the estate to their networks and their buyers, right where the demand is.",
+              },
+              {
+                step: "4",
+                title: "We gather waitlist registrations and read the real signals",
+                body: "As interest comes in, we capture waitlist registrations and cross-check them against genuine market signals — real buyer intent, not guesswork. You get an honest read on demand.",
+              },
+              {
+                step: "5",
+                title: "Go, adjust, or stop — then we activate",
+                body: "From that evidence we decide together whether the estate stands as it is, needs reshaping to suit the market, or shouldn't proceed. Once it's proven up, we firm up the waitlist page, move interested buyers through the sales pipeline we've built, and engage funders to help support the project.",
+              },
+            ].map((s) => (
+              <li key={s.step} className="flex gap-5">
+                <div className="shrink-0 h-11 w-11 rounded-full bg-[#00B5AD] text-white font-playfair font-black text-lg flex items-center justify-center">
+                  {s.step}
+                </div>
+                <div className="pt-1">
+                  <h3 className="font-archivo font-bold text-deep-blue text-lg mb-1.5">
+                    {s.title}
+                  </h3>
+                  <p className="font-archivo text-slate leading-relaxed max-w-2xl">
+                    {s.body}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ===== WHAT F2K BRINGS (the tangible value: platform + home pipeline) ===== */}
+      <section className="bg-[#1A2744] text-white">
+        <div className="max-w-[1100px] mx-auto px-4 py-16">
+          <p className="font-ibm-mono text-[0.65rem] tracking-[0.4em] uppercase text-[#00B5AD] mb-4">
+            What we bring to the table
+          </p>
+          <h2 className="font-playfair text-[clamp(1.75rem,3.5vw,2.5rem)] font-black leading-tight mb-4 max-w-3xl">
+            A whole platform and a home pipeline — not just a page.
+          </h2>
+          <p className="font-archivo text-white/60 leading-relaxed mb-12 max-w-2xl">
+            Everything above runs on tooling and supply we&apos;ve already built.
+            You get the marketing platform, the buyer and partner portals, and a
+            factory-built home pipeline that gives you cost certainty — end to
+            end.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Pillar A — the estate platform */}
+            <div className="bg-white/[0.04] border border-white/10 rounded-lg p-8">
+              <h3 className="font-archivo font-bold text-white text-xl mb-2">
+                The estate platform
+              </h3>
+              <p className="font-archivo text-sm text-white/55 leading-relaxed mb-6">
+                A purpose-built web platform for your estate — far more than a
+                brochure site. Every party in the deal gets their own view.
+              </p>
+              <ul className="space-y-3">
+                {[
+                  "Interactive lot map with live lot details — pricing, sizes, status and availability",
+                  "Buyer waitlist and registrations captured, tracked and managed for you",
+                  "Agent portal — local agents see masked availability and register their own buyers",
+                  "Developer portal — your own dashboard of interest, registrations and progress",
+                  "Funder portal — an invite-only, login-gated data room where only authorised funders you approve can see the numbers",
+                  "Reporting and analytics on genuine demand signals, not guesswork",
+                ].map((item) => (
+                  <li key={item} className="flex gap-3">
+                    <svg
+                      className="w-4 h-4 text-[#00B5AD] shrink-0 mt-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.5"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span className="font-archivo text-sm text-white/80 leading-relaxed">
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Pillar B — the modular home pipeline */}
+            <div className="bg-white/[0.04] border border-white/10 rounded-lg p-8">
+              <h3 className="font-archivo font-bold text-white text-xl mb-2">
+                The F2K modular home pipeline
+              </h3>
+              <p className="font-archivo text-sm text-white/55 leading-relaxed mb-6">
+                Behind the platform sits a real supply chain of quality
+                factory-built homes — so your estate has product to sell and a
+                cost you can count on.
+              </p>
+              <ul className="space-y-3">
+                {[
+                  "Architecturally-designed modular homes ready to populate your estate",
+                  "Factory-built for cost certainty and predictable delivery timelines",
+                  "A pipeline of quality homes — consistent, repeatable, and proven",
+                  "House-and-land packages buyers can register interest in from day one",
+                  "Design flexibility to match the estate's market and price points",
+                  "One coordinated partner across land, homes and delivery",
+                ].map((item) => (
+                  <li key={item} className="flex gap-3">
+                    <svg
+                      className="w-4 h-4 text-[#00B5AD] shrink-0 mt-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.5"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span className="font-archivo text-sm text-white/80 leading-relaxed">
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== GETTING STARTED (the intake — all you do right now) ===== */}
+      <section className="bg-off-white border-b border-black/5">
+        <div className="max-w-[1100px] mx-auto px-4 py-12">
+          <p className="font-ibm-mono text-[0.65rem] tracking-[0.4em] uppercase text-[#00B5AD] mb-4">
+            Getting started is simple
+          </p>
+          <h2 className="font-playfair text-[1.75rem] font-black text-deep-blue leading-tight mb-8 max-w-2xl">
+            All you need to do today is tell us about it.
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
@@ -62,7 +233,7 @@ export default function DevelopersPage() {
               },
             ].map((s) => (
               <div key={s.step} className="flex gap-4">
-                <div className="shrink-0 h-9 w-9 rounded-full bg-[#00B5AD] text-white font-playfair font-black flex items-center justify-center">
+                <div className="shrink-0 h-9 w-9 rounded-full bg-deep-blue text-white font-playfair font-black flex items-center justify-center">
                   {s.step}
                 </div>
                 <div>
